@@ -12,7 +12,7 @@ It also provides options to easily connect to cloud-based databases like Amazon 
 Recently, an **AI Assistant** plugin has been added, making it even more convenient and efficient to write queries.
 This feature helps developers enhance their productivity when working with data.
 In this article, we will discuss **driver errors** that may occur when connecting to **Amazon RDS** using JetBrains DataGrip and explore solutions to resolve them.
-This content has been translated and enhanced using **ChatGPT**.
+This translation was provided with the assistance of **ChatGPT**.
 
 <!--more-->
 
