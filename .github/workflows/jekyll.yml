@@ -34,7 +34,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Bundler # Explicitly installing the specified version of Bundler based on other comments
-        run: gem install bundler:2.5.23
+        run: |
+          gem install --user-install bundler:2.5.23
+          echo 'export PATH="$HOME/.gem/ruby/3.1.0/bin:$PATH"' >> $GITHUB_ENV
       - name: Setup Ruby
         uses: ruby/setup-ruby@8575951200e472d5f2d95c625da0c7bec8217c42 # v1.161.0
         with:
