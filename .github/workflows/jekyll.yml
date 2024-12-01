@@ -39,13 +39,6 @@ jobs:
           ruby-version: '3.1' # Not needed with a .ruby-version file
           bundler-cache: true # runs 'bundle install' and caches installed gems automatically
           cache-version: 0 # Increment this number if you need to re-download cached gems
-      - name: Upgrade Bundler
-        run: |
-          gem install bundler:2.5.23 # 필요한 Bundler 버전 설치
-          gem uninstall bundler -v 2.3.26 -a -x || true # 기존 Bundler 제거
-          echo 'export PATH="$HOME/.gem/ruby/3.1.0/bin:$PATH"' >> $GITHUB_ENV
-          bundle _2.5.23_ --version # 올바른 버전 확인
-          bundle _2.5.23_ install # 종속성 설치
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
