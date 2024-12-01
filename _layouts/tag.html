@@ -1,0 +1,14 @@
+---
+layout: default
+archives: true
+---
+
+<article class="page">
+    <h1 class="page-title">Archive</h1>
+    <h3>{{ page.title }}</h3>
+    <ul class="archive">
+        {% for post in page.posts %}
+            <li>{{ post.date | date:"%Y" }} <a href="{% if post.link %}{{ post.link }}{% else %}{{ post.url }}{% endif %}">{{ post.title }}</a></li>
+        {% endfor %}
+    </ul>
+</article>

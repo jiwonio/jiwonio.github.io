@@ -1,0 +1,43 @@
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% if page.meta %}{{ page.meta }}{% else %}I make stuff for the web, and occasionally ramble about it here.{% endif %}">
+
+    <title>
+        {% if page.title == "Home" %}
+            Jiwon Min &middot; Developer
+        {% elsif layout.archives %}
+            Archive &middot; Jiwon Min
+        {% else %}
+            {{ page.title }} &middot; Jiwon Min
+        {% endif %}
+    </title>
+
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/styles.css">
+
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Jiwon" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <link rel="alternate" href="/rss.xml" title="{{ site.title }}" type="application/rss+xml">
+
+    {% if page.canonical %}
+        <link rel="canonical" href="{{ page.canonical }}" />
+    {% endif %}
+
+    <script>
+        /* TODO: Google Analytics
+        var _gaq=[['_setAccount','UA-12345678-0'],['_setDomainName','blog.jiwon.io'],['_trackPageview']];
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = 'https://ssl.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+        */
+    </script>
+</head>

@@ -1,0 +1,25 @@
+---
+layout: default
+title: Archive
+---
+
+<article class="page">
+    <h1 class="page-title">Archive</h1>
+    <h3>Year</h3>
+    <ul class="archive">
+        {% for post in site.posts %}
+            {% assign date = post.date | date: "%Y" %}
+            {% if current_date != date %}
+                <li><a href="{{ site.url }}/archive/{{ date }}/">{{ date }}</a></li>
+                {% assign current_date = date %}
+            {% endif %}
+        {% endfor %}
+    </ul>
+    <h3>Tag</h3>
+    <ul class="archive">
+        {% assign sorted_tags = site.tags | sort %}
+        {% for tag in sorted_tags %}
+            <li><a href="{{ site.url }}/archive/tag/{{ tag | first }}">{{ tag | first }}</a></li>
+        {% endfor %}
+    </ul>
+</article>

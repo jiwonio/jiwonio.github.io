@@ -1,0 +1,22 @@
+---
+layout: null
+---
+
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+    <channel>
+        <title>Jiwon Min</title>
+        <link>{{ site.url }}</link>
+        <description>I make stuff for the web, and occasionally ramble about it here.</description>
+        <lastBuildDate>{{ site.time | date_to_xmlschema }}</lastBuildDate>
+        {% for post in site.posts %}
+        <item>
+            <title>{{ post.title | xml_escape }}</title>
+            <link>{% if post.link %}{{ post.link }}{% else %}{{ site.url }}{{ post.url }}{% endif %}</link>
+            <description>{{ post.meta }}</description>
+            <guid>{% if post.link %}{{ post.link }}{% else %}{{ site.url }}{{ post.url }}{% endif %}</guid>
+            <pubDate>{{ post.date | date_to_xmlschema }}</pubDate>
+        </item>
+        {% endfor %}
+    </channel>
+</rss>

@@ -1,0 +1,47 @@
+// Layout
+//
+// Styles for managing the structural hierarchy of the site.
+
+.container {
+  max-width: 38rem;
+  padding-left:  1.5rem;
+  padding-right: 1.5rem;
+  margin-left:  auto;
+  margin-right: auto;
+}
+
+footer {
+  margin-bottom: 2rem;
+
+  img {
+    width: 4rem;
+    height: 4rem;
+    float: left;
+
+    @media only screen
+    and (min-device-width : 320px)
+    and (max-device-width : 480px) {
+      float: none;
+      display: block;
+      margin: 1rem auto;
+    }
+  }
+
+  ul {
+    padding: 0;
+    margin: 0 0 0 1rem;
+    list-style: none;
+    float: left;
+    font-size: 0.9rem;
+
+
+    @media only screen
+    and (min-device-width : 320px)
+    and (max-device-width : 480px) {
+      text-align: center;
+      float: none;
+      display: block;
+      margin: 0;
+    }
+  }
+}
