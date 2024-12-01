@@ -41,9 +41,9 @@ jobs:
           cache-version: 0 # Increment this number if you need to re-download cached gems
       - name: Install Bundler # Explicitly installing the specified version of Bundler based on other comments
         run: |
-          gem install bundler:2.5.23
-          echo 'export PATH="$HOME/.gem/ruby/3.1.0/bin:$PATH"' >> $GITHUB_ENV
-          bundle _2.5.23_ install
+          gem uninstall bundler -a -x # 기존 Bundler를 모두 언인스톨
+          gem install bundler:2.5.23 # 원하는 버전으로 Bundler를 설치
+          bundle _2.5.23_ install --path vendor/bundle # 명시된 Bundler 버전으로 설치
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
