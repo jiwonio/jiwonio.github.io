@@ -17,7 +17,7 @@ This translation was provided with the assistance of **Microsoft Copilot**.
 
 <!--more-->
 
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">제목과 첫 문단은 영어가 멋있어요.</small>
+<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://jiwonio.medium.com/ "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 <img src="/uploads/nodejs-installation-failure/nodejs.png" alt="node.js" />
 
