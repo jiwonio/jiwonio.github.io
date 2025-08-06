@@ -14,7 +14,7 @@ This translation was provided with the assistance of **Microsoft Copilot**.
 
 <!--more-->
 
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://jiwonio.medium.com/ "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
+<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 <img src="/uploads/multiple-wsl2-instances/server.jpg" alt="Multiple WSL2 Instances" />
 
@@ -36,7 +36,7 @@ PHP를 개발할 때는 [MAMP](https://www.mamp.info/ "MAMP"){:target="_blank"}�
 이 글에서는 여러 개발 환경 설정 방법 중에서도 특히 Windows 11의 [WSL2](https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux "Windows Subsystem for Linux"){:target="_blank"}를 이용한 개발 환경 설정 방법에 대해 자세히 알아보겠습니다. 
 WSL2를 통해 보다 쉽게 격리된 환경을 구축하고 관리하는 방법을 소개하여, 여러분의 개발 생산성을 높이는 데 도움을 드리고자 합니다.
 
-## WSL 사용 설정
+### WSL 사용 설정
 
 Windows 11에서 **Windows Subsystem for Linux(WSL)**를 사용하려면, 먼저 관련된 기능을 켜서 레지스트리에 등록해야 합니다. 
 이 기능을 활성화하지 않으면 WSL 설치 도중에 `wslregisterdistribution failed with error: 0x800701bc` 또는 `wslregisterdistribution failed with error: 0x80370102`와 같은 오류가 발생할 수 있습니다. 
@@ -45,9 +45,7 @@ Windows 11에서 **Windows Subsystem for Linux(WSL)**를 사용하려면, 먼저
 먼저, Windows 기능에서 '**Linux용 Windows 하위 시스템**' 및 '**가상 머신 플랫폼**'을 활성화해야 합니다. 이 두 가지 기능은 WSL2가 올바르게 작동하기 위해 필수적입니다. 
 기능을 활성화한 후 시스템을 재부팅하면, 필요한 레지스트리 설정이 완료되어 WSL을 문제없이 설치할 수 있습니다.
 
-<div style="display:grid;">
-    <img src="/uploads/multiple-wsl2-instances/windows-features.png" alt="Windows features on or off" style="justify-self:center;" />
-</div>
+![Windows features on or off](/uploads/multiple-wsl2-instances/windows-features.png)
 
 <div style="display:flex;gap:0.5rem;flex-direction:row;margin:1rem auto 0;max-width:100%;">
     <div>
@@ -63,13 +61,11 @@ Windows 11에서 **Windows Subsystem for Linux(WSL)**를 사용하려면, 먼저
 이를 통해 WSL 환경이 최신 상태로 유지되며, 잠재적인 오류를 방지할 수 있습니다. 
 모든 준비가 완료되면, 이제 다양한 Linux 배포판을 설치하고 개발 환경을 구성할 수 있습니다.
 
-## WSL 배포판 설치
+### WSL 배포판 설치
 
 WSL 설치할 준비는 모두 완료되었으므로, 배포판을 설치해보겠습니다.
 
-<div style="display:grid;">
-    <img src="/uploads/multiple-wsl2-instances/wsl-installable-list.png" alt="WSL Installable List" style="justify-self:center;" />
-</div>
+![WSL Installable List](/uploads/multiple-wsl2-instances/wsl-installable-list.png)
 <p style="text-align:center;color:gray;"><small>WSL 설치 가능 배포판</small></p>
 
 `wsl -l -o` 명령어로 설치 가능한 배포판 이미지를 확인할 수 있습니다. 
@@ -84,7 +80,7 @@ Ubuntu, Debian, Kali Linux 등 여러 옵션을 확인할 수 있습니다.
 이제 원하는 Linux 배포판을 선택하고 설치하여 WSL 환경에서 다양한 개발 작업을 시작해 보세요. 
 각각의 배포판은 고유한 특성과 도구를 제공하므로, 프로젝트에 가장 적합한 배포판을 선택하는 것이 중요합니다.
 
-## 같은 종류의 리눅스 다중 설치
+### 같은 종류의 리눅스 다중 설치
 
 *2024년 12월* 기준으로 `wsl --install` 명령어를 입력하면 기본 배포판인 **Ubuntu**가 설치됩니다.
 설치되는 버전은 가장 최신의 LTS 버전인 **Ubuntu 24.04.1 LTS**입니다. 이 이미지를 설치한 후, 기본적인 설정을 마치고 나면 해당 이미지를 `export` 명령어로 내보내어 추후에 다시 `import` 명령어를 사용해 재생성할 수 있습니다.
@@ -100,9 +96,7 @@ wsl --import Ubuntu-clean .\Ubuntu-clean .\Ubuntu-clean.tar
 이후 `wsl -l -v` 명령어를 입력하면 현재 설치된 WSL 배포판 목록을 확인할 수 있습니다. 
 아래 이미지는 설치 완료된 이미지 목록을 보여줍니다. 이후에는 `wsl -d Ubuntu-clean` 명령어를 입력하여 특정 배포판을 실행 할 수 있습니다.
 
-<div style="display:grid;">
-    <img src="/uploads/multiple-wsl2-instances/wsl-installed-list.png" alt="WSL Installed List" style="justify-self:center;" />
-</div>
+![WSL Installed List](/uploads/multiple-wsl2-instances/wsl-installed-list.png)
 <p style="text-align:center;color:gray;"><small>설치 완료 된 이미지</small></p>
 
 이렇게 설치된 각각의 이미지마다 개발 환경을 별도로 구성하면 다양한 실험과 테스트를 진행할 수 있습니다.
@@ -126,7 +120,7 @@ wsl --import Ubuntu-clean .\Ubuntu-clean .\Ubuntu-clean.tar
 결론적으로, WSL2를 이용한 다중 인스턴스 환경은 개발자들에게 유연성과 확장성을 제공하며, 다양한 실험과 테스트를 손쉽게 수행할 수 있는 강력한 도구가 됩니다. 
 이렇게 설정된 환경을 통해 개발 생산성을 극대화하고, 다양한 시나리오에 대한 검증을 보다 체계적으로 수행할 수 있습니다.
 
-## 참고문헌
+### 참고문헌
 
 - [WSL을 사용하여 Windows에 Linux를 설치하는 방법](https://learn.microsoft.com/ko-kr/windows/wsl/install "WSL을 사용하여 Windows에 Linux를 설치하는 방법"){:target="_blank"}
 - [WSL-Error-0x80370102-해결](https://velog.io/@jaylnne/WSL-Error-0x80370102-해결 "wslregisterdistribution failed with error: 0x80370102"){:target="_blank"}

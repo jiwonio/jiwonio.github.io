@@ -16,7 +16,7 @@ This translation was provided by **Microsoft Copilot**.
 
 <!--more-->
 
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://jiwonio.medium.com/ "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
+<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 <img src="/uploads/ubuntu22-swap-memory/ram.jpg" alt="Random Access Memory" />
 
@@ -44,7 +44,7 @@ This translation was provided by **Microsoft Copilot**.
 
 스왑 메모리라는 개념은 우분투와 같은 리눅스나 유닉스에만 있는 개념이 아닙니다. 윈도우에도 가상 메모리라는 이름으로 활용되고 있고, 저사양 PC에서 유용하게 활용되고 있습니다.
 
-## 스왑 메모리 설정
+### 스왑 메모리 설정
 
 1. 스왑 메모리가 설정되어 있는 지 확인
    ```shell
@@ -85,7 +85,7 @@ This translation was provided by **Microsoft Copilot**.
 6. 스왑 메모리 설정 완료
    <img src="/uploads/ubuntu22-swap-memory/complete-make-swapfile.png" alt="Complete make swapfile">
 
-## 스왑 메모리 비활성화
+### 스왑 메모리 비활성화
 
 스왑 메모리를 더 이상 사용하지 않는 경우 비활성화 합니다.
 ```shell
@@ -100,6 +100,6 @@ sudo nano /etc/fstab
 sudo rm /swapfile 
 ```
 
-## 참고문헌
+### 참고문헌
 - 위키피디아 : [가상 메모리](https://en.wikipedia.org/wiki/Virtual_memory "가상 메모리"){:target="_blank"}
 - 위키피디아 : [메모리 관리 기법 - 페이징](https://en.wikipedia.org/wiki/Memory_paging "메모리 관리 기법 - 페이징"){:target="_blank"}

@@ -16,7 +16,7 @@ This translation was provided with the assistance of **ChatGPT**.
 
 <!--more-->
 
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://jiwonio.medium.com/ "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
+<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 <img src="/uploads/cloudflare-invalid-ssl/ssl-tls-https.jpg" alt="SSL/TLS HTTPS Background" />
 
@@ -50,19 +50,19 @@ This translation was provided with the assistance of **ChatGPT**.
     - GitHub Pages에서 Enforce HTTPS 옵션이 비활성화되어 있거나, DNS 설정이 올바르지 않다면 원본 서버가 HTTPS 연결을 제공하지 못할 수 있습니다. 
       이 경우 Cloudflare는 인증서 검증을 수행하지 못하고 Full (strict) 모드에서 연결이 중단됩니다.
 
-## Full 모드에서 작동하는 이유
+### Full 모드에서 작동하는 이유
 
 반면, Cloudflare의 Full 모드는 인증서의 신뢰성을 검증하지 않고, 단순히 서버와 클라이언트 간의 암호화가 활성화되었는지만 확인합니다. 
 원본 서버가 유효하지 않거나 자체 서명된 인증서를 제공하더라도, Full 모드는 이를 허용합니다. 
 이는 보안이 완벽하게 보장되지는 않지만, 더 넓은 호환성을 제공하기 위해 설계된 방식입니다.
 
-## 왜 이런 문제가 발생할까?
+### 왜 이런 문제가 발생할까?
 
 GitHub Pages는 개인 프로젝트나 간단한 웹사이트를 위한 호스팅 플랫폼으로, SSL 인증서 설정이 대부분 자동으로 이루어집니다. 
 이러한 자동화된 설정은 일반적인 사용자 요구에는 충분하지만, 기업 환경이나 고급 보안 요구 사항을 충족하는 데에는 제한적일 수 있습니다. 
 Cloudflare의 Full (strict) 모드는 이러한 자동화 설정의 사소한 결함이라도 발견하면 연결을 차단하도록 설계되어 있어, 이 두 시스템 간의 충돌이 발생하는 것입니다.
 
-## 해결 방법
+### 해결 방법
 
 1. **GitHub Pages SSL 상태 확인**
    - GitHub Pages 설정에서 Enforce HTTPS 옵션을 활성화하여 HTTPS 연결이 강제되도록 설정합니다.
@@ -82,13 +82,13 @@ Cloudflare의 Full (strict) 모드는 이러한 자동화 설정의 사소한 �
 5. **Cloudflare Origin CA 인증서로 대체**
    - Full (strict) 모드의 보안 수준이 필요하다면, GitHub Pages 대신 Cloudflare Origin CA 인증서를 사용하는 별도 서버를 구성하는 것도 고려할 수 있습니다.
 
-## 결론
+### 결론
 
 Full 모드에서 작동하고 Full (strict) 모드에서 실패하는 이유는, GitHub Pages의 SSL 인증서가 Cloudflare의 엄격한 검증 조건을 충족하지 못하기 때문입니다. 
 대부분의 경우, GitHub Pages의 SSL 설정을 다시 확인하거나 Cloudflare 캐시를 초기화하면 문제가 해결됩니다. 
 Full (strict)을 반드시 사용해야 한다면, GitHub Pages와 Cloudflare 설정을 면밀히 점검해야 합니다.
 
-## 참고문헌
+### 참고문헌
 
  - [Qualys SSL Labs](https://www.ssllabs.com/ "SSL Labs"){:target="_blank"}
  - [Let's Encrypt CAA Record](https://letsencrypt.org/docs/caa/ "Let's Encrypt"){:target="_blank"}

@@ -15,12 +15,13 @@ body {
 }
 
 html {
-  font-family: "Source Sans Pro", Helvetica, Arial, sans-serif;
-  font-size: 16px;
+  font-family: "Noto Sans KR", sans-serif;
+  font-optical-sizing: auto;
+  font-size: 15px;
   line-height: 1.5;
 
   @media (min-width: 38em) {
-    font-size: 18px;
+    font-size: 15px;
   }
 }
 
@@ -50,7 +51,7 @@ a {
 img {
   display: block;
   max-width: 100%;
-  margin: 0 0 1rem;
+  margin: 0 auto 1rem;
   border-radius: 5px;
 }
 

@@ -16,7 +16,7 @@ This translation was provided with the assistance of **ChatGPT**.
 
 <!--more-->
 
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://jiwonio.medium.com/ "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
+<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 <img src="/uploads/datagrip-driver-error/cloud-database.jpg" alt="Cloud Databases" />
 
@@ -36,7 +36,7 @@ This translation was provided with the assistance of **ChatGPT**.
 데이터베이스 연결 과정에서 겪는 작은 오류 하나도 개발 프로세스에 큰 영향을 미칠 수 있기 때문에 문제의 근본 원인을 파악하고 적절한 해결책을 찾는 것이 중요합니다.
 이제 본문에서 이러한 문제를 해결하기 위한 구체적인 단계들을 차례대로 알아보겠습니다.
 
-## 드라이버 에러
+### 드라이버 에러
 
 ```
 DBMS: MySQL (no ver.)
@@ -44,16 +44,14 @@ Case sensitivity: plain=mixed, delimited=exact
 NotAfter: Wed Jun 01 12:00:00 UTC 2022.
 ```
 
-<div style="display:grid;">
-   <img src="/uploads/datagrip-driver-error/failed.png" alt="MySQL connection failed" style="justify-self:center;">
-</div>
+![MySQL connection failed](/uploads/datagrip-driver-error/failed.png)
 
 <p style="text-align:center;color:gray;"><small>Amazon RDS 연결 시, 드라이버 에러</small></p>
 
 MySQL 드라이버를 정상적으로 연결하지 못해서 지속적으로 연결 실패가 뜹니다.
 자세한 에러 메시지를 확인하기 위해서는 DataGrip 로그 메시지를 확인해야 합니다.
 
-## DataGrip 로그 확인
+### DataGrip 로그 확인
 
 ```shell
 # DataGrip 로그 파일
@@ -71,7 +69,7 @@ DataGrip 로그 파일 내에서 `Connecting to: jdbc:mysql://{HOST}:3306` 으�
 
 **TLS** 통신 과정에서 문제가 있는 것으로 보이고, 개인적인 생각으로는 Amazon RDS 인스턴스 설정 중에 **스토리지 암호화** 값이 활성화되어 있는 경우에 문제가 생기는 것으로 보입니다.
 
-## 1. javax.net.ssl.SSLHandshakeException
+<h3 style="word-wrap: break-word;">1. javax.net.ssl.SSLHandshakeException</h3>
 
 이 오류는 보통 SSL/TLS 설정과 관련이 있으며, 클라이언트와 서버 간의 인증 문제에서 발생합니다.
 
@@ -92,7 +90,7 @@ DataGrip 로그 파일 내에서 `Connecting to: jdbc:mysql://{HOST}:3306` 으�
    - 연결 설정 중 Advanced 에서 useSSL 값을 FALSE 으로 변경
      <img src="/uploads/datagrip-driver-error/usessl-false.png" alt="useSSL false">
 
-## 2. [08S01] Communications link failure
+### 2. [08S01] Communications link failure
 
 이 오류는 네트워크 연결 문제로 인해 클라이언트가 Amazon RDS 인스턴스에 접근할 수 없을 때 발생합니다.
 
@@ -107,21 +105,21 @@ DataGrip 로그 파일 내에서 `Connecting to: jdbc:mysql://{HOST}:3306` 으�
 
 3. DNS 및 호스트 확인:
    - 연결 URL에서 사용한 RDS 호스트 이름이 올바른지 확인합니다.<br/>
-     예: jdbc:mysql://your-instance-name.region.rds.amazonaws.com:3306.
+     예: <span style="word-wrap: break-word;">jdbc:mysql://your-instance-name.region.rds.amazonaws.com:3306.</span>
 
 보안 연결을 해제하는 방법이나 스토리지 암호화를 비활성화하는 쉬운 방법도 있겠습니다만,
 암호화를 설정하는 않는 것은 기본적으로 권장되는 사항이 아니기 때문에 추천하지는 않습니다.
 또 다른 방법으로 **Amazon Aurora MySQL**, **MariaDB** 드라이버를 사용하는 방법도 있는 것 같습니다.
 하지만 올바른 드라이버를 사용하는 것이 안정적인 운영에 도움이 되기 때문에 권장되는 방법을 사용하는 것이 좋습니다.
 
-## 연결 성공
+### 연결 성공
 
 <div style="display:flex;flex-direction:row;justify-content:center;">
    <img src="/uploads/datagrip-driver-error/dbms-connection.png" alt="DBMS connection">
 </div>
 <p style="text-align:center;color:gray;"><small>데이터베이스 연결 성공</small></p>
 
-## 참고문헌
+### 참고문헌
 
 - [Amazon RDS](https://aws.amazon.com/rds/ "Amazon RDS"){:target="_blank"} - [MySQL Community 5.7.38](https://dev.mysql.com/doc/refman/5.7/en/ "MySQL 5.7"){:target="_blank"}
 - DataGrip Log : [https://intellij-support.jetbrains.com/hc/en-us/community/posts/10252570443282-Datagrip-cannot-access-containerized-database](https://stackoverflow.com/questions/22544754/failed-to-build-gem-native-extension-installing-compass "Datagrip-cannot-access-containerized-database"){:target="_blank"}

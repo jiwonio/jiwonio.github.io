@@ -7,9 +7,9 @@
 5. Clone {{ `$ git clone [REPOSITORY]` }}
 6. Install {{ `$ bundle install` }}
 7. Start {{ `$ bundle exec jekyll serve` }}
-- Error {{ `$ bundle add webrick` }}
+
 - Ignore ***baseurl*** {{ `$ bundle exec jekyll serve --baseurl=""` }}
-- GitHub Pages gem update {{ `$ bundle update github-pages` }}
+- Allow incoming connections on all network interfaces {{ `$ bundle exec jekyll serve --host=0.0.0.0` }}
 
 ### Reference:
 

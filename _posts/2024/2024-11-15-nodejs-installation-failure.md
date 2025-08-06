@@ -17,7 +17,7 @@ This translation was provided with the assistance of **Microsoft Copilot**.
 
 <!--more-->
 
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://jiwonio.medium.com/ "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
+<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 <img src="/uploads/nodejs-installation-failure/nodejs.png" alt="node.js" />
 
@@ -40,34 +40,28 @@ Windows 11에서 **Node.js**를 설치할 때 추가 패키지 설치와 관련�
 Windows 11 에서 Node.js 설치 중 추가 패키지 설치 오류 관련해서 위와 같은 메시지를 받은 경우 해결 방법입니다.
 이 글은 초보자와 경험 많은 개발자 모두가 설치 과정에서 흔히 겪는 문제를 명확하고 실행 가능한 해결책으로 제공하는 것을 목표로 합니다.
 
-<div style="display:grid;">
-    <img src="/uploads/nodejs-installation-failure/automatically-install.png" alt="Automatically install" style="justify-self:center;" />
-</div>
+![Automatically install](/uploads/nodejs-installation-failure/automatically-install.png)
 <p style="text-align:center;color:gray;"><small>node.js 설치중에 필요한 도구 설치</small></p>
 
 Node.js 설치 중에는 위와 같이, 설치에 필요한 부가적인 필수 항목들을 인스톨 할 수 있도록 도와주는 옵션이 존재합니다.
 계속해서 진행하는 경우, 보통의 경우에는 정상적으로 설치가 되어야 합니다.
 
-<div style="display:grid;">
-    <img src="/uploads/nodejs-installation-failure/necessary-tools-installing.png" alt="Necessary tools installing" style="justify-self:center;" />
-</div>
+![Necessary tools installing](/uploads/nodejs-installation-failure/necessary-tools-installing.png)
 <p style="text-align:center;color:gray;"><small>필요한 도구 설치중</small></p>
 
-<div style="display:grid;">
-    <img src="/uploads/nodejs-installation-failure/installation-failure.png" alt="Installation failure" style="justify-self:center;" />
-</div>
+![Installation failure](/uploads/nodejs-installation-failure/installation-failure.png)
 <p style="text-align:center;color:gray;"><small>설치중 오류 발생</small></p>
 
 Node.js 사용에 필요한 추가 도구를 설치하기 위한 CMD 화면이 표시되고, PowerShell 을 이용하여 설치가 진행됩니다. 
 설치 중에 위와 같은 에러가 표시되고 아무리 다시 실행해봐도 클린 설치가 되지 않습니다.
 
-## 1. Chocolaty 재설치
+### 1. Chocolaty 재설치
 
  - C:\ProgramData\chocolaty 디렉터리로 이동하여 해당 디렉터리를 삭제합니다.
    Node.js를 재설치하면 chocolaty와 필요한 도구들도 함께 재설치됩니다.
    <img src="/uploads/nodejs-installation-failure/chocolatey.png" alt="Chocolatey folder" />
 
-## 2. Visual Studio Build Tools 설치
+### 2. Visual Studio Build Tools 설치
 
  - 최신 버전의 [Visual Studio 2019 - Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=visual%20studio%202019 "Build Tools for Visual Studio 2019"){:target="_blank"}를 다운로드하고 설치합니다.
    <img src="/uploads/nodejs-installation-failure/download-build-tools.png" alt="Download build tools" />
@@ -79,7 +73,7 @@ Node.js 사용에 필요한 추가 도구를 설치하기 위한 CMD 화면이 �
    ```
    <img src="/uploads/nodejs-installation-failure/upgrade-vctools.png" alt="Upgrade vctools" />
 
-## 설치완료
+### 설치완료
 
 Node.js 설치 및 필요한 패키지 설치를 모두 완료했습니다! 
 이제 개발 환경이 준비되었습니다. 
@@ -112,12 +106,10 @@ Node.js 설치 및 필요한 패키지 설치를 모두 완료했습니다!
 
 이제 Windows 11에서 Node.js와 필요한 도구들이 설치 및 설정되었습니다. 개발을 시작할 준비가 완료되었습니다. 즐거운 코딩 되세요!
 
-<div style="display:grid;">
-   <img src="/uploads/nodejs-installation-failure/upgrade-successful.png" alt="Upgrade successful" style="justify-self:center;" />
-</div>
+![Upgrade successful](/uploads/nodejs-installation-failure/upgrade-successful.png)
 <p style="text-align:center;color:gray;"><small>설치 완료</small></p>
 
-## 참고문헌
+### 참고문헌
 
 - [Windows 11 (Version 22H2)](https://en.wikipedia.org/wiki/Windows_11 "Windows 11"){:target="_blank"}
 - [Node.js 18.x LTS (includes npm 9.6.7)](https://nodejs.org/docs/latest-v18.x/api/index.html "Node.js 18.x LTS"){:target="_blank"}
