@@ -17,7 +17,7 @@ I plan to gradually fill in more interesting stories as I go along.
 
 <!--more-->
 
-<img src="/uploads/style-guide/style-guide.png" alt="style guide" />
+![style guide](/uploads/style-guide/style-guide.png)
 
 ### 1. Code
 

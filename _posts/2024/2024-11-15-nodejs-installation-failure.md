@@ -19,7 +19,7 @@ This translation was provided with the assistance of **Microsoft Copilot**.
 
 <small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
-<img src="/uploads/nodejs-installation-failure/nodejs.png" alt="node.js" />
+![node.js](/uploads/nodejs-installation-failure/nodejs.png)
 
 <p style="text-align:center;opacity:0.8;">
     <small>&copy; <a href="https://pixabay.com/" title="Pixabay" target="_blank">Pixabay</a></small>
@@ -59,19 +59,19 @@ Node.js 사용에 필요한 추가 도구를 설치하기 위한 CMD 화면이 �
 
  - C:\ProgramData\chocolaty 디렉터리로 이동하여 해당 디렉터리를 삭제합니다.
    Node.js를 재설치하면 chocolaty와 필요한 도구들도 함께 재설치됩니다.
-   <img src="/uploads/nodejs-installation-failure/chocolatey.png" alt="Chocolatey folder" />
+   ![Chocolatey folder](/uploads/nodejs-installation-failure/chocolatey.png)
 
 ### 2. Visual Studio Build Tools 설치
 
  - 최신 버전의 [Visual Studio 2019 - Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=visual%20studio%202019 "Build Tools for Visual Studio 2019"){:target="_blank"}를 다운로드하고 설치합니다.
-   <img src="/uploads/nodejs-installation-failure/download-build-tools.png" alt="Download build tools" />
-   <img src="/uploads/nodejs-installation-failure/msbuild-tools.png" alt="MSBuild tools download" />
-   <img src="/uploads/nodejs-installation-failure/install-msbuild-tools.png" alt="Install msbuild tools" />
+   ![Download build tools](/uploads/nodejs-installation-failure/download-build-tools.png)
+   ![MSBuild tools download](/uploads/nodejs-installation-failure/msbuild-tools.png)
+   ![Install msbuild tools](/uploads/nodejs-installation-failure/install-msbuild-tools.png)
  - 설치가 완료되면 다음 명령어를 실행하여 visualstudio2019-workload-vctools를 [업그레이드](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools#upgrade "Choco upgrade"){:target="_blank"}합니다:
    ```shell
    choco upgrade visualstudio2019-workload-vctools -y
    ```
-   <img src="/uploads/nodejs-installation-failure/upgrade-vctools.png" alt="Upgrade vctools" />
+   ![Upgrade vctools](/uploads/nodejs-installation-failure/upgrade-vctools.png)
 
 ### 설치완료
 

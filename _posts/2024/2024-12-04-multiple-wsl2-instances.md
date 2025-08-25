@@ -16,7 +16,7 @@ This translation was provided with the assistance of **Microsoft Copilot**.
 
 <small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
-<img src="/uploads/multiple-wsl2-instances/server.jpg" alt="Multiple WSL2 Instances" />
+![Multiple WSL2 Instances](/uploads/multiple-wsl2-instances/server.jpg)
 
 <p style="text-align:center;opacity:0.8;">
     <small>&copy; <a href="https://unsplash.com/" title="Unsplash" target="_blank">Unsplash</a></small>

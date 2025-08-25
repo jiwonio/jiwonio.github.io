@@ -18,7 +18,7 @@ This translation was provided with the assistance of **ChatGPT**.
 
 <small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
-<img src="/uploads/datagrip-driver-error/cloud-database.jpg" alt="Cloud Databases" />
+![Cloud Databases](/uploads/datagrip-driver-error/cloud-database.jpg)
 
 <p style="text-align:center;opacity:0.8;">
     <small>&copy; <a href="https://pixabay.com/" title="Pixabay" target="_blank">Pixabay</a></small>
@@ -58,10 +58,10 @@ MySQL 드라이버를 정상적으로 연결하지 못해서 지속적으로 연
 vi ~/AppData/Local/JetBrains/DataGrip{{ VERSION }}/log/idea.log
 ```
 
-<img src="/uploads/datagrip-driver-error/ssl-handshake-exception-error.png" alt="SSL Handshake exception error">
+![SSL Handshake exception error](/uploads/datagrip-driver-error/ssl-handshake-exception-error.png)
 <p style="text-align:center;color:gray;"><small>SSLHandshakeException error</small></p>
 
-<img src="/uploads/datagrip-driver-error/communications-link-failure.png" alt="Communications line failure">
+![Communications line failure](/uploads/datagrip-driver-error/communications-link-failure.png)
 <p style="text-align:center;color:gray;"><small>Communications link failure</small></p>
 
 DataGrip 로그 파일 내에서 `Connecting to: jdbc:mysql://{HOST}:3306` 으로 검색하거나 연결을 시도한 Host 주소를 검색해서 어떤 에러가 발생했는 지 확인할 수 있습니다.
@@ -88,7 +88,7 @@ DataGrip 로그 파일 내에서 `Connecting to: jdbc:mysql://{HOST}:3306` 으�
 
 4. SSL 연결 해제:
    - 연결 설정 중 Advanced 에서 useSSL 값을 FALSE 으로 변경
-     <img src="/uploads/datagrip-driver-error/usessl-false.png" alt="useSSL false">
+     ![useSSL false](/uploads/datagrip-driver-error/usessl-false.png)
 
 ### 2. [08S01] Communications link failure
 

@@ -18,7 +18,7 @@ This translation was provided with the assistance of **ChatGPT**.
 
 <small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
-<img src="/uploads/cloudflare-invalid-ssl/ssl-tls-https.jpg" alt="SSL/TLS HTTPS Background" />
+![SSL/TLS HTTPS Background](/uploads/cloudflare-invalid-ssl/ssl-tls-https.jpg)
 
 <p style="text-align:center;opacity:0.8;">
     <small>&copy; <a href="https://pixabay.com/" title="Pixabay" target="_blank">Pixabay</a></small>

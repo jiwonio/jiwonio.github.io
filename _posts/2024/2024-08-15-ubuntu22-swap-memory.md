@@ -18,7 +18,7 @@ This translation was provided by **Microsoft Copilot**.
 
 <small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
-<img src="/uploads/ubuntu22-swap-memory/ram.jpg" alt="Random Access Memory" />
+![Random Access Memory](/uploads/ubuntu22-swap-memory/ram.jpg)
 
 <p style="text-align:center;opacity:0.8;">
     <small>&copy; <a href="https://unsplash.com/" title="Unsplash" target="_blank">Unsplash</a></small>
@@ -38,7 +38,7 @@ This translation was provided by **Microsoft Copilot**.
 대부분의 상용서비스 환경에서는 각각의 인프라 관리 기술을 도입해서 위와 같은 상황이 생기는 경우는 잘 없겠습니다만,
 개발 테스트나 토이프로젝트와 같은 용도로 사용하는 프리티어 정도의 낮은 사양에서는 스왑 메모리를 설정해두는 게 굉장히 편리하고 도움이 됩니다.
 
-<img src="/uploads/ubuntu22-swap-memory/windows11-virtual-memory.png" alt="Windows 11 virtual memory" />
+![Windows 11 virtual memory](/uploads/ubuntu22-swap-memory/windows11-virtual-memory.png)
 
 <p style="text-align:center;color:gray;"><small>윈도우의 가상 메모리</small></p>
 
@@ -51,7 +51,7 @@ This translation was provided by **Microsoft Copilot**.
       sudo free -m
       sudo swapon -s
    ```
-   <img src="/uploads/ubuntu22-swap-memory/check-swap-memory.png" alt="Check swap memory">
+   ![Check swap memory](/uploads/ubuntu22-swap-memory/check-swap-memory.png)
 2. 스왑 메모리가 설정되어 있다면 사용 중지
    ```shell
       sudo swapoff -a
@@ -72,7 +72,7 @@ This translation was provided by **Microsoft Copilot**.
       # 활성화
       sudo swapon /swapfile
     ```
-    <img src="/uploads/ubuntu22-swap-memory/make-swapfile.png" alt="Make swapfile">
+   ![Make swapfile](/uploads/ubuntu22-swap-memory/make-swapfile.png)
 5. 서버 리부팅 후에도 스왑 메모리를 사용할 수 있도록 설정
     ```shell
       # 파일 편집
@@ -81,9 +81,9 @@ This translation was provided by **Microsoft Copilot**.
       # 내용 추가
       /swapfile swap swap defaults 0 0
     ```
-    <img src="/uploads/ubuntu22-swap-memory/swap-setup-for-rebooting.png" alt="Swap setup for rebooting">
+   ![Swap setup for rebooting](/uploads/ubuntu22-swap-memory/swap-setup-for-rebooting.png)
 6. 스왑 메모리 설정 완료
-   <img src="/uploads/ubuntu22-swap-memory/complete-make-swapfile.png" alt="Complete make swapfile">
+   ![Complete make swapfile](/uploads/ubuntu22-swap-memory/complete-make-swapfile.png)
 
 ### 스왑 메모리 비활성화
 
