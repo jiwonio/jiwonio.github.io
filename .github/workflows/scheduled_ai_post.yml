@@ -2,27 +2,27 @@ name: Weekly AI Post Generation
 
 on:
   schedule:
-    # 매주 월요일 오전 9시 (KST 기준, UTC 00:00) 실행
     - cron: '0 0 * * 1'
-  workflow_dispatch: # 수동으로도 실행 가능하게 설정
+  workflow_dispatch:
 
 jobs:
   build-and-post:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # 커밋 및 푸시 권한 허용
+      contents: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4 # 최신 버전 유지
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5 # v4에서 v5로 업데이트 (Node 20 경고 해결)
         with:
-          python-version: '3.x'
+          python-version: '3.11' # 버전을 명시적으로 지정
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install google-generativeai
 
       - name: Run generation script
@@ -35,5 +35,5 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add _posts/*.md
-          git commit -m "Auto-generated post by Gemini AI" || echo "No changes to commit"
-          git push
+          # 수정된 사항이 있을 때만 커밋 (에러 방지)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-generated post by Gemini AI" && git push)
