@@ -7,16 +7,22 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # gh CLI 명령어를 내 계정 권한으로 실행하기 위해 방금 만든 PAT 사용
+  GH_TOKEN: ${{ secrets.MY_PAT }}
 
 jobs:
   build-and-post:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # 체크아웃할 때도 내 계정 토큰을 사용하여 푸시 권한 획득
+          token: ${{ secrets.MY_PAT }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -33,19 +39,36 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python scripts/generate_post.py
 
-      - name: Commit and Push changes
+      - name: Commit, Push and Create PR
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+          git config --local user.email "min@jiwon.io"
+          git config --local user.name "jw"
           
-          # 글이 저장되는 _posts 폴더와 썸네일 이미지가 저장되는 uploads 폴더를 함께 스테이징
+          # 글과 썸네일 이미지를 스테이징
           git add _posts/ uploads/
           
-          # 변경 사항이 있는지 확인 후 커밋 및 푸시
           if ! git diff-index --quiet HEAD; then
+            # 1. 실행할 때마다 겹치지 않는 고유한 새 브랜치 생성
+            BRANCH_NAME="ai-post-$(date +%Y%m%d-%H%M%S)"
+            git checkout -b $BRANCH_NAME
+            
+            # 2. 내 계정 이름으로 커밋
             git commit -m "Add Auto-generated post and thumbnail by AI"
-            git push
-            echo "✅ 새 글과 썸네일 이미지가 성공적으로 커밋되고 푸시되었습니다."
+            
+            # 3. 새 브랜치를 원격 저장소에 푸시
+            git push origin $BRANCH_NAME
+            
+            # 4. GitHub CLI(gh)를 사용하여 PR 열기
+            gh pr create \
+              --title "✨ [AI 자동작성] 주간 블로그 포스트 발행" \
+              --body "Gemini AI가 작성하고 썸네일 이미지를 생성한 블로그 포스트입니다. (자동 PR 및 머지)" \
+              --base gh-pages \
+              --head $BRANCH_NAME
+              
+            # 5. 리뷰 없이 즉시 자동 머지 (YOLO, Pull Shark 뱃지 카운트 누적)
+            gh pr merge $BRANCH_NAME --merge --auto --delete-branch
+            
+            echo "✅ 새 브랜치 생성, PR 오픈, 그리고 자동 머지까지 완료되었습니다!"
           else
             echo "⚠️ 커밋할 새로운 변경 사항이 없습니다."
           fi
