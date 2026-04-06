@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Building a Production-Ready Local Development Environment with Docker Compose"
+date: 2026-04-06 15:10:17 +0900
 meta: "Docker와 Docker Compose를 활용하여 '내 PC에서만 동작하는' 문제를 해결하는 방법을 알아봅니다. Python Django, PostgreSQL, Redis를 포함하는 다중 컨테이너 개발 환경을 구축하여 프로덕션과 유사한 환경을 구성하는 실용적인 가이드를 제공합니다."
 tags:
   - tech
