@@ -1,4 +1,5 @@
 permalink: /posts/:title/
+timezone: Asia/Seoul
 
 paginate: 5
 paginate_path: '/page/:num/'
