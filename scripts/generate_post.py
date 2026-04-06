@@ -6,6 +6,30 @@ from datetime import datetime, timezone, timedelta
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
+def get_recent_titles(limit=50):
+    """기존 발행된 포스트의 제목들을 읽어와 중복을 방지하기 위한 리스트 반환"""
+    files_list = []
+    for root, dirs, files in os.walk('_posts'):
+        for file in files:
+            if file.endswith('.md'):
+                files_list.append(os.path.join(root, file))
+    
+    # 파일명 기준 내림차순 정렬 (최신 글부터)
+    files_list.sort(reverse=True)
+    
+    titles = []
+    for filepath in files_list[:limit]:
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                content = f.read()
+                # 정규식으로 title 추출
+                title_match = re.search(r'title:\s*"([^"]+)"', content) or re.search(r"title:\s*'([^']+)'", content)
+                if title_match:
+                    titles.append(title_match.group(1))
+        except Exception:
+            continue
+    return titles
+
 def generate_blog_post():
     # KST (한국 표준시) 설정: UTC + 9시간
     kst = timezone(timedelta(hours=9))
@@ -14,10 +38,23 @@ def generate_blog_post():
     today_date = today.strftime("%Y-%m-%d")
     current_time = today.strftime("%Y-%m-%d %H:%M:%S +0900")
     
+    # 최근 50개의 포스트 제목을 가져옵니다.
+    recent_titles = get_recent_titles(50)
+    recent_titles_str = "\n    ".join([f"- {t}" for t in recent_titles]) if recent_titles else "- 아직 작성된 글이 없습니다."
+    
     # 100% 한국어로 작성하고, <!--more-->로 자르며, [HERO_IMAGE] 위치를 지정하는 완벽한 프롬프트
     prompt = f"""
     당신은 숙련된 서버 엔지니어이자 풀스택 웹 개발자입니다. 
     최신 웹 개발 트렌드, 서버 인프라 구축, 클라우드(AWS), Python/Django, Node.js, PHP 활용, 개발 환경 설정 등 전문적인 IT 기술 주제 중 하나를 스스로 무작위로 선정하여 완성된 블로그 포스트를 작성해 주세요.
+
+    **[🔥 매우 중요: 주제 중복 방지]**
+    아래는 최근에 블로그에 작성된 글의 제목들입니다. **아래 목록에 있는 주제나 이와 매우 유사한 내용은 절대 다시 작성하지 마세요.** 완전히 새롭고 다른 카테고리의 주제를 선정하세요.
+    {recent_titles_str}
+
+    **[💎 매우 중요: 최고 수준의 퀄리티(양질의 글)]**
+    - 단순한 개념 요약이나 누구나 아는 초보적인 튜토리얼은 작성하지 마세요.
+    - 실무에서 겪는 트러블슈팅, 메모리 누수 해결, 대용량 트래픽 처리 아키텍처, 성능 최적화 등 '시니어 개발자/서버 엔지니어' 수준의 깊이 있는 인사이트를 작성하세요.
+    - 현업에서 즉시 적용 가능한 수준의 구체적이고 실용적인 코드 예시, 설정 파일(yaml, conf 등), 베스트 프랙티스를 풍부하게 담아주세요.
 
     반드시 아래의 **'블로그 작성 가이드라인'**을 완벽하게 준수해야 합니다. 마크다운 코드 외에 다른 부가적인 설명이나 인사말은 절대 출력하지 마세요.
 
