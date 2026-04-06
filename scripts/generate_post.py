@@ -2,7 +2,7 @@ import os
 from google import genai
 from datetime import datetime
 
-# API 설정 (새로운 Client 방식)
+# API 설정
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 def generate_blog_post():
@@ -15,30 +15,29 @@ def generate_blog_post():
     title: "[여기에 제목 작성]"
     date: """ + datetime.now().strftime("%Y-%m-%d %H:%M:%S +0900") + """
     categories: tech
-    tags: [AI, Automation]
+    tags: [AI, Automation, Gemini3]
     ---
     [여기에 마크다운 형식으로 본문 작성]
     """
 
-    # 모델 호출 (모델명 앞에 'models/'를 붙이지 않아도 됩니다)
+    # 모델 호출: gemini-3.0-flash로 업데이트
     response = client.models.generate_content(
-        model="gemini-2.0-flash", # 혹은 "gemini-1.5-pro"
+        model="gemini-3-flash", # 2.0 대신 3버전 사용
         contents=prompt
     )
     
     content = response.text
 
-    # 파일명 생성 (YYYY-MM-DD-ai-post.md)
+    # 파일명 생성 및 저장
     today = datetime.now().strftime("%Y-%m-%d")
     filename = f"_posts/{today}-ai-generated-post.md"
 
-    # 폴더가 없으면 생성 (안전장치)
     os.makedirs("_posts", exist_ok=True)
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write(content)
     
-    print(f"✅ Post generated successfully: {filename}")
+    print(f"✅ Post generated successfully using Gemini 3 Flash: {filename}")
 
 if __name__ == "__main__":
     generate_blog_post()
