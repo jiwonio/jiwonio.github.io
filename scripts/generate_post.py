@@ -84,6 +84,7 @@ def generate_blog_post():
 
     ### 4. 본문 (Korean Main Content)
     - 본문은 '~습니다', '~합니다' 체의 정중하고 전문적인 문체를 사용하세요.
+    - **[🚨 매우 중요: 외부 이미지 사용 금지]** 본문 내에 가짜 외부 이미지 URL(예: `![설명](https://...)`)을 절대 삽입하지 마세요. 404 에러가 발생하는 것을 막기 위함입니다. 시각적 설명이 필요하다면 이미지 대신 마크다운 표(Table)나 코드 블록을 활용하세요. 이미지는 오직 `[HERO_IMAGE]` 하나만 허용됩니다.
     - **가독성 및 SEO:** 검색 엔진이 이해하기 쉽도록 `##` (H2 태그)와 `###` (H3 태그)를 의미에 맞게 계층적으로 사용하세요.
     - **강조:** 중요한 키워드나 개념은 `**굵게(Bold)**` 처리하여 독자의 시선이 머물게 하세요.
     - **인라인 코드:** 명령어, 변수명 등은 백틱(`)으로 감싸세요.
@@ -116,6 +117,10 @@ def generate_blog_post():
             if content.endswith("```"):
                 content = content[:-3]
             content = content.strip()
+
+            # 🚨 안전장치: AI가 무시하고 만들어낸 가짜 외부 이미지 링크(환각)를 정규식으로 완벽히 제거
+            # 형식: ![설명](http://...) 또는 ![설명](https://...)
+            content = re.sub(r'!\[[^\]]*\]\(https?://[^\)]+\)', '', content)
 
             # Front Matter에서 title과 slug를 각각 추출
             title_match = re.search(r'title:\s*"([^"]+)"', content)
