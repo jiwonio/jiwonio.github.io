@@ -19,7 +19,6 @@ title: Archive
     <ul class="archive">
         {% assign sorted_tags = site.tags | sort %}
         {% for tag in sorted_tags %}
-            <!-- 링크 주소에 slugify 필터를 추가하고 끝에 / 를 붙여줍니다 -->
             <li><a href="{{ site.url }}/archive/tag/{{ tag | first | slugify }}/">{{ tag | first }}</a></li>
         {% endfor %}
     </ul>
