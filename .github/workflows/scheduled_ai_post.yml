@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install google-generativeai
+          pip install google-genai  # 새로운 라이브러리로 변경
 
       - name: Run generation script
         env:
