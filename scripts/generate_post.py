@@ -75,7 +75,7 @@ def generate_blog_post():
 
     try:
         response = client.models.generate_content(
-            model="gemini-3.0-flash", 
+            model="gemini-2.5-pro", 
             contents=prompt
         )
         
