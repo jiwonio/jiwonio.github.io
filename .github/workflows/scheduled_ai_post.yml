@@ -25,6 +25,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install google-genai  # 새로운 라이브러리로 변경
 
+      - name: List Available Gemini Models
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python -c "import os; from google import genai; client = genai.Client(api_key=os.environ['GEMINI_API_KEY']); print('--- Available Models ---'); [print(m.name) for m in client.models.list() if 'generateContent' in m.supported_generation_methods]"
+          
       - name: Run generation script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
