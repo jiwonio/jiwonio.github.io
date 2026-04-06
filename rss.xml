@@ -13,7 +13,7 @@ layout: null
         <item>
             <title>{{ post.title | xml_escape }}</title>
             <link>{% if post.link %}{{ post.link }}{% else %}{{ site.url }}{{ post.url }}{% endif %}</link>
-            <description>{{ post.meta }}</description>
+            <description>{{ post.description | default: post.meta | xml_escape }}</description>
             <guid>{% if post.link %}{{ post.link }}{% else %}{{ site.url }}{{ post.url }}{% endif %}</guid>
             <pubDate>{{ post.date | date_to_xmlschema }}</pubDate>
         </item>
