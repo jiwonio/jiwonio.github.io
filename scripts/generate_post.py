@@ -1,5 +1,6 @@
 import os
 import re
+import time
 from google import genai
 from datetime import datetime
 
@@ -31,7 +32,7 @@ def generate_blog_post():
 
     ### 2. 도입부 (English Intro)
     - Front Matter 바로 아래에는 `meta` 내용과 유사한 길이의 **영문 도입부**를 작성하세요.
-    - 영문 도입부의 마지막 문장은 반드시 다음 문구로 끝내세요: "This post was generated with the assistance of **Gemini 3.0**."
+    - 영문 도입부의 마지막 문장은 반드시 다음 문구로 끝내세요: "This post was generated with the assistance of **Gemini**."
     - 영문 도입부가 끝나면 반드시 빈 줄을 하나 두고 `` 태그를 삽입하세요.
 
     ### 3. Medium 동시 발행 문구
@@ -73,44 +74,61 @@ def generate_blog_post():
     - 글의 맨 마지막에는 `### 참고문헌` 소제목을 넣고, 리스트 형태로 링크를 정리하세요. (링크 포맷은 본문과 동일하게 `{:target="_blank"}` 적용)
     """
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-pro", 
-            contents=prompt
-        )
-        
-        # 모델 응답 텍스트에서 불필요한 마크다운 코드 블록 마커(```markdown 등) 제거
-        content = response.text.strip()
-        if content.startswith("```markdown"):
-            content = content[11:]
-        elif content.startswith("```"):
-            content = content[3:]
-        if content.endswith("```"):
-            content = content[:-3]
-        content = content.strip()
+    max_retries = 3  # 최대 재시도 횟수
 
-        # Front Matter에서 title을 추출하여 파일명으로 활용 (예: My Python Project -> my-python-project)
-        title_match = re.search(r"title:\s*'([^']+)'", content)
-        if title_match:
-            raw_title = title_match.group(1)
-            # 영어 알파벳과 숫자만 남기고 나머지는 하이픈으로 치환
-            slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_title.lower()).strip('-')
-            filename = f"_posts/{today_date}-{slug}.md"
-        else:
-            filename = f"_posts/{today_date}-ai-generated-post.md"
+    for attempt in range(1, max_retries + 1):
+        try:
+            print(f"🔄 AI 글쓰기 API 요청 중... (시도 {attempt}/{max_retries})")
+            
+            response = client.models.generate_content(
+                model="gemini-2.5-pro", 
+                contents=prompt
+            )
+            
+            content = response.text.strip()
+            
+            # 마크다운 블록 기호 제거 처리
+            if content.startswith("```markdown"):
+                content = content[11:]
+            elif content.startswith("```"):
+                content = content[3:]
+            if content.endswith("```"):
+                content = content[:-3]
+            content = content.strip()
 
-        os.makedirs("_posts", exist_ok=True)
+            # Front Matter에서 title을 추출하여 파일명으로 활용
+            title_match = re.search(r"title:\s*'([^']+)'", content)
+            if title_match:
+                raw_title = title_match.group(1)
+                slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_title.lower()).strip('-')
+                filename = f"_posts/{today_date}-{slug}.md"
+            else:
+                filename = f"_posts/{today_date}-ai-generated-post.md"
 
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(content)
-        
-        print(f"✅ Post generated successfully: {filename}")
+            os.makedirs("_posts", exist_ok=True)
 
-    except Exception as e:
-        print(f"❌ Error during generation: {e}")
-        print("\n--- 🔍 사용 가능한 전체 모델 목록 ---")
-        for m in client.models.list():
-            print(f" - {m.name}")
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(content)
+            
+            print(f"✅ Post generated successfully: {filename}")
+            break  # 성공 시 반복문 탈출
+
+        except Exception as e:
+            error_msg = str(e)
+            # 503 서버 혼잡 에러인 경우 대기 후 재시도
+            if "503" in error_msg or "UNAVAILABLE" in error_msg:
+                print(f"⚠️ 503 에러 발생 (서버 혼잡). 15초 후 재시도합니다...")
+                if attempt < max_retries:
+                    time.sleep(15)  # 15초 대기
+                else:
+                    print("❌ 최대 재시도 횟수를 초과하여 글쓰기에 실패했습니다. 나중에 다시 시도해주세요.")
+            else:
+                # 503이 아닌 다른 에러(권한, 오타 등)는 즉시 중단하고 원인 출력
+                print(f"❌ Error during generation: {e}")
+                print("\n--- 🔍 사용 가능한 전체 모델 목록 ---")
+                for m in client.models.list():
+                    print(f" - {m.name}")
+                break
 
 if __name__ == "__main__":
     generate_blog_post()
