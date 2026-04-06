@@ -2,18 +2,20 @@ import os
 import re
 import time
 from google import genai
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
 def generate_blog_post():
-    # 현재 연도와 날짜 추출
-    today = datetime.now()
+    # KST (한국 표준시) 설정: UTC + 9시간
+    kst = timezone(timedelta(hours=9))
+    today = datetime.now(kst)
     year = today.strftime("%Y")
     today_date = today.strftime("%Y-%m-%d")
+    current_time = today.strftime("%Y-%m-%d %H:%M:%S +0900")
     
     # 100% 한국어로 작성하고, <!--more-->로 자르며, [HERO_IMAGE] 위치를 지정하는 완벽한 프롬프트
-    prompt = """
+    prompt = f"""
     당신은 숙련된 서버 엔지니어이자 풀스택 웹 개발자입니다. 
     최신 웹 개발 트렌드, 서버 인프라 구축, 클라우드(AWS), Python/Django, Node.js, PHP 활용, 개발 환경 설정 등 전문적인 IT 기술 주제 중 하나를 스스로 무작위로 선정하여 완성된 블로그 포스트를 작성해 주세요.
 
@@ -22,11 +24,12 @@ def generate_blog_post():
     ## [블로그 작성 가이드라인]
 
     ### 1. Front Matter (YAML)
-    반드시 아래 형식을 지켜서 작성하세요. 값들은 홑따옴표(')로 감싸야 합니다.
+    반드시 아래 형식을 지켜서 작성하세요. 값들은 큰따옴표(")로 감싸야 하며, 제목 내부에 큰따옴표를 또 사용하지 마세요.
     ---
     layout: post
-    title: '여기에 영어 제목 작성 (Title Case 형식)'
-    meta: '포스트의 핵심 내용을 요약한 한글 2~3문장.'
+    title: "여기에 영어 제목 작성 (Title Case 형식)"
+    date: {current_time}
+    meta: "포스트의 핵심 내용을 요약한 한글 2~3문장."
     tags:
       - tech
       - 태그1
@@ -75,14 +78,21 @@ def generate_blog_post():
                 content = content[:-3]
             content = content.strip()
 
-            # Front Matter에서 title을 추출하여 슬러그 생성 (예: My Django Post -> my-django-post)
-            title_match = re.search(r"title:\s*'([^']+)'", content)
+            # Front Matter에서 title을 추출하여 슬러그 생성 (예: "My Django Post" -> my-django-post)
+            # 큰따옴표(")를 사용하는 것으로 정규식 변경
+            title_match = re.search(r'title:\s*"([^"]+)"', content)
             if title_match:
                 raw_title = title_match.group(1)
                 slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_title.lower()).strip('-')
             else:
-                raw_title = "AI Generated Tech Post"
-                slug = "ai-generated-tech-post"
+                # 홑따옴표로 작성했을 경우에 대한 대비책
+                title_match_fallback = re.search(r"title:\s*'([^']+)'", content)
+                if title_match_fallback:
+                    raw_title = title_match_fallback.group(1)
+                    slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_title.lower()).strip('-')
+                else:
+                    raw_title = "AI Generated Tech Post"
+                    slug = "ai-generated-tech-post"
 
             # 2. 썸네일 이미지 자동 생성 (Imagen 4.0 모델 사용)
             image_md = ""
