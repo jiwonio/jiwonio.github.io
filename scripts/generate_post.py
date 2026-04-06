@@ -24,11 +24,12 @@ def generate_blog_post():
     ## [블로그 작성 가이드라인]
 
     ### 1. Front Matter (YAML)
-    반드시 아래 형식을 지켜서 작성하세요. `title`과 `meta`의 값은 반드시 큰따옴표(")로 감싸야 합니다.
+    반드시 아래 형식을 지켜서 작성하세요. `title`, `slug`, `meta`의 값은 반드시 큰따옴표(")로 감싸야 합니다.
     **[중요 주의사항]** `title`과 `meta` 내용 내부에는 절대 큰따옴표(")를 사용하지 마세요. 강조가 필요하다면 작은따옴표(')를 사용하세요. (YAML 파싱 에러 방지)
     ---
     layout: post
-    title: "여기에 영어 제목 작성 (Title Case 형식)"
+    title: "여기에 매력적인 한글 제목 작성"
+    slug: "english-title-for-url-slug"
     date: {current_time}
     meta: "포스트의 핵심 내용을 요약한 한글 2~3문장. (내부에 큰따옴표 절대 금지)"
     tags:
@@ -79,28 +80,30 @@ def generate_blog_post():
                 content = content[:-3]
             content = content.strip()
 
-            # Front Matter에서 title을 추출하여 슬러그 생성 (예: "My Django Post" -> my-django-post)
-            # 큰따옴표(")를 사용하는 것으로 정규식 변경
+            # Front Matter에서 title과 slug를 각각 추출
             title_match = re.search(r'title:\s*"([^"]+)"', content)
+            slug_match = re.search(r'slug:\s*"([^"]+)"', content)
+            
             if title_match:
                 raw_title = title_match.group(1)
-                slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_title.lower()).strip('-')
             else:
-                # 홑따옴표로 작성했을 경우에 대한 대비책
                 title_match_fallback = re.search(r"title:\s*'([^']+)'", content)
-                if title_match_fallback:
-                    raw_title = title_match_fallback.group(1)
-                    slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_title.lower()).strip('-')
-                else:
-                    raw_title = "AI Generated Tech Post"
-                    slug = "ai-generated-tech-post"
+                raw_title = title_match_fallback.group(1) if title_match_fallback else "AI 생성 기술 포스트"
+
+            # slug 추출 및 파일명에 사용할 수 있도록 정제
+            if slug_match:
+                raw_slug = slug_match.group(1)
+                slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_slug.lower()).strip('-')
+            else:
+                slug = "ai-generated-tech-post"
 
             # 2. 썸네일 이미지 자동 생성 (Imagen 4.0 모델 사용)
             image_md = ""
             try:
                 print(f"🎨 '{raw_title}' 주제로 썸네일 이미지 생성 중...")
-                # AI에게 이미지 생성을 요청할 프롬프트 (영어 권장)
-                image_prompt = f"A modern, high quality conceptual illustration for an IT tech blog post titled: '{raw_title}'. Clean vector art style, abstract representation of server, code, or cloud computing. Dark background."
+                # AI에게 이미지 생성을 요청할 프롬프트 (영어 slug를 활용하여 더 정확한 이미지 유도)
+                clean_english_topic = slug.replace('-', ' ')
+                image_prompt = f"A modern, high quality conceptual illustration for an IT tech blog post about: '{clean_english_topic}'. Clean vector art style, abstract representation of server, code, or cloud computing. Dark background."
                 
                 # 이미지 생성 API 호출
                 image_result = client.models.generate_images(
