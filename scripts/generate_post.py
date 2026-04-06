@@ -3,6 +3,14 @@ import re
 import time
 from google import genai
 from datetime import datetime, timezone, timedelta
+from io import BytesIO
+
+# 이미지 압축을 위해 PIL(Pillow) 모듈 임포트
+try:
+    from PIL import Image
+except ImportError:
+    print("⚠️ Pillow 라이브러리가 설치되지 않았습니다. 이미지를 원본으로 저장합니다.")
+    Image = None
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -38,11 +46,11 @@ def generate_blog_post():
     today_date = today.strftime("%Y-%m-%d")
     current_time = today.strftime("%Y-%m-%d %H:%M:%S +0900")
     
-    # 최근 50개의 포스트 제목을 가져옵니다.
+    # 최근 포스트 제목 가져오기
     recent_titles = get_recent_titles(50)
     recent_titles_str = "\n    ".join([f"- {t}" for t in recent_titles]) if recent_titles else "- 아직 작성된 글이 없습니다."
     
-    # 100% 한국어로 작성하고, <!--more-->로 자르며, [HERO_IMAGE] 위치를 지정하는 완벽한 프롬프트
+    # [수정] meta -> description 변경, 고정 카테고리 풀 제공
     prompt = f"""
     당신은 숙련된 서버 엔지니어이자 풀스택 웹 개발자입니다. 
     최신 웹 개발 트렌드, 서버 인프라 구축, 클라우드(AWS), Python/Django, Node.js, PHP 활용, 개발 환경 설정 등 전문적인 IT 기술 주제 중 하나를 스스로 무작위로 선정하여 완성된 블로그 포스트를 작성해 주세요.
@@ -62,16 +70,16 @@ def generate_blog_post():
     ## [블로그 작성 가이드라인]
 
     ### 1. Front Matter (YAML)
-    반드시 아래 형식을 지켜서 작성하세요. `title`, `slug`, `meta`의 값은 반드시 큰따옴표(")로 감싸야 합니다.
-    **[중요 주의사항]** `title`과 `meta` 내용 내부에는 절대 큰따옴표(")를 사용하지 마세요. 강조가 필요하다면 작은따옴표(')를 사용하세요. (YAML 파싱 에러 방지)
+    반드시 아래 형식을 지켜서 작성하세요. `title`, `slug`, `description`의 값은 반드시 큰따옴표(")로 감싸야 합니다.
+    **[중요 주의사항]** `title`과 `description` 내용 내부에는 절대 큰따옴표(")를 사용하지 마세요. 강조가 필요하다면 작은따옴표(')를 사용하세요. (YAML 파싱 에러 방지)
     ---
     layout: post
     title: "여기에 매력적이고 검색 가능한 한글 제목 작성"
     slug: "english-title-for-url-slug"
     date: {current_time}
-    categories: [카테고리명] # 예: [Backend], [DevOps], [Frontend] 등 1~2개
+    categories: [카테고리명] # [Backend], [Frontend], [DevOps], [Cloud], [CS] 중 1~2개 선택
     tags: [태그1, 태그2, 태그3]
-    meta: "구글 검색 결과에 노출될 SEO 최적화 요약문. 핵심 키워드를 포함하여 150자 내외로 작성. (내부에 큰따옴표 절대 금지)"
+    description: "구글 검색 결과에 노출될 SEO 최적화 요약문. 핵심 키워드를 포함하여 150자 내외로 작성. (내부에 큰따옴표 절대 금지)"
     ---
 
     ### 2. 도입부 및 미리보기 자르기 (한국어 전용)
@@ -101,7 +109,7 @@ def generate_blog_post():
         try:
             print(f"🔄 AI 글쓰기 API 요청 중... (시도 {attempt}/{max_retries})")
             
-            # 1. 텍스트 생성 (가장 안정적이고 똑똑한 Gemini 2.5 Pro 사용)
+            # 1. 텍스트 생성 (Gemini 2.5 Pro)
             response = client.models.generate_content(
                 model="gemini-2.5-pro", 
                 contents=prompt
@@ -109,7 +117,7 @@ def generate_blog_post():
             
             content = response.text.strip()
             
-            # 불필요한 마크다운 블록 기호 제거
+            # 마크다운 블록 기호 제거
             if content.startswith("```markdown"):
                 content = content[11:]
             elif content.startswith("```"):
@@ -118,11 +126,10 @@ def generate_blog_post():
                 content = content[:-3]
             content = content.strip()
 
-            # 🚨 안전장치: AI가 무시하고 만들어낸 가짜 외부 이미지 링크(환각)를 정규식으로 완벽히 제거
-            # 형식: ![설명](http://...) 또는 ![설명](https://...)
+            # 🚨 가짜 이미지 링크 강제 제거
             content = re.sub(r'!\[[^\]]*\]\(https?://[^\)]+\)', '', content)
 
-            # Front Matter에서 title과 slug를 각각 추출
+            # Front Matter 추출
             title_match = re.search(r'title:\s*"([^"]+)"', content)
             slug_match = re.search(r'slug:\s*"([^"]+)"', content)
             
@@ -132,22 +139,19 @@ def generate_blog_post():
                 title_match_fallback = re.search(r"title:\s*'([^']+)'", content)
                 raw_title = title_match_fallback.group(1) if title_match_fallback else "AI 생성 기술 포스트"
 
-            # slug 추출 및 파일명에 사용할 수 있도록 정제
             if slug_match:
                 raw_slug = slug_match.group(1)
                 slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_slug.lower()).strip('-')
             else:
                 slug = "ai-generated-tech-post"
 
-            # 2. 썸네일 이미지 자동 생성 (Imagen 4.0 모델 사용)
+            # 2. 썸네일 이미지 생성 및 WebP 압축 (Imagen 4.0)
             image_md = ""
             try:
-                print(f"🎨 '{raw_title}' 주제로 썸네일 이미지 생성 중...")
-                # AI에게 이미지 생성을 요청할 프롬프트 (영어 slug를 활용하여 더 정확한 이미지 유도)
+                print(f"🎨 '{raw_title}' 주제로 썸네일 생성 중...")
                 clean_english_topic = slug.replace('-', ' ')
                 image_prompt = f"A modern, high quality conceptual illustration for an IT tech blog post about: '{clean_english_topic}'. Clean vector art style, abstract representation of server, code, or cloud computing. Dark background."
                 
-                # 이미지 생성 API 호출
                 image_result = client.models.generate_images(
                     model='imagen-4.0-generate-001',
                     prompt=image_prompt,
@@ -155,31 +159,43 @@ def generate_blog_post():
                 )
                 image_bytes = image_result.generated_images[0].image.image_bytes
                 
-                # 이미지를 저장할 uploads 하위 폴더 생성 (예: uploads/my-django-post/)
                 upload_dir = f"uploads/{slug}"
                 os.makedirs(upload_dir, exist_ok=True)
-                image_path = f"{upload_dir}/thumbnail.jpg"
                 
-                # 이미지 파일 저장
-                with open(image_path, "wb") as f:
-                    f.write(image_bytes)
+                # [수정] Pillow를 이용한 이미지 리사이징 및 WebP 저장 (저장소 용량 최적화)
+                if Image:
+                    image_path = f"{upload_dir}/thumbnail.webp"
+                    img = Image.open(BytesIO(image_bytes))
+                    
+                    # 너비 800px 기준으로 비율 맞춰 리사이징
+                    base_width = 800
+                    w_percent = (base_width / float(img.size[0]))
+                    h_size = int((float(img.size[1]) * float(w_percent)))
+                    img = img.resize((base_width, h_size), Image.Resampling.LANCZOS)
+                    
+                    # WebP 포맷으로 저장 (품질 85)
+                    img.save(image_path, "WEBP", quality=85)
+                    print(f"✅ 이미지 압축 저장 완료 (WebP): {image_path}")
+                else:
+                    # Pillow가 없으면 원본 그대로 jpg로 저장
+                    image_path = f"{upload_dir}/thumbnail.jpg"
+                    with open(image_path, "wb") as f:
+                        f.write(image_bytes)
+                    print(f"✅ 원본 이미지 저장 완료: {image_path}")
                 
-                print(f"✅ 썸네일 이미지 저장 완료: {image_path}")
-                
-                # 본문에 치환할 마크다운 이미지 태그 조립 (SEO를 위한 alt 및 title 속성 추가)
-                image_md = f"![{raw_title}](/{image_path} \"{raw_title}\")\n\n<p style=\"text-align:center;opacity:0.8;\">\n    <small>&copy; AI Generated by Imagen 4.0</small>\n</p>"
+                # SEO용 Alt/Title 추가
+                image_md = f"![{raw_title}](/{image_path} \"{raw_title}\")\n\n<p style=\"text-align:center;opacity:0.8;\">\n    <small>&copy; AI Generated Image</small>\n</p>"
                 
             except Exception as img_e:
-                print(f"⚠️ 썸네일 이미지 생성 실패 (텍스트 본문만 작성됩니다): {img_e}")
+                print(f"⚠️ 이미지 생성 실패 (본문만 작성됨): {img_e}")
             
-            # 본문에 있는 [HERO_IMAGE] 위치를 실제 이미지 태그로 치환
+            # 본문에 치환
             if "[HERO_IMAGE]" in content:
                 content = content.replace("[HERO_IMAGE]", image_md)
             else:
-                # 만약 AI가 [HERO_IMAGE]를 빼먹었다면 <!--more--> 아래에 강제로 삽입
                 content = content.replace("<!--more-->", f"<!--more-->\n\n{image_md}\n\n-----")
 
-            # 3. 연도별 폴더 생성 및 파일 저장 (_posts/2026/...)
+            # 3. 파일 저장
             post_dir = f"_posts/{year}"
             os.makedirs(post_dir, exist_ok=True)
             filename = f"{post_dir}/{today_date}-{slug}.md"
@@ -188,18 +204,15 @@ def generate_blog_post():
                 f.write(content)
             
             print(f"✅ 포스트 저장 완료: {filename}")
-            break  # 모든 과정 성공 시 반복문 탈출
+            break
 
         except Exception as e:
             error_msg = str(e)
             if "503" in error_msg or "UNAVAILABLE" in error_msg:
-                print(f"⚠️ 503 서버 혼잡 에러 발생. 15초 후 재시도합니다...")
-                if attempt < max_retries:
-                    time.sleep(15)
-                else:
-                    print("❌ 최대 재시도 횟수를 초과하여 스크립트를 종료합니다.")
+                print(f"⚠️ 503 에러. 15초 후 재시도...")
+                if attempt < max_retries: time.sleep(15)
             else:
-                print(f"❌ Error during generation: {e}")
+                print(f"❌ 생성 중 에러 발생: {e}")
                 break
 
 if __name__ == "__main__":
