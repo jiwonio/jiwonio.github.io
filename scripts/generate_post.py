@@ -64,6 +64,7 @@ def generate_blog_post():
     - 단순한 개념 요약이나 초보적인 튜토리얼은 작성하지 마세요.
     - 글의 구조는 반드시 **[도입 배경 및 문제 정의] ➡️ [핵심 아키텍처 및 원리] ➡️ [실무 적용 코드/설정 딥다이브] ➡️ [성능 최적화 및 Best Practices] ➡️ [결론]** 의 논리적 흐름을 따르세요.
     - 현업에서 즉시 적용 가능한 수준의 구체적이고 실용적인 트러블슈팅, 코드 예시, 설정 파일(yaml, conf 등)을 풍부하게 담아주세요.
+    - [🚨 보안 주의] 코드 예시나 설정 파일(yaml, json 등)을 작성할 때 Slack Webhook URL, AWS Access Key, DB 비밀번호, API Key 등 실제처럼 보이는 Secret 값은 절대 생성하지 마세요. 대신 반드시 `<YOUR_SLACK_WEBHOOK_URL>`, `https://hooks.slack.com/services/YOUR/DUMMY/TOKEN` 같이 명백한 플레이스홀더(Placeholder)를 사용하세요.
 
     반드시 아래의 **'블로그 작성 가이드라인'**을 완벽하게 준수해야 합니다. 마크다운 코드 외에 다른 부가적인 설명이나 인사말은 절대 출력하지 마세요.
 
@@ -128,6 +129,14 @@ def generate_blog_post():
 
             # 🚨 가짜 이미지 링크 강제 제거
             content = re.sub(r'!\[[^\]]*\]\(https?://[^\)]+\)', '', content)
+
+            # GitHub Secret Scanning 차단 방지 (Slack Webhook 등 더미 처리)
+            content = re.sub(
+                r'https://hooks\.slack\.com/services/[A-Za-z0-9]+/[A-Za-z0-9]+/[A-Za-z0-9]+', 
+                'https://hooks.slack.com/services/YOUR_WORKSPACE/YOUR_CHANNEL/YOUR_TOKEN', 
+                content
+            )
+            content = re.sub(r'(?i)(api_key|secret_key|password|token)\s*[:=]\s*["\'][A-Za-z0-9_-]{15,}["\']', r'\1: "YOUR_DUMMY_SECRET_HERE"', content)
 
             # Front Matter 추출
             title_match = re.search(r'title:\s*"([^"]+)"', content)
