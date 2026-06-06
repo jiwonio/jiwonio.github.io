@@ -52,8 +52,14 @@ def generate_blog_post():
     
     # [수정] meta -> description 변경, 고정 카테고리 풀 제공
     prompt = f"""
-    당신은 숙련된 서버 엔지니어이자 풀스택 웹 개발자입니다. 
-    최신 웹 개발 트렌드, 서버 인프라 구축, 클라우드(AWS), Python/Django, Node.js, PHP 활용, 개발 환경 설정 등 전문적인 IT 기술 주제 중 하나를 스스로 무작위로 선정하여 완성된 블로그 포스트를 작성해 주세요.
+    당신은 숙련된 서버 엔지니어이자 풀스택 웹 개발자이며, AI 개발 도구에도 깊은 관심을 가진 테크 블로거입니다.
+    아래의 두 가지 주제 영역 중 하나를 **무작위로** 선정하여 완성된 블로그 포스트를 작성해 주세요.
+
+    **[주제 영역 A: 전통적인 서버/웹 개발]**
+    최신 웹 개발 트렌드, 서버 인프라 구축, 클라우드(AWS), Python/Django, Node.js, PHP 활용, 개발 환경 설정 등
+
+    **[주제 영역 B: AI 개발 도구 및 에이전트]**
+    Claude Code(Anthropic의 AI 코딩 CLI), OpenAI Codex(AI 코드 생성), Grok(xAI의 AI 모델), AI 에이전트 개발(LangChain, LlamaIndex, CrewAI 등), LLM API 활용(Anthropic/OpenAI/Google API), MCP(Model Context Protocol), AI 기반 코드 리뷰/테스트 자동화, 프롬프트 엔지니어링 실전, RAG(Retrieval-Augmented Generation) 구현 등
 
     **[🔥 매우 중요: 주제 중복 방지]**
     아래는 최근에 블로그에 작성된 글의 제목들입니다. **아래 목록에 있는 주제나 이와 매우 유사한 내용은 절대 다시 작성하지 마세요.** 완전히 새롭고 다른 카테고리의 주제를 선정하세요.

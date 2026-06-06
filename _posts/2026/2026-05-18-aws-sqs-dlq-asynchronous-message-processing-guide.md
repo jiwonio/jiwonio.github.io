@@ -4,7 +4,7 @@ title: "AWS SQS와 데드 레터 큐(DLQ)를 활용한 안정적인 비동기 �
 slug: "aws-sqs-dlq-asynchronous-message-processing-guide"
 date: 2026-05-18 10:09:30 +0900
 categories: [Cloud, Backend]
-tags: [aws, sqs, dlq, message-queue, asynchronous, terraform, python, architecture]
+tags: [AWS, SQS, DLQ, Message Queue, Asynchronous, Terraform, Python, Architecture]
 description: "프로덕션 환경에서 AWS SQS와 데드 레터 큐(DLQ)를 활용하여 안정적이고 확장 가능한 비동기 메시지 처리 시스템을 구축하는 방법을 심층적으로 다룹니다. Python(boto3) 코드 예제, Terraform 설정, 성능 최적화, 모니터링 Best Practice를 포함한 실무 가이드입니다."
 ---
 

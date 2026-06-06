@@ -4,8 +4,8 @@ title: 'Dockerizing Your Web Application for Consistent Development'
 meta: '\"내 컴퓨터에서는 되는데...\" 문제를 해결하는 Docker 개발 환경 구축 방법을 알아봅니다. Dockerfile과 Docker Compose를 활용하여 일관성 있고 재현 가능한 개발 환경을 만드는 과정을 단계별로 설명합니다.'
 tags:
   - tech
-  - docker
-  - devops
+  - Docker
+  - DevOps
   - development-environment
 ---
 

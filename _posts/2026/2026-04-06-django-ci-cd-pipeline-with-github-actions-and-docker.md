@@ -118,6 +118,7 @@ jobs:
 2.  해당 사용자의 **Access Key ID**와 **Secret Access Key**를 발급받으세요.
 3.  GitHub 저장소의 `Settings > Secrets and variables > Actions` 메뉴에서 `AWS_ACCESS_KEY_ID`와 `AWS_SECRET_ACCESS_KEY`라는 이름으로 위에서 발급받은 키를 등록하세요.
 
+{% raw %}
 ```yaml
 # .github/workflows/main.yml (이어서)
 
@@ -153,6 +154,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f Dockerfile .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 ```
+{% endraw %}
 -   `needs: test`: 이 Job이 `test` Job에 의존함을 명시합니다.
 -   `aws-actions/configure-aws-credentials@v2`: GitHub Secrets에 저장된 AWS 키를 사용하여 Runner 환경에 AWS 인증을 구성합니다.
 -   `aws-actions/amazon-ecr-login@v1`: ECR에 Docker 클라이언트가 로그인하도록 합니다.
@@ -170,6 +172,7 @@ jobs:
 4.  EC2 인스턴스에 Docker와 Docker Compose를 미리 설치해 둡니다.
 5.  EC2 인스턴스가 ECR에서 이미지를 pull할 수 있도록 IAM Role을 인스턴스에 연결해주세요. (`AmazonEC2ContainerRegistryReadOnly` 권한)
 
+{% raw %}
 ```yaml
 # .github/workflows/main.yml (이어서)
 
@@ -212,6 +215,7 @@ jobs:
             cd /home/ubuntu/my-django-app
             docker-compose up -d
 ```
+{% endraw %}
 -   `appleboy/ssh-action@master`: SSH를 통해 원격 서버에서 스크립트를 실행해주는 매우 유용한 Action입니다.
 -   `script`: EC2 인스턴스에서 실행될 셸 스크립트입니다. ECR 로그인, 최신 이미지 pull, `docker-compose up -d`를 통해 컨테이너를 백그라운드로 실행하는 과정을 자동화합니다. `AWS_ACCOUNT_ID`도 Secret으로 등록해야 합니다.
 
@@ -221,6 +225,7 @@ jobs:
 매번 워크플로우가 실행될 때마다 `pip install`을 실행하는 것은 비효율적입니다. `actions/cache`를 사용하여 `pip` 캐시를 저장하고 복원하면 빌드 시간을 크게 단축할 수 있습니다.
 
 **`test` Job 수정 예시:**
+{% raw %}
 ```yaml
       - name: Cache pip dependencies
         uses: actions/cache@v3
@@ -235,6 +240,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 ```
+{% endraw %}
 `requirements.txt` 파일의 내용이 변경되지 않았다면 캐시된 의존성을 그대로 사용하게 됩니다.
 
 ### 환경 분리 (Staging vs. Production)

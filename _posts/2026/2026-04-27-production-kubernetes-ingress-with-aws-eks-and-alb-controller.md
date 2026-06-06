@@ -4,7 +4,7 @@ title: "Amazon EKS와 AWS Load Balancer Controller를 활용한 프로덕션 레
 slug: "production-kubernetes-ingress-with-aws-eks-and-alb-controller"
 date: 2026-04-27 09:59:32 +0900
 categories: [Cloud, DevOps]
-tags: [aws, eks, kubernetes, ingress, alb, load balancer controller, devops]
+tags: [AWS, EKS, Kubernetes, Ingress, ALB, Load Balancer, DevOps]
 description: "AWS EKS 환경에서 외부 트래픽을 효율적으로 관리하기 위한 'AWS Load Balancer Controller' 설치 및 설정 방법을 심층적으로 다룹니다. 프로덕션 레벨의 쿠버네티스 인그레스(Ingress)를 구축하고, SSL/TLS 적용, 헬스 체크, 고급 라우팅 등 실무 Best Practice를 완벽하게 마스터하세요."
 ---
 
