@@ -3,7 +3,7 @@ layout: post
 title: 'Essential Initial Setup Guide for Ubuntu on AWS EC2 Instances'
 meta: 'Discover the key initial setup steps for Ubuntu 22.04 LTS on AWS EC2. This guide focuses on configuring low-spec instances for development and testing environments, perfect for free tier usage.'
 tags:
-  - aws
+  - AWS
 ---
 
 When setting up a development or testing environment on AWS EC2, starting with the right configurations for your instance is essential. 

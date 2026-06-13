@@ -7,8 +7,6 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  # gh CLI 명령어를 내 계정 권한으로 실행하기 위해 발급한 PAT 사용
-  GH_TOKEN: ${{ secrets.MY_PAT }}
 
 jobs:
   build-and-post:
@@ -21,28 +19,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.MY_PAT }}
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install google-genai Pillow
+          pip install google-genai Pillow PyYAML
 
       - name: Run generation script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python scripts/generate_post.py
 
+      - name: Validate generated posts
+        run: python scripts/validate_posts.py
+
+      - name: Build Jekyll site
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build
+
       - name: Commit, Push and Create PR
+        env:
+          # PAT is scoped to the only step that pushes and merges the generated post.
+          GH_TOKEN: ${{ secrets.MY_PAT }}
         run: |
-          # 뱃지 획득을 위해 본인의 정보로 설정 (로그 확인 결과 반영)
           git config --local user.email "min@jiwon.io"
           git config --local user.name "jwjp"
+          gh auth setup-git
           
           git add _posts/ uploads/
           
@@ -53,18 +68,15 @@ jobs:
             git commit -m "Add Auto-generated post and thumbnail by AI"
             git push origin $BRANCH_NAME
             
-            # 1. PR 생성
             PR_URL=$(gh pr create \
               --title "✨ [AI 자동작성] 주간 블로그 포스트 발행" \
-              --body "Gemini AI가 작성하고 썸네일 이미지를 생성한 포스트입니다." \
+              --body "Gemini AI가 작성하고 썸네일 이미지를 생성한 포스트입니다. 게시물 검증과 Jekyll 빌드를 통과했습니다." \
               --base gh-pages \
               --head $BRANCH_NAME)
               
             echo "PR Created: $PR_URL"
 
-            # 2. 즉시 병합 (에러 방지를 위해 --auto 제거 및 --merge 사용)
-            # --admin 플래그는 혹시 모를 보호 규칙 우회를 위해 추가 (PAT 권한 필요)
-            gh pr merge $BRANCH_NAME --merge --delete-branch --admin
+            gh pr merge $BRANCH_NAME --merge --delete-branch
             
             echo "✅ PR 생성 및 즉시 병합이 완료되었습니다!"
           else

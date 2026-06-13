@@ -27,6 +27,8 @@ Gemfile.lock
 
 *.gem
 *.rbc
+__pycache__/
+*.py[cod]
 /.config
 /coverage/
 /InstalledFiles

@@ -1,7 +1,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% if page.meta %}{{ page.meta }}{% else %}I make stuff for the web, and occasionally ramble about it here.{% endif %}">
+    <meta name="description" content="{{ page.description | default: page.meta | default: 'I make stuff for the web, and occasionally ramble about it here.' | escape }}">
 
     <title>
         {% if page.title == "Home" %}

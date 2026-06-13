@@ -1,9 +1,11 @@
 import os
 import re
 import time
-from google import genai
 from datetime import datetime, timezone, timedelta
 from io import BytesIO
+
+import yaml
+from google import genai
 
 # 이미지 압축을 위해 PIL(Pillow) 모듈 임포트
 try:
@@ -13,6 +15,85 @@ except ImportError:
     Image = None
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
+FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
+REQUIRED_FIELDS = ("layout", "title", "slug", "date", "categories", "tags", "description")
+
+
+def parse_front_matter(content):
+    match = FRONT_MATTER_PATTERN.match(content)
+    if not match:
+        raise ValueError("YAML front matter가 없거나 형식이 잘못되었습니다.")
+
+    metadata = yaml.safe_load(match.group(1))
+    if not isinstance(metadata, dict):
+        raise ValueError("Front matter는 YAML mapping 형식이어야 합니다.")
+
+    missing = [field for field in REQUIRED_FIELDS if not metadata.get(field)]
+    if missing:
+        raise ValueError(f"필수 front matter 누락: {', '.join(missing)}")
+
+    if metadata["layout"] != "post":
+        raise ValueError("layout은 post여야 합니다.")
+
+    for field in ("categories", "tags"):
+        values = metadata[field]
+        if not isinstance(values, list) or not all(
+            isinstance(value, str) and value.strip() for value in values
+        ):
+            raise ValueError(f"{field}는 비어 있지 않은 문자열 목록이어야 합니다.")
+
+    return metadata
+
+
+def get_existing_tag_spellings():
+    spellings = {}
+    for root, _, files in os.walk("_posts"):
+        for file in files:
+            if not file.endswith(".md"):
+                continue
+            path = os.path.join(root, file)
+            try:
+                with open(path, "r", encoding="utf-8") as post_file:
+                    metadata = parse_front_matter(post_file.read())
+                for tag in metadata["tags"]:
+                    spellings.setdefault(tag.casefold(), tag)
+            except (OSError, UnicodeError, yaml.YAMLError, ValueError):
+                continue
+    return spellings
+
+
+def validate_generated_content(content):
+    metadata = parse_front_matter(content)
+
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", str(metadata["slug"]).lower()).strip("-")
+    if not slug:
+        raise ValueError("slug를 영문과 숫자로 생성해야 합니다.")
+
+    if "<!--more-->" not in content:
+        raise ValueError("<!--more--> 구분자가 없습니다.")
+    if "[HERO_IMAGE]" not in content:
+        raise ValueError("[HERO_IMAGE] 자리 표시자가 없습니다.")
+    if "### 참고문헌" not in content:
+        raise ValueError("참고문헌 섹션이 없습니다.")
+
+    existing_tags = get_existing_tag_spellings()
+    inconsistent_tags = [
+        tag for tag in metadata["tags"]
+        if tag.casefold() in existing_tags and tag != existing_tags[tag.casefold()]
+    ]
+    if inconsistent_tags:
+        expected = [existing_tags[tag.casefold()] for tag in inconsistent_tags]
+        raise ValueError(
+            "기존 태그와 대소문자가 다릅니다: "
+            + ", ".join(f"{tag} -> {canonical}" for tag, canonical in zip(inconsistent_tags, expected))
+        )
+
+    for root, _, files in os.walk("_posts"):
+        for file in files:
+            if file.endswith(f"-{slug}.md"):
+                raise ValueError(f"이미 존재하는 slug입니다: {slug}")
+
+    return metadata, slug
 
 def get_recent_titles(limit=50):
     """기존 발행된 포스트의 제목들을 읽어와 중복을 방지하기 위한 리스트 반환"""
@@ -111,6 +192,7 @@ def generate_blog_post():
     """
 
     max_retries = 3
+    last_error = None
 
     for attempt in range(1, max_retries + 1):
         try:
@@ -144,21 +226,8 @@ def generate_blog_post():
             )
             content = re.sub(r'(?i)(api_key|secret_key|password|token)\s*[:=]\s*["\'][A-Za-z0-9_-]{15,}["\']', r'\1: "YOUR_DUMMY_SECRET_HERE"', content)
 
-            # Front Matter 추출
-            title_match = re.search(r'title:\s*"([^"]+)"', content)
-            slug_match = re.search(r'slug:\s*"([^"]+)"', content)
-            
-            if title_match:
-                raw_title = title_match.group(1)
-            else:
-                title_match_fallback = re.search(r"title:\s*'([^']+)'", content)
-                raw_title = title_match_fallback.group(1) if title_match_fallback else "AI 생성 기술 포스트"
-
-            if slug_match:
-                raw_slug = slug_match.group(1)
-                slug = re.sub(r'[^a-zA-Z0-9]+', '-', raw_slug.lower()).strip('-')
-            else:
-                slug = "ai-generated-tech-post"
+            metadata, slug = validate_generated_content(content)
+            raw_title = str(metadata["title"])
 
             # 2. 썸네일 이미지 생성 및 WebP 압축 (Imagen 4.0)
             image_md = ""
@@ -219,16 +288,20 @@ def generate_blog_post():
                 f.write(content)
             
             print(f"✅ 포스트 저장 완료: {filename}")
-            break
+            return filename
 
         except Exception as e:
+            last_error = e
             error_msg = str(e)
             if "503" in error_msg or "UNAVAILABLE" in error_msg:
                 print(f"⚠️ 503 에러. 15초 후 재시도...")
                 if attempt < max_retries: time.sleep(15)
             else:
                 print(f"❌ 생성 중 에러 발생: {e}")
-                break
+                if attempt < max_retries:
+                    time.sleep(5)
+
+    raise RuntimeError(f"포스트 생성에 실패했습니다: {last_error}")
 
 if __name__ == "__main__":
     generate_blog_post()
