@@ -42,6 +42,9 @@ def parse_front_matter(content):
         ):
             raise ValueError(f"{field}는 비어 있지 않은 문자열 목록이어야 합니다.")
 
+    if "AI" not in metadata["categories"]:
+        raise ValueError("AI 중심 포스트는 categories에 AI를 포함해야 합니다.")
+
     return metadata
 
 
@@ -133,14 +136,27 @@ def generate_blog_post():
     
     # [수정] meta -> description 변경, 고정 카테고리 풀 제공
     prompt = f"""
-    당신은 숙련된 서버 엔지니어이자 풀스택 웹 개발자이며, AI 개발 도구에도 깊은 관심을 가진 테크 블로거입니다.
-    아래의 두 가지 주제 영역 중 하나를 **무작위로** 선정하여 완성된 블로그 포스트를 작성해 주세요.
+    당신은 AI 애플리케이션을 직접 설계하고 운영하는 숙련된 서버 엔지니어이자 풀스택 웹 개발자입니다.
+    이 블로그는 **AI 개발 및 AI 엔지니어링을 주력 주제**로 다룹니다. 따라서 아래 AI 주제 중 하나를 선정하여 완성된 블로그 포스트를 작성해 주세요.
 
-    **[주제 영역 A: 전통적인 서버/웹 개발]**
-    최신 웹 개발 트렌드, 서버 인프라 구축, 클라우드(AWS), Python/Django, Node.js, PHP 활용, 개발 환경 설정 등
+    **[최우선 주제: AI 개발 및 엔지니어링]**
+    - AI 코딩 도구 실전 활용: OpenAI Codex, Claude Code, GitHub Copilot, Gemini CLI, Cursor, 코드 리뷰 및 테스트 자동화
+    - AI 에이전트 및 워크플로: MCP(Model Context Protocol), tool calling, 멀티 에이전트, LangGraph, CrewAI, LlamaIndex
+    - LLM 애플리케이션 설계: RAG, GraphRAG, 임베딩, 벡터 데이터베이스, reranking, structured output, 메모리와 컨텍스트 관리
+    - LLMOps 및 운영: 평가(Evals), 관측성, 프롬프트 버전 관리, 캐싱, 비용 최적화, 지연 시간 개선, 안전장치와 장애 대응
+    - 모델 API 및 오픈소스 모델: OpenAI, Anthropic, Google Gemini, xAI, 로컬 LLM, 추론 서버, 모델 라우팅
+    - AI 보안과 품질: prompt injection, 데이터 유출 방지, hallucination 측정, 권한 통제, red teaming, AI 거버넌스
+    - AI 제품 개발: 챗봇을 넘어선 백엔드 통합, 검색, 문서 처리, 음성·이미지 멀티모달, 업무 자동화 사례
 
-    **[주제 영역 B: AI 개발 도구 및 에이전트]**
-    Claude Code(Anthropic의 AI 코딩 CLI), OpenAI Codex(AI 코드 생성), Grok(xAI의 AI 모델), AI 에이전트 개발(LangChain, LlamaIndex, CrewAI 등), LLM API 활용(Anthropic/OpenAI/Google API), MCP(Model Context Protocol), AI 기반 코드 리뷰/테스트 자동화, 프롬프트 엔지니어링 실전, RAG(Retrieval-Augmented Generation) 구현 등
+    **[보조 주제: AI 인프라와 기반 기술]**
+    서버, 웹, 클라우드, 데이터베이스, Kubernetes, AWS, Python 등의 전통적인 개발 주제는 반드시 **AI 시스템을 구축하거나 운영하는 문제와 직접 연결될 때만** 선택하세요.
+    일반적인 웹 개발, 단순 서버 구축, AI와 무관한 클라우드 튜토리얼만을 단독 주제로 선택하지 마세요.
+
+    **[주제 다양성 원칙]**
+    - RAG와 멀티 에이전트에만 편중하지 말고 위 세부 분야를 번갈아 선택하세요.
+    - 특정 제품 소개보다 실제 설계 판단, 구현, 평가, 운영 문제를 중심으로 작성하세요.
+    - 최근 제목 목록과 겹치지 않는 AI 문제를 선택하고, 동일 프레임워크의 유사 튜토리얼을 반복하지 마세요.
+    - 빠르게 변하는 모델명, API, 가격, 성능 수치는 단정하지 말고 공식 문서를 참고문헌으로 제시하세요.
 
     **[🔥 매우 중요: 주제 중복 방지]**
     아래는 최근에 블로그에 작성된 글의 제목들입니다. **아래 목록에 있는 주제나 이와 매우 유사한 내용은 절대 다시 작성하지 마세요.** 완전히 새롭고 다른 카테고리의 주제를 선정하세요.
@@ -165,7 +181,7 @@ def generate_blog_post():
     title: "여기에 매력적이고 검색 가능한 한글 제목 작성"
     slug: "english-title-for-url-slug"
     date: {current_time}
-    categories: [카테고리명] # [Backend], [Frontend], [DevOps], [Cloud], [CS] 중 1~2개 선택
+    categories: [카테고리명] # [AI], [Backend], [DevOps], [Cloud], [CS] 중 1~2개 선택. 반드시 AI 포함
     tags: [태그1, 태그2, 태그3]
     description: "구글 검색 결과에 노출될 SEO 최적화 요약문. 핵심 키워드를 포함하여 150자 내외로 작성. (내부에 큰따옴표 절대 금지)"
     ---
