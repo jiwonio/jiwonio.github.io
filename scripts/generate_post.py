@@ -2,10 +2,10 @@ import os
 import re
 import time
 from datetime import datetime, timezone, timedelta
-from io import BytesIO
 
 import yaml
 from google import genai
+from google.genai import types
 
 # 이미지 압축을 위해 PIL(Pillow) 모듈 임포트
 try:
@@ -25,6 +25,7 @@ AI_CODING_TOOLS = (
     "Cursor", "GitHub Copilot", "Copilot", "Junie AI", "JetBrains AI Assistant",
     "ChatGPT", "OpenAI", "Anthropic", "Gemini", "Ollama", "LM Studio",
 )
+IMAGE_MODEL = "gemini-3.1-flash-image"
 
 
 def parse_front_matter(content):
@@ -191,6 +192,22 @@ def check_title_not_repetitive(new_title, recent_titles, threshold=0.55):
             )
 
 
+def generate_thumbnail(client, prompt):
+    """Gemini 3.1 Flash Image로 썸네일 생성 (Imagen 4 대체)."""
+    response = client.models.generate_content(
+        model=IMAGE_MODEL,
+        contents=[prompt],
+        config=types.GenerateContentConfig(
+            response_modalities=["IMAGE"],
+            image_config=types.ImageConfig(aspect_ratio="16:9"),
+        ),
+    )
+    for part in response.parts:
+        if part.inline_data is not None:
+            return part.as_image() if Image else part.inline_data.data
+    raise ValueError("이미지 응답이 없습니다.")
+
+
 def build_generation_prompt(recent_titles, recent_slugs, current_time):
     tools = ", ".join(AI_CODING_TOOLS)
     recent_titles_str = (
@@ -315,7 +332,7 @@ def generate_blog_post():
             metadata, slug = validate_generated_content(content)
             raw_title = str(metadata["title"])
 
-            # 2. 썸네일 이미지 생성 및 WebP 압축 (Imagen 4.0)
+            # 2. 썸네일 이미지 생성 및 WebP 압축 (Gemini 3.1 Flash Image)
             image_md = ""
             try:
                 print(f"🎨 '{raw_title}' 주제로 썸네일 생성 중...")
@@ -324,36 +341,26 @@ def generate_blog_post():
                     f"Modern tech blog thumbnail about: '{clean_english_topic}'. "
                     "AI coding tools, IDE, terminal, clean vector art, dark background."
                 )
-                
-                image_result = client.models.generate_images(
-                    model='imagen-4.0-generate-001',
-                    prompt=image_prompt,
-                    config={"number_of_images": 1, "aspect_ratio": "16:9"}
-                )
-                image_bytes = image_result.generated_images[0].image.image_bytes
-                
+
+                thumbnail = generate_thumbnail(client, image_prompt)
                 upload_dir = f"uploads/{slug}"
                 os.makedirs(upload_dir, exist_ok=True)
-                
-                # [수정] Pillow를 이용한 이미지 리사이징 및 WebP 저장 (저장소 용량 최적화)
+
                 if Image:
                     image_path = f"{upload_dir}/thumbnail.webp"
-                    img = Image.open(BytesIO(image_bytes))
-                    
-                    # 너비 800px 기준으로 비율 맞춰 리사이징
+                    img = thumbnail
                     base_width = 800
-                    w_percent = (base_width / float(img.size[0]))
-                    h_size = int((float(img.size[1]) * float(w_percent)))
-                    img = img.resize((base_width, h_size), Image.Resampling.LANCZOS)
-                    
-                    # WebP 포맷으로 저장 (품질 85)
+                    ratio = base_width / img.size[0]
+                    img = img.resize(
+                        (base_width, int(img.size[1] * ratio)),
+                        Image.Resampling.LANCZOS,
+                    )
                     img.save(image_path, "WEBP", quality=85)
                     print(f"✅ 이미지 압축 저장 완료 (WebP): {image_path}")
                 else:
-                    # Pillow가 없으면 원본 그대로 jpg로 저장
                     image_path = f"{upload_dir}/thumbnail.jpg"
                     with open(image_path, "wb") as f:
-                        f.write(image_bytes)
+                        f.write(thumbnail)
                     print(f"✅ 원본 이미지 저장 완료: {image_path}")
                 
                 # SEO용 Alt/Title 추가
