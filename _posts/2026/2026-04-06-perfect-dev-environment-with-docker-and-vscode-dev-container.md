@@ -80,8 +80,6 @@ code .
 
 VS Code가 열리면, `F1` 키를 누르거나 `Ctrl+Shift+P`(macOS: `Cmd+Shift+P`)를 눌러 커맨드 팔레트를 엽니다. 그리고 `Dev Containers: Add Dev Container Configuration Files...`를 입력하고 선택합니다.
 
-![Dev Container 설정 추가](https://code.visualstudio.com/assets/docs/devcontainers/containers/add-dev-container-files-command.png)
-
 그러면 다양한 언어와 프레임워크 템플릿 목록이 나타납니다. 여기서는 `Node.js & TypeScript`를 선택하겠습니다. 그 후 버전을 선택하라는 메시지가 나오면 원하는 버전을 선택합니다. (예: 18) 추가로 설치할 기능(features)을 선택하라는 창이 나오면 일단 `OK`를 눌러 넘어갑니다.
 
 #### 3단계: 생성된 파일 분석 (.devcontainer 폴더)

@@ -30,6 +30,10 @@ IMAGE_MODEL = "gemini-3.1-flash-image"
 FORBIDDEN_REPEAT_COUNT = 3  # 이 횟수 이상 반복된 단어는 다음 글 제목에서 하드 차단
 # 모델이 프롬프트의 출력 지침 문구를 본문에 그대로 베껴 쓰면 등장하는 표현 (누출 감지용)
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
+# 한글 단어 사이에 일본어 가나가 섞이는 등의 모델 출력 오류 감지 (예: '네이ティブ')
+UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ�]")
+CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
+EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
 
 
 def parse_front_matter(content):
@@ -110,6 +114,16 @@ def validate_generated_content(content):
             "프롬프트 지침 문구가 본문에 그대로 노출되었습니다: " + ", ".join(leaked_phrases)
         )
 
+    stray_chars = find_unexpected_scripts(content)
+    if stray_chars:
+        raise ValueError(
+            "한글 문장에 의도하지 않은 문자가 섞여 있습니다(예: '네이ティブ'): "
+            + ", ".join(stray_chars)
+        )
+
+    if EXTERNAL_IMAGE_PATTERN.search(content):
+        raise ValueError("본문에 외부 이미지 링크가 포함되어 있습니다. 이미지는 [HERO_IMAGE]만 사용하세요.")
+
     existing_tags = get_existing_tag_spellings()
     inconsistent_tags = [
         tag for tag in metadata["tags"]
@@ -144,6 +158,12 @@ def tokenize(text):
 def has_standalone_line(content, marker):
     """marker가 다른 텍스트와 섞이지 않고 한 줄을 단독으로 차지하는지 확인."""
     return any(line.strip() == marker for line in content.splitlines())
+
+
+def find_unexpected_scripts(content):
+    """코드 블록을 제외한 본문에서 일본어 가나·치환 문자 등 의도치 않은 문자를 찾는다."""
+    prose = CODE_BLOCK_PATTERN.sub("", content)
+    return sorted(set(UNEXPECTED_SCRIPT_PATTERN.findall(prose)))
 
 
 def extract_title(content):
@@ -357,9 +377,6 @@ def generate_blog_post():
             )
             
             content = strip_preamble(strip_code_fence(response.text))
-
-            # 🚨 가짜 이미지 링크 강제 제거 (뒤따르는 {:...} 속성도 함께 제거해 잔재가 남지 않게 함)
-            content = re.sub(r'!\[[^\]]*\]\(https?://[^\)]+\)\s*(\{:[^}]*\})?', '', content)
 
             # GitHub Secret Scanning 차단 방지 (Slack Webhook 등 더미 처리)
             content = re.sub(

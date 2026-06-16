@@ -11,11 +11,21 @@ FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 REQUIRED_FIELDS = ("layout", "title", "tags")
 # AI 생성 스크립트의 프롬프트 지침 문구가 본문에 그대로 남으면 등장하는 표현 (누출 감지용)
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
+# 한글 단어 사이에 일본어 가나가 섞이는 등의 모델 출력 오류 감지 (예: '네이ティブ')
+UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ�]")
+CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
+EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
 
 
 def has_standalone_line(content, marker):
     """marker가 다른 텍스트와 섞이지 않고 한 줄을 단독으로 차지하는지 확인."""
     return any(line.strip() == marker for line in content.splitlines())
+
+
+def find_unexpected_scripts(content):
+    """코드 블록을 제외한 본문에서 일본어 가나·치환 문자 등 의도치 않은 문자를 찾는다."""
+    prose = CODE_BLOCK_PATTERN.sub("", content)
+    return sorted(set(UNEXPECTED_SCRIPT_PATTERN.findall(prose)))
 
 
 def load_post(path):
@@ -70,6 +80,13 @@ def validate_posts(posts_dir):
         leaked = [phrase for phrase in PROMPT_LEAK_PHRASES if phrase in content]
         if leaked:
             errors.append(f"{path}: prompt instruction text leaked into body: {', '.join(leaked)}")
+
+        stray_chars = find_unexpected_scripts(content)
+        if stray_chars:
+            errors.append(f"{path}: unexpected characters mixed into text: {', '.join(stray_chars)}")
+
+        if EXTERNAL_IMAGE_PATTERN.search(content):
+            errors.append(f"{path}: contains an external image link")
 
     for spellings in tag_spellings.values():
         if len(spellings) > 1:
