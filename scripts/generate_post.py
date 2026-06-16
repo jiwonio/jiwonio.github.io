@@ -304,6 +304,21 @@ description: "150자 내외 SEO 요약"
 """
 
 
+def strip_code_fence(text):
+    """선두/말미의 마크다운 코드펜스(```, ```markdown 등)를 제거."""
+    text = re.sub(r"\A```[a-zA-Z]*[ \t]*\r?\n", "", text.strip())
+    text = re.sub(r"\r?\n```\s*\Z", "", text)
+    return text.strip()
+
+
+def strip_preamble(text):
+    """front matter(---) 앞에 모델이 덧붙인 설명 문구가 있으면 제거."""
+    if text.startswith("---"):
+        return text
+    match = re.search(r"^---\s*$", text, re.MULTILINE)
+    return text[match.start():] if match else text
+
+
 def generate_blog_post():
     # KST (한국 표준시) 설정: UTC + 9시간
     kst = timezone(timedelta(hours=9))
@@ -316,7 +331,8 @@ def generate_blog_post():
     recent_slugs = get_recent_slugs(50)
     prompt = build_generation_prompt(recent_titles, recent_slugs, current_time)
 
-    max_retries = 3
+    max_retries = 5
+    retry_backoff_seconds = 15
     last_error = None
 
     for attempt in range(1, max_retries + 1):
@@ -329,16 +345,7 @@ def generate_blog_post():
                 contents=prompt
             )
             
-            content = response.text.strip()
-            
-            # 마크다운 블록 기호 제거
-            if content.startswith("```markdown"):
-                content = content[11:]
-            elif content.startswith("```"):
-                content = content[3:]
-            if content.endswith("```"):
-                content = content[:-3]
-            content = content.strip()
+            content = strip_preamble(strip_code_fence(response.text))
 
             # 🚨 가짜 이미지 링크 강제 제거
             content = re.sub(r'!\[[^\]]*\]\(https?://[^\)]+\)', '', content)
@@ -351,7 +358,11 @@ def generate_blog_post():
             )
             content = re.sub(r'(?i)(api_key|secret_key|password|token)\s*[:=]\s*["\'][A-Za-z0-9_-]{15,}["\']', r'\1: "YOUR_DUMMY_SECRET_HERE"', content)
 
-            metadata, slug = validate_generated_content(content)
+            try:
+                metadata, slug = validate_generated_content(content)
+            except ValueError as e:
+                preview = content[:300].replace("\n", " ")
+                raise ValueError(f"{e} | 응답 미리보기: {preview}") from e
             raw_title = str(metadata["title"])
 
             # 2. 썸네일 이미지 생성 및 WebP 압축 (Gemini 3.1 Flash Image)
@@ -412,9 +423,10 @@ def generate_blog_post():
             last_error = e
             error_msg = str(e)
             if "503" in error_msg or "UNAVAILABLE" in error_msg:
-                print(f"⚠️ 503 에러. 15초 후 재시도...")
+                wait = retry_backoff_seconds * attempt
+                print(f"⚠️ 503 에러(서버 과부하). {wait}초 후 재시도...")
                 if attempt < max_retries:
-                    time.sleep(15)
+                    time.sleep(wait)
             else:
                 print(f"❌ 생성 중 에러 발생: {e}")
                 if attempt < max_retries:
