@@ -28,6 +28,8 @@ AI_CODING_TOOLS = (
 )
 IMAGE_MODEL = "gemini-3.1-flash-image"
 FORBIDDEN_REPEAT_COUNT = 3  # 이 횟수 이상 반복된 단어는 다음 글 제목에서 하드 차단
+# 모델이 프롬프트의 출력 지침 문구를 본문에 그대로 베껴 쓰면 등장하는 표현 (누출 감지용)
+PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 
 
 def parse_front_matter(content):
@@ -95,12 +97,18 @@ def validate_generated_content(content):
     if not slug:
         raise ValueError("slug를 영문과 숫자로 생성해야 합니다.")
 
-    if "<!--more-->" not in content:
-        raise ValueError("<!--more--> 구분자가 없습니다.")
-    if "[HERO_IMAGE]" not in content:
-        raise ValueError("[HERO_IMAGE] 자리 표시자가 없습니다.")
+    if not has_standalone_line(content, "<!--more-->"):
+        raise ValueError("<!--more--> 구분자가 단독 줄로 존재하지 않습니다(프롬프트 지침 문구 누출 가능성).")
+    if not has_standalone_line(content, "[HERO_IMAGE]"):
+        raise ValueError("[HERO_IMAGE] 자리 표시자가 단독 줄로 존재하지 않습니다(프롬프트 지침 문구 누출 가능성).")
     if "### 참고문헌" not in content:
         raise ValueError("참고문헌 섹션이 없습니다.")
+
+    leaked_phrases = [phrase for phrase in PROMPT_LEAK_PHRASES if phrase in content]
+    if leaked_phrases:
+        raise ValueError(
+            "프롬프트 지침 문구가 본문에 그대로 노출되었습니다: " + ", ".join(leaked_phrases)
+        )
 
     existing_tags = get_existing_tag_spellings()
     inconsistent_tags = [
@@ -131,6 +139,11 @@ def validate_generated_content(content):
 
 def tokenize(text):
     return [t for t in re.findall(r"[\w가-힣]+", text.casefold()) if len(t) >= 2]
+
+
+def has_standalone_line(content, marker):
+    """marker가 다른 텍스트와 섞이지 않고 한 줄을 단독으로 차지하는지 확인."""
+    return any(line.strip() == marker for line in content.splitlines())
 
 
 def extract_title(content):
@@ -277,11 +290,11 @@ def build_generation_prompt(recent_titles, recent_slugs, current_time):
 - 코드: 의미 있는 이름, 짧은 단위, 필요한 주석만(왜 하는지)
 - Secret은 플레이스홀더만 (`<YOUR_API_KEY>`)
 
-마크다운 외 부가 설명 없이 아래 가이드라인만 출력하세요.
+아래는 출력 순서를 안내하는 지침입니다. 번호와 설명("Front Matter", "도입부" 등)은
+지침일 뿐이며 결과물에 그대로 옮겨 쓰면 안 됩니다. 마크다운 글 본문 외 다른 설명은 출력하지 마세요.
 
-## [블로그 작성 가이드라인]
-
-### 1. Front Matter
+[출력 순서]
+1) 아래 형식의 YAML Front Matter를 값만 채워서 그대로 작성합니다.
 ---
 layout: post
 title: "구체적인 한글 제목"
@@ -291,16 +304,14 @@ categories: [AI]
 tags: [태그1, 태그2, 태그3]
 description: "150자 내외 SEO 요약"
 ---
+2) 도입부 2~3문단을 작성한 뒤, 줄을 바꿔 `<!--more-->` 한 줄만 단독으로 작성합니다.
+3) 바로 다음 줄에 `[HERO_IMAGE]` 한 줄만 단독으로 작성하고, 그다음 줄에 `-----` 한 줄만 단독으로 작성합니다.
+4) 본문을 작성합니다. '~습니다' 체, H2/H3 계층, 외부 이미지 URL 금지.
+   링크: `[텍스트](URL "툴팁"){{:target="_blank"}}`
+5) 마지막에 `### 참고문헌` 섹션을 작성하고 출처 링크를 나열합니다.
 
-### 2. 도입부 → `<!--more-->`
-
-### 3. `[HERO_IMAGE]` → `-----`
-
-### 4. 본문
-'~습니다' 체, H2/H3 계층, 외부 이미지 URL 금지
-링크: `[텍스트](URL "툴팁"){{:target="_blank"}}`
-
-### 5. `### 참고문헌`
+주의: 1)~5)는 작성 순서 설명일 뿐 실제 헤더가 아닙니다. "Front Matter", "도입부", "본문" 같은
+지침 단어나 1) 2) 3) 같은 번호를 결과물에 절대 출력하지 마세요.
 """
 
 
@@ -347,8 +358,8 @@ def generate_blog_post():
             
             content = strip_preamble(strip_code_fence(response.text))
 
-            # 🚨 가짜 이미지 링크 강제 제거
-            content = re.sub(r'!\[[^\]]*\]\(https?://[^\)]+\)', '', content)
+            # 🚨 가짜 이미지 링크 강제 제거 (뒤따르는 {:...} 속성도 함께 제거해 잔재가 남지 않게 함)
+            content = re.sub(r'!\[[^\]]*\]\(https?://[^\)]+\)\s*(\{:[^}]*\})?', '', content)
 
             # GitHub Secret Scanning 차단 방지 (Slack Webhook 등 더미 처리)
             content = re.sub(

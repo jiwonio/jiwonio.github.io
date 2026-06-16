@@ -8,20 +8,19 @@ tags: [AI, JetBrains AI Assistant, IDE, Code Generation, Refactoring]
 description: "JetBrains IDE에 내장된 AI Assistant의 설정, 핵심 기능, 장단점을 분석합니다. 단순 코드 완성을 넘어, 리팩토링, 커밋 메시지 작성 등 실무에서 겪는 문제와 해결책을 제시합니다."
 ---
 
-### 2. 도입부 → `<!--more-->`
 개발자는 코드 작성 외에도 수많은 인지적 노동을 합니다. 레거시 코드를 분석하고, 더 나은 구조를 고민하며 리팩토링하고, 변경 사항을 명확히 설명하는 커밋 메시지를 작성하는 일들입니다. GitHub Copilot이 코드 자동 완성의 시대를 열었다면, 이제 AI 도구들은 개발 워크플로 전체에 더 깊이 관여하고 있습니다.
 
 JetBrains AI Assistant는 우리가 매일 사용하는 IntelliJ, PyCharm, WebStorm 같은 IDE에 직접 통합된 AI 도구입니다. 단순 코드 조각 생성을 넘어, IDE가 가진 풍부한 코드 인덱싱 정보를 바탕으로 훨씬 더 문맥에 맞는 제안을 하는 것을 목표로 합니다.
 
 이 글에서는 JetBrains AI Assistant의 기본 설정부터 실무에서 유용한 핵심 기능, 그리고 제가 직접 겪은 실패 사례와 기술적 트레이드오프까지 시니어 개발자의 관점에서 솔직하게 다루겠습니다.
 
-### 3. `![JetBrains AI Assistant 실무 심층 탐구: 코드 생성부터 리팩토링까지](/uploads/jetbrains-ai-assistant-practical-deep-dive/thumbnail.webp "JetBrains AI Assistant 실무 심층 탐구: 코드 생성부터 리팩토링까지")
+<!--more-->
+![JetBrains AI Assistant 실무 심층 탐구: 코드 생성부터 리팩토링까지](/uploads/jetbrains-ai-assistant-practical-deep-dive/thumbnail.webp "JetBrains AI Assistant 실무 심층 탐구: 코드 생성부터 리팩토링까지")
 
 <p style="text-align:center;opacity:0.8;">
     <small>&copy; AI Generated Image</small>
-</p>` → `-----`
-
-### 4. 본문
+</p>
+-----
 
 ## JetBrains AI Assistant, 시작하기 전에: 설정과 모델
 
@@ -62,9 +61,6 @@ def find_user_by_id(user_id: int) -> User | None:
 
 ### 2. 지능형 리팩토링 제안
 기존 코드를 선택하고 우클릭 메뉴에서 'AI Actions > Suggest Refactoring'을 선택하면, 코드 개선안을 제시합니다. 이는 단순히 코드를 새로 짜는 것과 다릅니다. 예를 들어, 긴 함수를 여러 개의 작은 함수로 분리하거나, 중첩된 if-else 문을 더 읽기 좋은 형태로 바꾸는 등 구조적 개선에 초점을 맞춥니다.
-
-{:target="_blank"}
-*이미지: JetBrains AI Assistant의 리팩토링 제안 예시*
 
 이 기능은 레거시 코드를 유지보수하거나, 동료의 복잡한 코드를 처음 분석할 때 특히 유용했습니다.
 

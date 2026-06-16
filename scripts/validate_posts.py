@@ -9,6 +9,13 @@ import yaml
 
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 REQUIRED_FIELDS = ("layout", "title", "tags")
+# AI 생성 스크립트의 프롬프트 지침 문구가 본문에 그대로 남으면 등장하는 표현 (누출 감지용)
+PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
+
+
+def has_standalone_line(content, marker):
+    """marker가 다른 텍스트와 섞이지 않고 한 줄을 단독으로 차지하는지 확인."""
+    return any(line.strip() == marker for line in content.splitlines())
 
 
 def load_post(path):
@@ -54,11 +61,15 @@ def validate_posts(posts_dir):
         normalized_slug = re.sub(r"[^a-z0-9]+", "-", str(slug).lower()).strip("-")
         output_paths[normalized_slug].append(path)
 
-        if "<!--more-->" not in content:
-            errors.append(f"{path}: missing <!--more--> excerpt separator")
+        if not has_standalone_line(content, "<!--more-->"):
+            errors.append(f"{path}: missing standalone <!--more--> excerpt separator")
 
         if "[HERO_IMAGE]" in content:
             errors.append(f"{path}: unresolved [HERO_IMAGE] placeholder")
+
+        leaked = [phrase for phrase in PROMPT_LEAK_PHRASES if phrase in content]
+        if leaked:
+            errors.append(f"{path}: prompt instruction text leaked into body: {', '.join(leaked)}")
 
     for spellings in tag_spellings.values():
         if len(spellings) > 1:
