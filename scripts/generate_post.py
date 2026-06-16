@@ -1,3 +1,4 @@
+import io
 import os
 import re
 import time
@@ -26,6 +27,7 @@ AI_CODING_TOOLS = (
     "ChatGPT", "OpenAI", "Anthropic", "Gemini", "Ollama", "LM Studio",
 )
 IMAGE_MODEL = "gemini-3.1-flash-image"
+FORBIDDEN_REPEAT_COUNT = 3  # 이 횟수 이상 반복된 단어는 다음 글 제목에서 하드 차단
 
 
 def parse_front_matter(content):
@@ -57,21 +59,33 @@ def parse_front_matter(content):
     return metadata
 
 
+def list_post_files():
+    """_posts 디렉터리의 모든 마크다운 포스트 경로."""
+    return [
+        os.path.join(root, name)
+        for root, _, names in os.walk("_posts")
+        for name in names
+        if name.endswith(".md")
+    ]
+
+
 def get_existing_tag_spellings():
     spellings = {}
-    for root, _, files in os.walk("_posts"):
-        for file in files:
-            if not file.endswith(".md"):
-                continue
-            path = os.path.join(root, file)
-            try:
-                with open(path, "r", encoding="utf-8") as post_file:
-                    metadata = parse_front_matter(post_file.read())
-                for tag in metadata["tags"]:
-                    spellings.setdefault(tag.casefold(), tag)
-            except (OSError, UnicodeError, yaml.YAMLError, ValueError):
-                continue
+    for path in list_post_files():
+        try:
+            with open(path, "r", encoding="utf-8") as post_file:
+                metadata = parse_front_matter(post_file.read())
+            for tag in metadata["tags"]:
+                spellings.setdefault(tag.casefold(), tag)
+        except (OSError, UnicodeError, yaml.YAMLError, ValueError):
+            continue
     return spellings
+
+
+def contains_ai_tool(*texts):
+    """제목·slug·태그 중 하나라도 AI_CODING_TOOLS의 도구명을 포함하는지 확인."""
+    combined = " ".join(texts).casefold()
+    return any(tool.casefold() in combined for tool in AI_CODING_TOOLS)
 
 
 def validate_generated_content(content):
@@ -100,12 +114,17 @@ def validate_generated_content(content):
             + ", ".join(f"{tag} -> {canonical}" for tag, canonical in zip(inconsistent_tags, expected))
         )
 
-    for root, _, files in os.walk("_posts"):
-        for file in files:
-            if file.endswith(f"-{slug}.md"):
-                raise ValueError(f"이미 존재하는 slug입니다: {slug}")
+    existing_slugs = {extract_slug_from_path(path) for path in list_post_files()}
+    if slug in existing_slugs:
+        raise ValueError(f"이미 존재하는 slug입니다: {slug}")
 
-    check_title_not_repetitive(metadata["title"], get_recent_titles())
+    if not contains_ai_tool(metadata["title"], slug, *metadata["tags"]):
+        raise ValueError(
+            "제목·slug·태그 어디에도 AI 코딩 도구/서비스명이 없습니다. "
+            f"{', '.join(AI_CODING_TOOLS)} 중 하나를 중심으로 다시 작성하세요."
+        )
+
+    check_title_not_repetitive(metadata["title"], get_recent_titles(), get_recent_slugs())
 
     return metadata, slug
 
@@ -127,13 +146,7 @@ def extract_slug_from_path(path):
 
 
 def get_recent_post_files(limit=50):
-    files = []
-    for root, _, names in os.walk("_posts"):
-        for name in names:
-            if name.endswith(".md"):
-                files.append(os.path.join(root, name))
-    files.sort(reverse=True)
-    return files[:limit]
+    return sorted(list_post_files(), reverse=True)[:limit]
 
 
 def get_recent_titles(limit=50):
@@ -156,8 +169,8 @@ def get_recent_slugs(limit=50):
     ]
 
 
-def find_repeated_tokens(titles, slugs, min_count=2):
-    """최근 제목·slug에서 반복 등장하는 토큰을 추출 (하드코딩 없음)."""
+def count_token_frequency(titles, slugs):
+    """최근 제목·slug에서 토큰별 등장 횟수를 집계 (하드코딩 없음)."""
     counts = {}
     for title in titles:
         for token in set(tokenize(title)):
@@ -166,16 +179,21 @@ def find_repeated_tokens(titles, slugs, min_count=2):
         for part in slug.split("-"):
             if len(part) >= 3:
                 counts[part] = counts.get(part, 0) + 1
-
-    return [
-        f"{word}({count}회)"
-        for word, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
-        if count >= min_count
-    ][:20]
+    return counts
 
 
-def check_title_not_repetitive(new_title, recent_titles, threshold=0.55):
-    """최근 제목과 표현이 너무 겹치면 재생성 유도."""
+def format_repeated_tokens(counts, min_count=2, limit=20):
+    ranked = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    return [f"{word}({count}회)" for word, count in ranked if count >= min_count][:limit]
+
+
+def find_forbidden_tokens(counts):
+    """FORBIDDEN_REPEAT_COUNT회 이상 반복되어 다음 제목에 쓸 수 없는 단어 집합."""
+    return {word for word, count in counts.items() if count >= FORBIDDEN_REPEAT_COUNT}
+
+
+def check_title_not_repetitive(new_title, recent_titles, recent_slugs, threshold=0.55):
+    """최근 제목과 표현이 겹치거나 과사용된 단어를 쓰면 재생성을 유도."""
     new_tokens = set(tokenize(new_title))
     if len(new_tokens) < 2:
         return
@@ -191,6 +209,13 @@ def check_title_not_repetitive(new_title, recent_titles, threshold=0.55):
                 "반복 패턴을 피해 다시 작성하세요."
             )
 
+    forbidden = new_tokens & find_forbidden_tokens(count_token_frequency(recent_titles, recent_slugs))
+    if forbidden:
+        raise ValueError(
+            "다음 단어는 최근 글에서 과도하게 반복되어 사용이 금지되었습니다: "
+            + ", ".join(sorted(forbidden))
+        )
+
 
 def generate_thumbnail(client, prompt):
     """Gemini 3.1 Flash Image로 썸네일 생성 (Imagen 4 대체)."""
@@ -204,7 +229,7 @@ def generate_thumbnail(client, prompt):
     )
     for part in response.parts:
         if part.inline_data is not None:
-            return part.as_image() if Image else part.inline_data.data
+            return part.inline_data.data
     raise ValueError("이미지 응답이 없습니다.")
 
 
@@ -214,11 +239,9 @@ def build_generation_prompt(recent_titles, recent_slugs, current_time):
         "\n    ".join(f"- {t}" for t in recent_titles)
         if recent_titles else "- 아직 작성된 글이 없습니다."
     )
-    repeated_tokens = find_repeated_tokens(recent_titles, recent_slugs)
-    repeated_str = (
-        ", ".join(repeated_tokens)
-        if repeated_tokens else "아직 뚜렷한 반복 패턴 없음"
-    )
+    token_counts = count_token_frequency(recent_titles, recent_slugs)
+    forbidden_str = ", ".join(sorted(find_forbidden_tokens(token_counts))) or "없음"
+    repeated_str = ", ".join(format_repeated_tokens(token_counts)) or "아직 뚜렷한 반복 패턴 없음"
 
     return f"""
 당신은 시니어 풀스택 웹 개발자입니다. 이 블로그는 **AI 코딩 도구와 LLM 활용**을 주력 주제로 다룹니다.
@@ -231,23 +254,22 @@ def build_generation_prompt(recent_titles, recent_slugs, current_time):
 - 로컬 LLM: Ollama, LM Studio
 - 공통 실무: 프롬프트 설계, 컨텍스트 관리, MCP/tool calling, 코드 리뷰·테스트 보조, 워크플로 비교
 
-**[주제 선정]**
+**[주제 선정 — 반드시 지킬 것]**
 - 매 글마다 {tools} 중 **아직 다루지 않은 도구**를 우선 선택하세요.
+- 제목·slug·태그 중 하나에는 선택한 도구명을 반드시 그대로 포함하세요. 없으면 자동으로 거부됩니다.
 - RAG, AWS, Kubernetes 등은 선택한 AI 도구와 직접 연결될 때만 보조로 언급하세요.
 - 설정 방법, 동작 원리, 트레이드오프, 실패 사례 중심으로 쓰세요.
 
 **[최근 제목 — 주제·표현 모두 참고]**
 {recent_titles_str}
 
-**[반복 표현 자가 점검 — 매우 중요]**
-최근 제목·slug에서 2회 이상 등장한 토큰: {repeated_str}
+**[사용 금지 단어 — {FORBIDDEN_REPEAT_COUNT}회 이상 반복됨]**
+{forbidden_str}
+위 단어는 제목·slug·description에 절대 사용하지 마세요. 포함되면 자동으로 거부되고 다시 작성해야 합니다.
 
-위 제목 목록 전체를 읽고 아래를 **스스로 판단**하세요.
-1. 반복되는 수식어, 문장 틀, 클리셰가 무엇인지 파악합니다.
-2. 새 제목·slug·description·본문에서 그 패턴을 피합니다.
-3. 제목은 '무엇을 한다/해결한다'가 드러나게 씁니다.
-   예) 'Cursor에서 MCP 서버 연결하기', 'Ollama로 로컬 코드 리뷰 돌리기'
-4. 최근 글과 비슷한 단어 조합·제목 구조를 재사용하지 않습니다.
+**[추가 참고 — 2회 이상 등장한 표현]**
+{repeated_str}
+위 표현이 만드는 클리셰·문장 틀(예: '완벽 가이드', '프로덕션급 ~ 구축')도 스스로 점검해 피하세요.
 
 **[글쓰기 스타일]**
 - 짧고 명확한 문장. 불필요한 형용사·부사 최소화.
@@ -348,7 +370,7 @@ def generate_blog_post():
 
                 if Image:
                     image_path = f"{upload_dir}/thumbnail.webp"
-                    img = thumbnail
+                    img = Image.open(io.BytesIO(thumbnail))
                     base_width = 800
                     ratio = base_width / img.size[0]
                     img = img.resize(
@@ -391,7 +413,8 @@ def generate_blog_post():
             error_msg = str(e)
             if "503" in error_msg or "UNAVAILABLE" in error_msg:
                 print(f"⚠️ 503 에러. 15초 후 재시도...")
-                if attempt < max_retries: time.sleep(15)
+                if attempt < max_retries:
+                    time.sleep(15)
             else:
                 print(f"❌ 생성 중 에러 발생: {e}")
                 if attempt < max_retries:
