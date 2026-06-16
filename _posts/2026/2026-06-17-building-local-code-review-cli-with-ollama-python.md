@@ -2,7 +2,7 @@
 layout: post
 title: "Ollama와 파이썬으로 나만의 로컬 코드 리뷰 CLI 만들기"
 slug: "building-local-code-review-cli-with-ollama-python"
-date: 2024-06-17 11:15:25 +0900
+date: 2026-06-17 11:15:25 +0900
 categories: [AI]
 tags: [Ollama, LLM, Code Review, Python, CLI]
 description: "API 비용과 보안 걱정 없이, Ollama와 Llama 3를 활용해 로컬 환경에서 동작하는 코드 리뷰 CLI 도구를 직접 만들어 봅니다. 프롬프트 설계부터 한계점까지 실무 팁을 다룹니다."
@@ -13,8 +13,11 @@ description: "API 비용과 보안 걱정 없이, Ollama와 Llama 3를 활용해
 이 글에서는 이러한 문제를 해결하기 위해 로컬 환경에서 완전히 독립적으로 동작하는 코드 리뷰 CLI(Command-Line Interface) 도구를 직접 만들어 보겠습니다. 인기 있는 로컬 LLM 실행 도구인 **Ollama**와 **Python**을 사용하여, 외부 네트워크 연결 없이 안전하고 빠르게 코드에 대한 피드백을 받는 방법을 알아봅니다.
 
 <!--more-->
+![Ollama와 파이썬으로 나만의 로컬 코드 리뷰 CLI 만들기](/uploads/building-local-code-review-cli-with-ollama-python/thumbnail.webp "Ollama와 파이썬으로 나만의 로컬 코드 리뷰 CLI 만들기")
 
-
+<p style="text-align:center;opacity:0.8;">
+    <small>&copy; AI Generated Image</small>
+</p>
 -----
 
 ## 왜 로컬 코드 리뷰어인가?
