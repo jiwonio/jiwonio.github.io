@@ -19,6 +19,15 @@
 }
 
 // Meta data line below post title
+.post-translations {
+  margin: .5rem 0 1.25rem;
+  font-size: .9rem;
+
+  a {
+    margin-right: .75rem;
+  }
+}
+
 .post-date {
   display: block;
   margin-top: -.5rem;

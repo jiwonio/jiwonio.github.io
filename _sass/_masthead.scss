@@ -20,6 +20,29 @@
     .theme-toggle {
       margin-left: .5rem;
     }
+
+    .lang-switcher {
+      display: inline-block;
+      margin-right: .25rem;
+      font-size: .85rem;
+      letter-spacing: .04em;
+
+      a,
+      .lang-switcher__missing {
+        margin-left: .35rem;
+        text-decoration: none;
+      }
+
+      a[aria-current="page"] {
+        font-weight: 700;
+        text-decoration: underline;
+      }
+
+      .lang-switcher__missing {
+        opacity: .45;
+        cursor: default;
+      }
+    }
   }
 }
 

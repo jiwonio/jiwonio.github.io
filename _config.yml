@@ -11,6 +11,10 @@ url: "https://blog.jiwon.io"
 lang: ko
 locale: ko_KR
 
+# ── 다국어 ────────────────────────────────────────────────────────
+default_lang: ko
+languages: [ko, en, ja, zh]
+
 author:
   name: Jiwon Min
   email: min@jiwon.io
@@ -35,8 +39,7 @@ analytics:
   naver_analytics_id: "1ab6ce6f3ed0010"
 
 # ── Jekyll ────────────────────────────────────────────────────────
-paginate: 5
-paginate_path: "/page/:num/"
+posts_per_page: 5
 excerpt_separator: "<!--more-->"
 
 sass:
@@ -55,9 +58,7 @@ jekyll-archives:
     year: year
 
 plugins:
-  - jekyll-paginate
   - jekyll-archives
-  - jekyll-sitemap
 
 # 사이트맵에서 제외할 경로 (필요 시 추가)
 exclude:

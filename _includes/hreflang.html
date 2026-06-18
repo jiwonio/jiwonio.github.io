@@ -1,0 +1,31 @@
+{%- comment -%}
+  hreflang alternate 링크
+
+  - 포스트: translation_key 로 묶인 번역본
+  - 그 외: 같은 경로의 언어별 홈/아카이브
+{%- endcomment -%}
+
+{%- assign current_lang = page.lang | default: site.default_lang | default: 'ko' -%}
+
+{%- if page.layout == 'post' and page.translation_key -%}
+    {%- assign translation_group = site.translations[page.translation_key] -%}
+    {%- for lang in site.lang_codes -%}
+        {%- assign translated = translation_group[lang] -%}
+        {%- if translated -%}
+<link rel="alternate" hreflang="{{ lang }}" href="{{ translated.url | absolute_url }}">
+        {%- endif -%}
+    {%- endfor -%}
+    {%- assign default_post = translation_group[site.default_lang] -%}
+    {%- if default_post -%}
+<link rel="alternate" hreflang="x-default" href="{{ default_post.url | absolute_url }}">
+    {%- endif -%}
+{%- elsif page.layout == 'home' -%}
+    {%- for lang in site.lang_codes -%}
+        {%- if lang == site.default_lang -%}
+<link rel="alternate" hreflang="{{ lang }}" href="{{ '/' | absolute_url }}">
+        {%- else -%}
+<link rel="alternate" hreflang="{{ lang }}" href="{{ '/' | append: lang | append: '/' | absolute_url }}">
+        {%- endif -%}
+    {%- endfor -%}
+<link rel="alternate" hreflang="x-default" href="{{ '/' | absolute_url }}">
+{%- endif -%}

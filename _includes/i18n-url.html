@@ -1,0 +1,10 @@
+{%- comment -%}
+  언어별 경로 prefix 반환 (assign i18n_path)
+  include 시 page.lang 또는 lang 인자 사용
+{%- endcomment -%}
+{% assign i18n_lang = include.lang | default: page.lang | default: site.default_lang | default: 'ko' %}
+{% if i18n_lang == site.default_lang %}
+    {% assign i18n_path = '' %}
+{% else %}
+    {% assign i18n_path = i18n_lang | append: '/' %}
+{% endif %}

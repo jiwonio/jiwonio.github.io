@@ -1,0 +1,27 @@
+{% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
+<nav class="lang-switcher" aria-label="Language">
+    {% for lang in site.lang_codes %}
+        {% assign meta = site.data.languages[lang] %}
+        {% if page.layout == 'post' and page.translation_key %}
+            {% assign translated = site.translations[page.translation_key][lang] %}
+            {% if translated %}
+                <a href="{{ translated.url }}"
+                   hreflang="{{ lang }}"
+                   {% if lang == current_lang %}aria-current="page"{% endif %}
+                   title="{{ meta.label }}">{{ lang | upcase }}</a>
+            {% else %}
+                <span class="lang-switcher__missing" title="{{ meta.label }} (준비 중)">{{ lang | upcase }}</span>
+            {% endif %}
+        {% else %}
+            {% if lang == site.default_lang %}
+                {% assign lang_url = '/' %}
+            {% else %}
+                {% assign lang_url = '/' | append: lang | append: '/' %}
+            {% endif %}
+            <a href="{{ lang_url }}"
+               hreflang="{{ lang }}"
+               {% if lang == current_lang %}aria-current="page"{% endif %}
+               title="{{ meta.label }}">{{ lang | upcase }}</a>
+        {% endif %}
+    {% endfor %}
+</nav>

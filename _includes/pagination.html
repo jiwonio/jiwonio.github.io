@@ -1,0 +1,38 @@
+{% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
+{% assign lang_posts = site.posts_by_lang[current_lang] %}
+{% assign per_page = site.posts_per_page | default: 5 %}
+{% assign page_num = page.page | default: 1 %}
+{% assign total_pages = lang_posts.size | plus: per_page | minus: 1 | divided_by: per_page %}
+{% if total_pages == 0 %}{% assign total_pages = 1 %}{% endif %}
+
+<div class="pagination">
+    {% if page_num < total_pages %}
+        {% assign next_page = page_num | plus: 1 %}
+        {% if current_lang == site.default_lang %}
+            <a class="pagination-item older" href="/page/{{ next_page }}/">Older</a>
+        {% else %}
+            <a class="pagination-item older" href="/{{ current_lang }}/page/{{ next_page }}/">Older</a>
+        {% endif %}
+    {% else %}
+        <span class="pagination-item older">Older</span>
+    {% endif %}
+
+    {% if page_num > 1 %}
+        {% assign prev_page = page_num | minus: 1 %}
+        {% if current_lang == site.default_lang %}
+            {% if prev_page == 1 %}
+                <a class="pagination-item newer" href="/">Newer</a>
+            {% else %}
+                <a class="pagination-item newer" href="/page/{{ prev_page }}/">Newer</a>
+            {% endif %}
+        {% else %}
+            {% if prev_page == 1 %}
+                <a class="pagination-item newer" href="/{{ current_lang }}/">Newer</a>
+            {% else %}
+                <a class="pagination-item newer" href="/{{ current_lang }}/page/{{ prev_page }}/">Newer</a>
+            {% endif %}
+        {% endif %}
+    {% else %}
+        <span class="pagination-item newer">Newer</span>
+    {% endif %}
+</div>

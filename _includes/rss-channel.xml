@@ -1,17 +1,19 @@
----
-layout: null
----
-
-<?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+{%- assign feed_lang = include.lang | default: site.default_lang -%}
+{%- assign feed_meta = site.data.languages[feed_lang] -%}
+{%- assign feed_posts = site.posts_by_lang[feed_lang] -%}
+{%- if feed_lang == site.default_lang -%}
+{%- assign feed_self = '/rss' -%}
+{%- else -%}
+{%- assign feed_self = '/' | append: feed_lang | append: '/rss' -%}
+{%- endif -%}
     <channel>
         <title>{{ site.title }}</title>
-        <link>{{ site.url }}</link>
-        <description>{{ site.description | strip_newlines | strip | xml_escape }}</description>
-        <language>{{ site.lang | default: 'ko' }}</language>
+        <link>{{ site.url }}{% if feed_lang != site.default_lang %}/{{ feed_lang }}{% endif %}</link>
+        <description>{{ feed_meta.description | strip_newlines | strip | xml_escape }}</description>
+        <language>{{ feed_lang }}</language>
         <lastBuildDate>{{ site.time | date_to_xmlschema }}</lastBuildDate>
-        <atom:link href="{{ '/rss.xml' | absolute_url }}" rel="self" type="application/rss+xml" />
-        {% for post in site.posts %}
+        <atom:link href="{{ feed_self | absolute_url }}" rel="self" type="application/rss+xml" />
+        {% for post in feed_posts %}
         <item>
             <title>{{ post.title | xml_escape }}</title>
             <link>{% if post.link %}{{ post.link }}{% else %}{{ site.url }}{{ post.url }}{% endif %}</link>
@@ -25,4 +27,3 @@ layout: null
         </item>
         {% endfor %}
     </channel>
-</rss>

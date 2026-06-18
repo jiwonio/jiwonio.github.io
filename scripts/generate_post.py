@@ -18,6 +18,14 @@ except ImportError:
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 REQUIRED_FIELDS = ("layout", "title", "slug", "date", "categories", "tags", "description", "image")
+DEFAULT_LANG = "ko"
+TRANSLATION_LANGS = ("en", "ja", "zh")
+LANG_LABELS = {
+    "en": "English",
+    "ja": "Japanese",
+    "zh": "Simplified Chinese",
+}
+LANG_PATH = re.compile(r"_posts/(en|ja|zh)/")
 TITLE_PATTERN = re.compile(r'title:\s*"([^"]+)"|title:\s*\'([^\']+)\'')
 SLUG_FROM_FILE = re.compile(r"\d{4}-\d{2}-\d{2}-(.+)\.md$")
 
@@ -63,6 +71,12 @@ def parse_front_matter(content):
         raise ValueError("AI 중심 포스트는 categories에 AI를 포함해야 합니다.")
 
     return metadata
+
+
+def detect_lang_from_path(path):
+    normalized = path.replace("\\", "/")
+    match = LANG_PATH.search(normalized)
+    return match.group(1) if match else DEFAULT_LANG
 
 
 def list_post_files():
@@ -136,7 +150,13 @@ def validate_generated_content(content):
             + ", ".join(f"{tag} -> {canonical}" for tag, canonical in zip(inconsistent_tags, expected))
         )
 
-    existing_slugs = {extract_slug_from_path(path) for path in list_post_files()}
+    existing_slugs = set()
+    for path in list_post_files():
+        if detect_lang_from_path(path) != DEFAULT_LANG:
+            continue
+        existing_slug = extract_slug_from_path(path)
+        if existing_slug:
+            existing_slugs.add(existing_slug)
     if slug in existing_slugs:
         raise ValueError(f"이미 존재하는 slug입니다: {slug}")
 
@@ -319,6 +339,8 @@ def build_generation_prompt(recent_titles, recent_slugs, current_time):
 layout: post
 title: "구체적인 한글 제목"
 slug: "english-slug-for-this-topic"
+lang: ko
+translation_key: "english-slug-for-this-topic"
 date: {current_time}
 categories: [AI]
 tags: [태그1, 태그2, 태그3]
@@ -357,6 +379,77 @@ def inject_front_matter_field(content, field_name, field_value):
         + "\n---\n"
     )
     return updated_front_matter + content[match.end():]
+
+
+def validate_translation_content(content, target_lang, slug):
+    metadata = parse_front_matter(content)
+
+    if metadata.get("lang") != target_lang:
+        raise ValueError(f"lang은 {target_lang}이어야 합니다.")
+    if metadata.get("translation_key") != slug:
+        raise ValueError(f"translation_key는 {slug}이어야 합니다.")
+    if metadata.get("slug") != slug:
+        raise ValueError(f"slug는 {slug}이어야 합니다.")
+
+    if not has_standalone_line(content, "<!--more-->"):
+        raise ValueError("<!--more--> 구분자가 없습니다.")
+    if "[HERO_IMAGE]" in content:
+        raise ValueError("[HERO_IMAGE] 자리 표시자가 남아 있습니다.")
+
+    leaked_phrases = [phrase for phrase in PROMPT_LEAK_PHRASES if phrase in content]
+    if leaked_phrases:
+        raise ValueError("프롬프트 지침 문구가 본문에 노출되었습니다.")
+
+    if EXTERNAL_IMAGE_PATTERN.search(content):
+        raise ValueError("외부 이미지 링크가 포함되어 있습니다.")
+
+    return metadata
+
+
+def build_translation_prompt(source_content, target_lang, slug):
+    label = LANG_LABELS[target_lang]
+    return f"""
+You are a senior technical translator. Translate the Jekyll blog post below into {label}.
+
+Rules:
+- Output only the translated markdown file. No preamble or explanation.
+- Keep these front matter fields exactly unchanged: layout, slug, date, categories, tags, image
+- Set lang: {target_lang}
+- Set translation_key: {slug}
+- Translate title, description, and all prose. Keep code blocks unchanged.
+- Preserve marker lines exactly as standalone lines: <!--more-->, [HERO_IMAGE], -----
+- Translate the references heading appropriately for {label}, but keep link URLs unchanged.
+- Do not add external image URLs.
+
+Source post:
+{source_content}
+"""
+
+
+def generate_translation(client, source_content, target_lang, slug, year, today_date):
+    prompt = build_translation_prompt(source_content, target_lang, slug)
+    response = client.models.generate_content(model="gemini-2.5-pro", contents=prompt)
+    content = strip_preamble(strip_code_fence(response.text))
+    validate_translation_content(content, target_lang, slug)
+
+    post_dir = f"_posts/{target_lang}/{year}"
+    os.makedirs(post_dir, exist_ok=True)
+    filename = f"{post_dir}/{today_date}-{slug}.md"
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write(content)
+    print(f"✅ 번역 포스트 저장 완료 ({target_lang}): {filename}")
+    return filename
+
+
+def generate_translations(client, source_content, slug, year, today_date):
+    saved = []
+    for target_lang in TRANSLATION_LANGS:
+        try:
+            print(f"🌐 {LANG_LABELS[target_lang]} 번역 생성 중...")
+            saved.append(generate_translation(client, source_content, target_lang, slug, year, today_date))
+        except Exception as exc:
+            print(f"⚠️ {target_lang} 번역 실패: {exc}")
+    return saved
 
 
 def strip_preamble(text):
@@ -409,6 +502,8 @@ def generate_blog_post():
                 preview = content[:300].replace("\n", " ")
                 raise ValueError(f"{e} | 응답 미리보기: {preview}") from e
             raw_title = str(metadata["title"])
+            content = inject_front_matter_field(content, "lang", DEFAULT_LANG)
+            content = inject_front_matter_field(content, "translation_key", slug)
 
             # 2. 썸네일 이미지 생성 및 WebP 압축 (Gemini 3.1 Flash Image)
             image_md = ""
@@ -456,15 +551,18 @@ def generate_blog_post():
             else:
                 content = content.replace("<!--more-->", f"<!--more-->\n\n{image_md}\n\n-----")
 
-            # 3. 파일 저장
-            post_dir = f"_posts/{year}"
+            # 3. 한국어 원문 저장
+            post_dir = f"_posts/{DEFAULT_LANG}/{year}"
             os.makedirs(post_dir, exist_ok=True)
             filename = f"{post_dir}/{today_date}-{slug}.md"
 
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(content)
-            
+
             print(f"✅ 포스트 저장 완료: {filename}")
+
+            # 4. en / ja / zh 번역 생성
+            generate_translations(client, content, slug, year, today_date)
             return filename
 
         except Exception as e:

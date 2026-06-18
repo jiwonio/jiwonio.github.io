@@ -13,6 +13,7 @@
   | strip -%}
 
 {%- assign schema_image = page.image | default: site.seo.default_image | absolute_url -%}
+{%- assign schema_lang = page.lang | default: site.default_lang | default: 'ko' -%}
 {%- assign schema_page_url = page.canonical | default: page.url | absolute_url -%}
 
 <script type="application/ld+json">
@@ -25,7 +26,7 @@
       "url": "{{ site.url }}/",
       "name": {{ site.title | jsonify }},
       "description": {{ site.description | strip_newlines | strip | jsonify }},
-      "inLanguage": "{{ site.lang | default: 'ko' }}",
+      "inLanguage": "{{ schema_lang }}",
       "publisher": { "@id": "{{ site.url }}/#person" }
     },
     {
@@ -54,7 +55,7 @@
       "dateModified": "{{ page.last_modified_at | default: page.date | date_to_xmlschema }}",
       "author": { "@id": "{{ site.url }}/#person" },
       "publisher": { "@id": "{{ site.url }}/#person" },
-      "inLanguage": "{{ site.lang | default: 'ko' }}",
+      "inLanguage": "{{ schema_lang }}",
       "isPartOf": { "@id": "{{ site.url }}/#website" }
       {%- if page.tags.size > 0 -%}
       ,"keywords": {{ page.tags | join: ", " | jsonify }}

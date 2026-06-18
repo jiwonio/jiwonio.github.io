@@ -1,9 +1,9 @@
 # https://blog.jiwon.io/robots.txt
 #
 # 검색엔진 크롤러에게 사이트맵 위치를 알려줍니다.
-# 사이트맵은 jekyll-sitemap 플러그인이 빌드 시 자동 생성합니다.
+# 사이트맵은 빌드 시 /sitemap (언어별 /en/sitemap 등)으로 생성됩니다.
 
 User-agent: *
 Allow: /
 
-Sitemap: https://blog.jiwon.io/sitemap.xml
+Sitemap: https://blog.jiwon.io/sitemap

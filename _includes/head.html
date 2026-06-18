@@ -33,7 +33,13 @@
     <meta name="apple-mobile-web-app-title" content="{{ site.title }}">
     <link rel="manifest" href="/site.webmanifest">
 
-    <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/rss.xml' | absolute_url }}">
+    {% for lang in site.lang_codes %}
+        {% if lang == site.default_lang %}
+            <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" hreflang="{{ lang }}" href="{{ '/rss' | absolute_url }}">
+        {% else %}
+            <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" hreflang="{{ lang }}" href="{{ '/' | append: lang | append: '/rss' | absolute_url }}">
+        {% endif %}
+    {% endfor %}
 
     {% include analytics.html %}
 </head>

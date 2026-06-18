@@ -23,15 +23,27 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 SLUG_FROM_FILE = re.compile(r"\d{4}-\d{2}-\d{2}-(.+)\.md$")
+LANG_PATH = re.compile(r"(?:^|/)_posts/(en|ja|zh)(?:/|$)")
+DEFAULT_LANG = "ko"
 INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow"
 INVALID_BEFORE_SHA = "0" * 40
 
 
-def load_site_config(root: Path) -> tuple[str, str]:
+def load_site_config(root: Path) -> tuple[str, str, str]:
     config = yaml.safe_load((root / "_config.yml").read_text(encoding="utf-8"))
     site_url = str(config["url"]).rstrip("/")
     key = str(config.get("seo", {}).get("indexnow_key", "")).strip()
-    return site_url, key
+    default_lang = str(config.get("default_lang", DEFAULT_LANG)).strip() or DEFAULT_LANG
+    return site_url, key, default_lang
+
+
+def detect_lang(path: Path, metadata: dict) -> str:
+    if metadata.get("lang"):
+        return str(metadata["lang"]).strip()
+    match = LANG_PATH.search(path.as_posix())
+    if match:
+        return match.group(1)
+    return DEFAULT_LANG
 
 
 def resolve_post_slug(path: Path, metadata: dict) -> str:
@@ -43,7 +55,7 @@ def resolve_post_slug(path: Path, metadata: dict) -> str:
     return re.sub(r"[^a-z0-9]+", "-", path.stem.lower()).strip("-")
 
 
-def post_public_url(site_url: str, path: Path) -> str:
+def post_public_url(site_url: str, path: Path, default_lang: str = DEFAULT_LANG) -> str:
     content = path.read_text(encoding="utf-8")
     match = FRONT_MATTER_PATTERN.match(content)
     if not match:
@@ -54,7 +66,10 @@ def post_public_url(site_url: str, path: Path) -> str:
         raise ValueError(f"invalid front matter: {path}")
 
     slug = resolve_post_slug(path, metadata)
-    return f"{site_url}/posts/{slug}/"
+    lang = detect_lang(path, metadata)
+    if lang == default_lang:
+        return f"{site_url}/posts/{slug}/"
+    return f"{site_url}/{lang}/posts/{slug}/"
 
 
 def git_added_post_paths(before_sha: str, after_sha: str, root: Path) -> list[Path]:
@@ -125,14 +140,14 @@ def main() -> int:
     parser.add_argument("--url", action="append", dest="urls")
     args = parser.parse_args()
 
-    site_url, key = load_site_config(args.root)
+    site_url, key, default_lang = load_site_config(args.root)
     urls: list[str] = list(args.urls or [])
 
     if args.from_git:
         before_sha, after_sha = args.from_git
         for path in git_added_post_paths(before_sha, after_sha, args.root):
             try:
-                urls.append(post_public_url(site_url, path))
+                urls.append(post_public_url(site_url, path, default_lang))
             except (OSError, UnicodeError, yaml.YAMLError, ValueError) as exc:
                 print(f"WARNING: {path}: {exc}", file=sys.stderr)
 

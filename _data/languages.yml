@@ -1,0 +1,72 @@
+# 언어별 메타데이터 (UI·RSS·SEO에서 공통 사용)
+ko:
+  label: "한국어"
+  locale: "ko_KR"
+  description: >
+    웹 개발과 AI 코딩 도구를 다루는 기술 블로그입니다.
+    실무에서 바로 쓸 수 있는 설정, 아키텍처, 트러블슈팅을 기록합니다.
+  archive_title: "아카이브"
+  year_heading: "연도"
+  tag_heading: "태그"
+  footer:
+    made_with: "Made with ❤ using"
+    location: "대한민국에 사는 웹 개발자입니다"
+    archive_link: "모든 글은 아카이브에서 볼 수 있습니다"
+  theme:
+    system: "시스템 설정"
+    light: "라이트 모드"
+    dark: "다크 모드"
+
+en:
+  label: "English"
+  locale: "en_US"
+  description: >
+    A technical blog on web development and AI coding tools.
+    Practical setups, architecture notes, and troubleshooting for production work.
+  archive_title: "Archive"
+  year_heading: "Year"
+  tag_heading: "Tag"
+  footer:
+    made_with: "Made with ❤ using"
+    location: "A web developer living in South Korea"
+    archive_link: "All posts are available in the Archive"
+  theme:
+    system: "System theme"
+    light: "Light mode"
+    dark: "Dark mode"
+
+ja:
+  label: "日本語"
+  locale: "ja_JP"
+  description: >
+    Web開発とAIコーディングツールを扱う技術ブログです。
+    実務ですぐ使える設定、アーキテクチャ、トラブルシューティングを記録します。
+  archive_title: "アーカイブ"
+  year_heading: "年"
+  tag_heading: "タグ"
+  footer:
+    made_with: "Made with ❤ using"
+    location: "韓国に住むWeb開発者です"
+    archive_link: "すべての記事はアーカイブで閲覧できます"
+  theme:
+    system: "システム設定"
+    light: "ライトモード"
+    dark: "ダークモード"
+
+zh:
+  label: "中文"
+  locale: "zh_CN"
+  description: >
+    分享 Web 开发与 AI 编程工具的技术博客。
+    记录可直接用于生产的配置、架构与排错经验。
+  archive_title: "归档"
+  year_heading: "年份"
+  tag_heading: "标签"
+  footer:
+    made_with: "Made with ❤ using"
+    location: "居住在韩国的 Web 开发者"
+    archive_link: "所有文章可在归档中浏览"
+  theme:
+    system: "跟随系统"
+    light: "浅色模式"
+    dark: "深色模式"

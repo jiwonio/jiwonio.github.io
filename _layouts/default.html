@@ -1,18 +1,25 @@
+{% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
+{% assign lang_meta = site.data.languages[current_lang] %}
 <!doctype html>
-<html lang="{{ site.lang | default: 'ko' }}">
+<html lang="{{ current_lang }}">
     {% include head.html %}
     <body>
         <div class="container content">
             <header class="masthead">
                 <h3 class="masthead-title">
-                    <a href="/" title="Home">{{ site.title }}</a>
+                    {% if current_lang == site.default_lang %}
+                        <a href="/" title="Home">{{ site.title }}</a>
+                    {% else %}
+                        <a href="/{{ current_lang }}/" title="Home">{{ site.title }}</a>
+                    {% endif %}
                     <small><i class="fa fa-code"></i> {{ site.tagline }}</small>
                 </h3>
                 <nav>
+                    {% include lang-switcher.html %}
                     <a href="https://twitter.com/{{ site.author.twitter }}" title="X (formerly Twitter)" target="_blank" rel="noopener noreferrer"><i class="fa fa-twitter"></i></a>
                     <a href="https://github.com/{{ site.author.github }}" title="GitHub" target="_blank" rel="noopener noreferrer"><i class="fa fa-github"></i></a>
                     <a href="mailto:{{ site.author.email }}" title="e-mail"><i class="fa fa-envelope"></i></a>
-                    <button type="button" id="theme-toggle" class="theme-toggle" data-theme-preference="system" aria-label="시스템 설정 (클릭하여 변경)" title="시스템 설정">
+                    <button type="button" id="theme-toggle" class="theme-toggle" data-theme-preference="system" aria-label="{{ lang_meta.theme.system }}" title="{{ lang_meta.theme.system }}">
                         <i class="fa fa-adjust" aria-hidden="true"></i>
                     </button>
                 </nav>
@@ -26,13 +33,23 @@
             <footer class="footer">
                 <img src="https://www.gravatar.com/avatar/8b77c02d2acf93b8d9089ce7ce249ce8?s=160" alt="Gravatar">
                 <ul>
-                    <li>Made with ❤ using <a href="https://jekyllrb.com/" title="Jekyll" target="_blank" rel="noopener noreferrer">Jekyll</a></li>
-                    <li>A web developer living in <a href="https://en.wikipedia.org/wiki/South_Korea" title="Wikipedia: South Korea" target="_blank" rel="noopener noreferrer">South Korea🌏</a></li>
-                    <li>All ramblings can be found in the <a href="/archive/" title="Archive">Archive</a></li>
+                    <li>{{ lang_meta.footer.made_with }} <a href="https://jekyllrb.com/" title="Jekyll" target="_blank" rel="noopener noreferrer">Jekyll</a></li>
+                    <li>{{ lang_meta.footer.location }}</li>
+                    <li>{{ lang_meta.footer.archive_link }}
+                        {% if current_lang == site.default_lang %}
+                            <a href="/archive/" title="{{ lang_meta.archive_title }}">{{ lang_meta.archive_title }}</a>
+                        {% else %}
+                            <a href="/{{ current_lang }}/archive/" title="{{ lang_meta.archive_title }}">{{ lang_meta.archive_title }}</a>
+                        {% endif %}
+                    </li>
                 </ul>
                 <div class="cf"></div>
             </footer>
         </div>
+        <script>
+            window.SITE_I18N = window.SITE_I18N || {};
+            window.SITE_I18N.theme = {{ lang_meta.theme | jsonify }};
+        </script>
         <script src="/assets/js/theme.js" defer></script>
     </body>
 </html>

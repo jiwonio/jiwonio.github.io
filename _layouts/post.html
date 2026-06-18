@@ -1,9 +1,33 @@
 ---
 layout: default
 ---
+{% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
 
 <article class="post">
     <h1 class="post-title">{{ page.title }}</h1>
     <time datetime="{{ page.date | date_to_xmlschema }}" class="post-date">{{ page.date | date_to_string }}</time>
+
+    {% if page.translation_key %}
+        {% assign siblings = site.translations[page.translation_key] %}
+        {% assign has_other_langs = false %}
+        {% for lang in site.lang_codes %}
+            {% if lang != current_lang and siblings[lang] %}
+                {% assign has_other_langs = true %}
+            {% endif %}
+        {% endfor %}
+        {% if has_other_langs %}
+        <nav class="post-translations" aria-label="Translations">
+            {% for lang in site.lang_codes %}
+                {% if lang != current_lang %}
+                    {% assign sibling = siblings[lang] %}
+                    {% if sibling %}
+                        <a href="{{ sibling.url }}" hreflang="{{ lang }}" lang="{{ lang }}">{{ site.data.languages[lang].label }}</a>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        </nav>
+        {% endif %}
+    {% endif %}
+
     {{ content | replace: '<!--more-->', '' }}
 </article>

@@ -8,7 +8,10 @@ archives: true
     <h3>{{ page.date | date:"%Y" }}</h3>
     <ul class="archive">
         {% for post in page.posts %}
+            {% assign post_lang = post.lang | default: site.default_lang %}
+            {% if post_lang == site.default_lang %}
             <li>{{ post.date | date:"%b" }} <a href="{% if post.link %}{{ post.link }}{% else %}{{ post.url }}{% endif %}">{{ post.title }}</a></li>
+            {% endif %}
         {% endfor %}
     </ul>
 </article>

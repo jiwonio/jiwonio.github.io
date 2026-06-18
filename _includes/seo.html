@@ -16,6 +16,8 @@
   | strip_newlines
   | strip -%}
 
+{%- assign page_lang = page.lang | default: site.default_lang | default: 'ko' -%}
+{%- assign page_locale = site.data.languages[page_lang].locale | default: site.locale -%}
 {%- assign seo_canonical = page.canonical | default: page.url | absolute_url -%}
 
 {%- if page.layout == "post" -%}
@@ -47,9 +49,15 @@
 <meta name="robots" content="{{ seo_robots | escape }}">
 
 <link rel="canonical" href="{{ seo_canonical }}">
+{% include hreflang.html %}
 
 <meta property="og:site_name" content="{{ site.title | escape }}">
-<meta property="og:locale" content="{{ site.locale | default: 'ko_KR' }}">
+<meta property="og:locale" content="{{ page_locale }}">
+{%- for lang in site.lang_codes -%}
+  {%- if lang != page_lang -%}
+<meta property="og:locale:alternate" content="{{ site.data.languages[lang].locale }}">
+  {%- endif -%}
+{%- endfor -%}
 <meta property="og:type" content="{{ seo_og_type }}">
 <meta property="og:title" content="{{ seo_title | escape }}">
 <meta property="og:description" content="{{ seo_description | escape }}">

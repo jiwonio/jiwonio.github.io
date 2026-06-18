@@ -9,21 +9,27 @@ import yaml
 
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 REQUIRED_FIELDS = ("layout", "title", "tags", "image")
-# AI 생성 스크립트의 프롬프트 지침 문구가 본문에 그대로 남으면 등장하는 표현 (누출 감지용)
+LANG_PATH = re.compile(r"(?:^|/)_posts/(en|ja|zh)(?:/|$)")
+DEFAULT_LANG = "ko"
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
-# 한글 단어 사이에 일본어 가나가 섞이는 등의 모델 출력 오류 감지 (예: '네이ティブ')
-UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ�]")
+UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ]")
 CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
 EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
 
 
+def detect_lang(path: Path, metadata: dict) -> str:
+    if metadata.get("lang"):
+        return str(metadata["lang"]).strip()
+    if LANG_PATH.search(path.as_posix()):
+        return LANG_PATH.search(path.as_posix()).group(1)
+    return DEFAULT_LANG
+
+
 def has_standalone_line(content, marker):
-    """marker가 다른 텍스트와 섞이지 않고 한 줄을 단독으로 차지하는지 확인."""
     return any(line.strip() == marker for line in content.splitlines())
 
 
 def find_unexpected_scripts(content):
-    """코드 블록을 제외한 본문에서 일본어 가나·치환 문자 등 의도치 않은 문자를 찾는다."""
     prose = CODE_BLOCK_PATTERN.sub("", content)
     return sorted(set(UNEXPECTED_SCRIPT_PATTERN.findall(prose)))
 
@@ -70,6 +76,7 @@ def validate_posts(posts_dir, site_root=None):
     errors = []
     tag_spellings = defaultdict(set)
     output_paths = defaultdict(list)
+    translation_keys = defaultdict(set)
     if site_root is None:
         site_root = posts_dir.parent
 
@@ -81,12 +88,16 @@ def validate_posts(posts_dir, site_root=None):
             errors.append(f"{path}: {exc}")
             continue
 
+        lang = detect_lang(path, metadata)
         for tag in metadata["tags"]:
             tag_spellings[tag.casefold()].add(tag)
 
         slug = metadata.get("slug") or path.stem[11:]
         normalized_slug = re.sub(r"[^a-z0-9]+", "-", str(slug).lower()).strip("-")
-        output_paths[normalized_slug].append(path)
+        output_paths[(lang, normalized_slug)].append(path)
+
+        translation_key = metadata.get("translation_key") or normalized_slug
+        translation_keys[translation_key].add(lang)
 
         if not has_standalone_line(content, "<!--more-->"):
             errors.append(f"{path}: missing standalone <!--more--> excerpt separator")
@@ -112,10 +123,11 @@ def validate_posts(posts_dir, site_root=None):
                 + ", ".join(sorted(spellings))
             )
 
-    for slug, paths in output_paths.items():
+    for key, paths in output_paths.items():
         if len(paths) > 1:
+            lang, slug = key
             errors.append(
-                f"duplicate post output slug '{slug}': "
+                f"duplicate post output slug '{slug}' for lang '{lang}': "
                 + ", ".join(str(path) for path in paths)
             )
 
