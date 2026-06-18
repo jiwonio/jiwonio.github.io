@@ -1,0 +1,96 @@
+name: Backfill Post Translations
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "처리할 원문 포스트 수 (0 = 전체)"
+        required: false
+        default: "0"
+      langs:
+        description: "번역 언어 (쉼표 구분)"
+        required: false
+        default: "en,ja,zh"
+      sleep:
+        description: "API 호출 간 대기(초)"
+        required: false
+        default: "5"
+      prepare_only:
+        description: "메타데이터 정규화만 수행"
+        type: boolean
+        required: false
+        default: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+
+      - name: Run backfill script
+        working-directory: scripts
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          ARGS=()
+          if [ "${{ inputs.prepare_only }}" = "true" ]; then
+            ARGS+=(--prepare)
+          fi
+          if [ "${{ inputs.limit }}" != "0" ]; then
+            ARGS+=(--limit "${{ inputs.limit }}")
+          fi
+          ARGS+=(--langs "${{ inputs.langs }}")
+          ARGS+=(--sleep "${{ inputs.sleep }}")
+          python backfill_translations.py "${ARGS[@]}"
+
+      - name: Validate posts
+        if: inputs.prepare_only != true
+        run: python scripts/validate_posts.py
+
+      - name: Build Jekyll site
+        if: inputs.prepare_only != true
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build
+
+      - name: Commit and push
+        env:
+          GH_TOKEN: ${{ secrets.MY_PAT }}
+        run: |
+          git config user.email "min@jiwon.io"
+          git config user.name "jwjp"
+          gh auth setup-git
+
+          git add _posts/ scripts/blog_i18n.py scripts/backfill_translations.py
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Backfill post translations (${{ inputs.langs }})"
+          git push origin gh-pages

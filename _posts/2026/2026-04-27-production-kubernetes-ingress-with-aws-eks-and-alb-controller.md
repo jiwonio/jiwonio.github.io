@@ -18,6 +18,8 @@ description: AWS EKS 환경에서 외부 트래픽을 효율적으로 관리하�
   및 설정 방법을 심층적으로 다룹니다. 프로덕션 레벨의 쿠버네티스 인그레스(Ingress)를 구축하고, SSL/TLS 적용, 헬스 체크, 고급 라우팅
   등 실무 Best Practice를 완벽하게 마스터하세요.
 image: /uploads/production-kubernetes-ingress-with-aws-eks-and-alb-controller/thumbnail.webp
+lang: ko
+translation_key: production-kubernetes-ingress-with-aws-eks-and-alb-controller
 ---
 Amazon EKS(Elastic Kubernetes Service)를 사용하여 쿠버네티스 클러스터를 운영할 때 가장 중요한 과제 중 하나는 외부 트래픽을 클러스터 내부의 서비스로 안정적이고 효율적으로 라우팅하는 것입니다. 쿠버네티스는 `NodePort`나 `LoadBalancer` 타입의 서비스를 제공하지만, 이는 프로덕션 환경의 복잡한 요구사항을 모두 충족시키기에는 한계가 명확합니다. 예를 들어, `LoadBalancer` 타입 서비스를 배포할 때마다 새로운 ELB(Elastic Load Balancer)가 생성되어 비용 부담이 커지고, 세밀한 L7 라우팅 규칙(경로 기반, 호스트 기반 라우팅)을 적용하기도 어렵습니다.
 

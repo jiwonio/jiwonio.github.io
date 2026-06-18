@@ -7,6 +7,12 @@ meta: Learn to configure swap memory on Ubuntu 22.04 LTS to address RAM shortage
 tags:
 - ubuntu
 image: /uploads/ubuntu22-swap-memory/thumbnail.webp
+lang: ko
+translation_key: ubuntu22-swap-memory
+slug: ubuntu22-swap-memory
+description: Learn to configure swap memory on Ubuntu 22.04 LTS to address RAM shortages
+  on low-spec servers. Perfect for AWS EC2 and self-hosted servers running resource-heavy
+  applications.
 ---
 When using the free tier of services like **Amazon Web Services EC2** or other self-hosted servers,
 you might occasionally run into issues with insufficient RAM when installing large external resources.

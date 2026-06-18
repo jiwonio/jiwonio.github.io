@@ -7,6 +7,12 @@ meta: Discover how to fix common package installation errors when setting up Nod
 tags:
 - nodejs
 image: /uploads/nodejs-installation-failure/thumbnail.webp
+lang: ko
+translation_key: nodejs-installation-failure
+slug: nodejs-installation-failure
+description: Discover how to fix common package installation errors when setting up
+  Node.js on Windows 11. This guide provides clear solutions for handling compilation
+  issues with C/C++ and Python using Chocolaty.
 ---
 When installing [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} on Windows 11, you may encounter errors related to additional package installations. 
 These errors often occur due to the necessity to compile some Node.js packages using **C/C++** and **Python**. 

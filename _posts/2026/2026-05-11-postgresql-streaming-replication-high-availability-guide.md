@@ -18,6 +18,8 @@ description: PostgreSQL 스트리밍 복제를 사용하여 데이터베이스 �
   부하를 분산하는 실전 가이드를 확인하세요. 프로덕션 환경을 위한 postgresql.conf, pg_hba.conf 설정, 장애 조치(Failover)
   전략 및 모니터링 Best Practice를 다룹니다.
 image: /uploads/postgresql-streaming-replication-high-availability-guide/thumbnail.webp
+lang: ko
+translation_key: postgresql-streaming-replication-high-availability-guide
 ---
 모든 프로덕션 서비스의 심장에는 데이터베이스가 있습니다. 하지만 단일 데이터베이스 인스턴스에만 의존하는 아키텍처는 예기치 않은 하드웨어 장애, 네트워크 문제, 또는 유지보수 작업으로 인해 전체 서비스가 중단될 수 있는 치명적인 단일 장애점(Single Point of Failure)이 됩니다. 이러한 위험을 해결하고 서비스의 안정성을 극대화하기 위해 **데이터베이스 고가용성(High Availability, HA)** 확보는 선택이 아닌 필수입니다.
 

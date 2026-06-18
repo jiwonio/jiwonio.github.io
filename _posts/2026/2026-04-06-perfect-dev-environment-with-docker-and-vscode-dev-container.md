@@ -12,6 +12,10 @@ tags:
 - Dev Container
 - 개발 환경
 image: /uploads/perfect-dev-environment-with-docker-and-vscode-dev-container/thumbnail.webp
+lang: ko
+translation_key: perfect-dev-environment-with-docker-and-vscode-dev-container
+description: 팀원 모두가 동일한 환경에서 작업하며 '제 PC에서는 잘 되는데요?' 문제를 원천 차단하는 방법을 찾고 계신가요? Docker와
+  VS Code Dev Container를 활용하여 OS에 상관없이 일관되고 격리된 개발 환경을 구축하는 실전 가이드를 제공합니다.
 ---
 '제 PC에서는 잘 되는데요?' 이 말은 개발자 협업 시 가장 흔하게 발생하는 골치 아픈 문제 중 하나입니다. 개발자마다 다른 운영체제, 설치된 라이브러리 버전의 미세한 차이, 각종 환경 변수 설정 등은 예측 불가능한 버그를 낳고 프로젝트 전체의 발목을 잡기도 합니다. 이러한 문제를 '환경의 비일관성'이라고 부릅니다.
 

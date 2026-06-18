@@ -17,6 +17,8 @@ tags:
 description: 프로덕션 쿠버네티스 클러스터에서 발생하는 대규모 로그를 효율적으로 수집, 처리, 분석하기 위해 Fluentd, Elasticsearch,
   Kibana (EFK) 스택을 활용한 중앙 로깅 시스템 구축 방법을 심도 있게 다룹니다. 실무 중심의 설정과 최적화 팁을 확인하세요.
 image: /uploads/building-production-level-centralized-logging-system-with-fluentd-on-kubernetes/thumbnail.webp
+lang: ko
+translation_key: building-production-level-centralized-logging-system-with-fluentd-on-kubernetes
 ---
 마이크로서비스 아키텍처(MSA)가 보편화되면서 쿠버네티스는 컨테이너 오케스트레이션의 표준으로 자리 잡았습니다. 수많은 컨테이너가 동적으로 생성되고 사라지는 쿠버네티스 환경에서, 분산된 애플리케이션 로그를 추적하고 문제를 해결하는 것은 기존의 방식으로는 거의 불가능에 가깝습니다. 각 파드(Pod)에 접속하여 `kubectl logs` 명령어로 로그를 확인하는 것은 임시방편일 뿐, 실시간 장애 대응과 근본 원인 분석에는 한계가 명확합니다.
 

@@ -59,7 +59,7 @@ jobs:
           git config --local user.name "jwjp"
           gh auth setup-git
           
-          git add _posts/ uploads/ assets/
+          git add _posts/ uploads/ assets/ scripts/blog_i18n.py
           
           if ! git diff-index --quiet HEAD; then
             BRANCH_NAME="ai-post-$(date +%Y%m%d-%H%M%S)"

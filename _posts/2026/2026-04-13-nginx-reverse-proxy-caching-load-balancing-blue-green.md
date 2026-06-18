@@ -16,6 +16,8 @@ tags:
 description: 고성능 웹 서비스를 위한 Nginx 리버스 프록시 고급 설정법을 알아봅니다. 캐시 적중률을 높이는 microcache 설정부터
   헬스 체크를 포함한 로드 밸런싱, 무중단 배포(블루/그린) 전략까지 실무 코드를 통해 완벽히 마스터하세요.
 image: /uploads/nginx-reverse-proxy-caching-load-balancing-blue-green/thumbnail.webp
+lang: ko
+translation_key: nginx-reverse-proxy-caching-load-balancing-blue-green
 ---
 숙련된 개발자라면 누구나 **Nginx**를 웹 서버나 간단한 리버스 프록시로 사용해 본 경험이 있을 것입니다. 하지만 단순히 `proxy_pass` 지시어 하나만으로 Nginx의 잠재력을 모두 활용하고 있다고 말하기는 어렵습니다. 트래픽이 증가하고 서비스의 안정성이 중요해지는 프로덕션 환경에서는, Nginx를 더욱 정교하게 활용하여 **성능, 가용성, 그리고 배포 효율성**을 극대화해야 합니다.
 
