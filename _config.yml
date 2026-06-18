@@ -31,7 +31,7 @@ seo:
 # ── 분석 도구 (선택) ──────────────────────────────────────────────
 # ID를 입력하면 head에 스크립트가 추가됩니다. 비어 있으면 로드하지 않습니다.
 analytics:
-  google_analytics_id: ""
+  google_analytics_id: "G-QB0ZTLELGE"
   naver_analytics_id: ""
 
 # ── Jekyll ────────────────────────────────────────────────────────
