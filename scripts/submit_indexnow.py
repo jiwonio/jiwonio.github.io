@@ -1,0 +1,145 @@
+"""
+배포된 새 포스트 URL을 IndexNow API에 제출합니다.
+
+사용법:
+    python scripts/submit_indexnow.py --from-git <before_sha> <after_sha>
+    python scripts/submit_indexnow.py --url https://blog.jiwon.io/posts/example/
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+from urllib.parse import urlparse
+
+import yaml
+
+ROOT = Path(__file__).resolve().parent.parent
+FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
+SLUG_FROM_FILE = re.compile(r"\d{4}-\d{2}-\d{2}-(.+)\.md$")
+INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow"
+INVALID_BEFORE_SHA = "0" * 40
+
+
+def load_site_config(root: Path) -> tuple[str, str]:
+    config = yaml.safe_load((root / "_config.yml").read_text(encoding="utf-8"))
+    site_url = str(config["url"]).rstrip("/")
+    key = str(config.get("seo", {}).get("indexnow_key", "")).strip()
+    return site_url, key
+
+
+def resolve_post_slug(path: Path, metadata: dict) -> str:
+    if metadata.get("slug"):
+        return str(metadata["slug"]).strip()
+    match = SLUG_FROM_FILE.match(path.name)
+    if match:
+        return match.group(1)
+    return re.sub(r"[^a-z0-9]+", "-", path.stem.lower()).strip("-")
+
+
+def post_public_url(site_url: str, path: Path) -> str:
+    content = path.read_text(encoding="utf-8")
+    match = FRONT_MATTER_PATTERN.match(content)
+    if not match:
+        raise ValueError(f"missing front matter: {path}")
+
+    metadata = yaml.safe_load(match.group(1))
+    if not isinstance(metadata, dict):
+        raise ValueError(f"invalid front matter: {path}")
+
+    slug = resolve_post_slug(path, metadata)
+    return f"{site_url}/posts/{slug}/"
+
+
+def git_added_post_paths(before_sha: str, after_sha: str, root: Path) -> list[Path]:
+    if not before_sha or before_sha == INVALID_BEFORE_SHA:
+        print("No previous commit to compare; skipping IndexNow.")
+        return []
+
+    result = subprocess.run(
+        [
+            "git",
+            "diff",
+            "--name-only",
+            "--diff-filter=A",
+            before_sha,
+            after_sha,
+            "--",
+            "_posts",
+        ],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return [root / line for line in result.stdout.splitlines() if line.endswith(".md")]
+
+
+def submit_urls(site_url: str, key: str, urls: list[str]) -> int:
+    if not key:
+        print("IndexNow key is not configured; skipping.")
+        return 0
+
+    if not urls:
+        print("No new post URLs to submit.")
+        return 0
+
+    host = urlparse(site_url).netloc
+    payload = {
+        "host": host,
+        "key": key,
+        "keyLocation": f"{site_url}/{key}.txt",
+        "urlList": urls,
+    }
+    request = urllib.request.Request(
+        INDEXNOW_ENDPOINT,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=30) as response:
+            status = response.status
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        print(f"IndexNow request failed: HTTP {exc.code} {body}", file=sys.stderr)
+        return 1
+
+    print(f"IndexNow accepted {len(urls)} URL(s); HTTP {status}")
+    for url in urls:
+        print(f"  - {url}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Submit new blog post URLs to IndexNow.")
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--from-git", nargs=2, metavar=("BEFORE", "AFTER"))
+    parser.add_argument("--url", action="append", dest="urls")
+    args = parser.parse_args()
+
+    site_url, key = load_site_config(args.root)
+    urls: list[str] = list(args.urls or [])
+
+    if args.from_git:
+        before_sha, after_sha = args.from_git
+        for path in git_added_post_paths(before_sha, after_sha, args.root):
+            try:
+                urls.append(post_public_url(site_url, path))
+            except (OSError, UnicodeError, yaml.YAMLError, ValueError) as exc:
+                print(f"WARNING: {path}: {exc}", file=sys.stderr)
+
+    # Preserve order, drop duplicates.
+    urls = list(dict.fromkeys(urls))
+    return submit_urls(site_url, key, urls)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
