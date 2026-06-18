@@ -32,7 +32,7 @@ seo:
 # ID를 입력하면 head에 스크립트가 추가됩니다. 비어 있으면 로드하지 않습니다.
 analytics:
   google_analytics_id: "G-QB0ZTLELGE"
-  naver_analytics_id: ""
+  naver_analytics_id: "1ab6ce6f3ed0010"
 
 # ── Jekyll ────────────────────────────────────────────────────────
 paginate: 5
