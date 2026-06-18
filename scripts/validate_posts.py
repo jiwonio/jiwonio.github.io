@@ -109,9 +109,11 @@ def validate_posts(posts_dir, site_root=None):
         if leaked:
             errors.append(f"{path}: prompt instruction text leaked into body: {', '.join(leaked)}")
 
-        stray_chars = find_unexpected_scripts(content)
-        if stray_chars:
-            errors.append(f"{path}: unexpected characters mixed into text: {', '.join(stray_chars)}")
+        # 일본어 포스트는 가나·한자가 정상이므로, ko 원문에만 혼입 문자 검사를 적용합니다.
+        if lang == DEFAULT_LANG:
+            stray_chars = find_unexpected_scripts(content)
+            if stray_chars:
+                errors.append(f"{path}: unexpected characters mixed into text: {', '.join(stray_chars)}")
 
         if EXTERNAL_IMAGE_PATTERN.search(content):
             errors.append(f"{path}: contains an external image link")

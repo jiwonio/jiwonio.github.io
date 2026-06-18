@@ -27,6 +27,7 @@ env:
 jobs:
   backfill:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     permissions:
       contents: write
 
@@ -53,8 +54,18 @@ jobs:
           pip install -r scripts/requirements.txt
           python -c "from google import genai; print('google-genai OK')"
 
+      - name: Verify secrets
+        run: |
+          if [ -z "${{ secrets.GEMINI_API_KEY }}" ]; then
+            echo "GEMINI_API_KEY secret is missing."
+            exit 1
+          fi
+          if [ -z "${{ secrets.MY_PAT }}" ]; then
+            echo "MY_PAT secret is missing (needed for commit/push)."
+            exit 1
+          fi
+
       - name: Run backfill script
-        working-directory: scripts
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
@@ -67,7 +78,7 @@ jobs:
           fi
           ARGS+=(--langs "${{ inputs.langs }}")
           ARGS+=(--sleep "${{ inputs.sleep }}")
-          python backfill_translations.py "${ARGS[@]}"
+          python scripts/backfill_translations.py "${ARGS[@]}"
 
       - name: Validate posts
         if: inputs.prepare_only != true
@@ -80,6 +91,7 @@ jobs:
         run: bundle exec jekyll build
 
       - name: Commit and push
+        if: inputs.prepare_only != true
         env:
           GH_TOKEN: ${{ secrets.MY_PAT }}
         run: |
@@ -87,7 +99,7 @@ jobs:
           git config user.name "jwjp"
           gh auth setup-git
 
-          git add _posts/ scripts/blog_i18n.py scripts/backfill_translations.py
+          git add _posts/ scripts/
           if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0

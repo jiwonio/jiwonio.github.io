@@ -100,11 +100,14 @@ def backfill(
 
         for lang in pending_langs:
             print(f"  🌐 {LANG_LABELS[lang]} ({lang})...")
-            output = generate_translation(client, source_content, source_path, lang)
-            print(f"  ✅ {output.as_posix()}")
-            created += 1
-            if sleep_seconds > 0:
-                time.sleep(sleep_seconds)
+            try:
+                output = generate_translation(client, source_content, source_path, lang)
+                print(f"  ✅ {output.as_posix()}")
+                created += 1
+                if sleep_seconds > 0:
+                    time.sleep(sleep_seconds)
+            except Exception as exc:
+                print(f"  ⚠️ {lang} 실패 ({slug}): {exc}")
 
     return created, skipped
 
@@ -145,6 +148,11 @@ def main() -> int:
 
     created, skipped = backfill(posts, langs, dry_run=args.dry_run, sleep_seconds=args.sleep)
     print(f"Done. created={created}, skipped_complete={skipped}")
+
+    if not args.dry_run and created == 0 and skipped < len(posts):
+        print("ERROR: no translations were created.", file=sys.stderr)
+        return 1
+
     return 0
 
 

@@ -13,6 +13,9 @@ SLUG_FROM_FILE = re.compile(r"\d{4}-\d{2}-\d{2}-(.+)\.md$")
 DATE_FROM_FILE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 LANG_PATH = re.compile(r"_posts/(en|ja|zh)/")
 
+SITE_ROOT = Path(__file__).resolve().parent.parent
+POSTS_DIR = SITE_ROOT / "_posts"
+
 DEFAULT_LANG = "ko"
 TRANSLATION_LANGS = ("en", "ja", "zh")
 LANG_LABELS = {
@@ -85,7 +88,27 @@ def resolve_year(path: Path) -> str:
 
 def translation_output_path(source_path: Path, target_lang: str) -> Path:
     year = resolve_year(source_path)
-    return Path("_posts") / target_lang / year / source_path.name
+    return POSTS_DIR / target_lang / year / source_path.name
+
+
+def ensure_translation_metadata(content: str, source_content: str, target_lang: str, slug: str) -> str:
+    """번역본 front matter에 date 등 누락 필드를 원문에서 보강합니다."""
+    metadata = parse_front_matter(content)
+    source_metadata = parse_front_matter(source_content)
+
+    metadata["lang"] = target_lang
+    metadata["translation_key"] = slug
+    metadata["slug"] = slug
+
+    if not metadata.get("date") and source_metadata.get("date"):
+        metadata["date"] = source_metadata["date"]
+    if not metadata.get("description") and metadata.get("meta"):
+        metadata["description"] = str(metadata["meta"]).strip()
+    if not metadata.get("layout"):
+        metadata["layout"] = "post"
+
+    body = content[FRONT_MATTER_PATTERN.match(content).end() :]
+    return dump_front_matter(metadata) + body
 
 
 def has_standalone_line(content: str, marker: str) -> bool:
@@ -218,9 +241,9 @@ def generate_translation(
 
     if target_lang == "en" and is_primarily_english(source_content):
         content = copy_as_english_translation(source_content, slug)
+        content = ensure_translation_metadata(content, source_content, target_lang, slug)
         validate_translation_content(content, target_lang, slug)
-        output = save_translation(content, source_path, target_lang)
-        return output
+        return save_translation(content, source_path, target_lang)
 
     prompt = build_translation_prompt(source_content, target_lang, slug)
     last_error = None
@@ -229,6 +252,7 @@ def generate_translation(
         try:
             response = client.models.generate_content(model="gemini-2.5-pro", contents=prompt)
             content = strip_preamble(strip_code_fence(response.text))
+            content = ensure_translation_metadata(content, source_content, target_lang, slug)
             validate_translation_content(content, target_lang, slug)
             return save_translation(content, source_path, target_lang)
         except Exception as exc:
