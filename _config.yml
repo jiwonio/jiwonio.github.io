@@ -1,22 +1,55 @@
 permalink: /posts/:title/
 timezone: Asia/Seoul
 
+# ── 사이트 기본 정보 ──────────────────────────────────────────────
+title: Jiwon Min
+tagline: Developer
+description: >
+  웹 개발과 AI 코딩 도구를 다루는 기술 블로그입니다.
+  실무에서 바로 쓸 수 있는 설정, 아키텍처, 트러블슈팅을 기록합니다.
+url: "https://blog.jiwon.io"
+lang: ko
+locale: ko_KR
+
+author:
+  name: Jiwon Min
+  email: min@jiwon.io
+  twitter: jiwoniio
+  github: jwjp
+
+# ── SEO / 검색엔진 ────────────────────────────────────────────────
+# 각 콘솔에서 소유권 확인용 메타 태그 값을 발급받은 뒤 아래에 입력하세요.
+# 비어 있으면 해당 태그는 출력되지 않습니다.
+seo:
+  default_image: /assets/og-default.webp
+  twitter_card: summary_large_image
+  google_site_verification: ""
+  naver_site_verification: ""
+  bing_site_verification: ""
+  indexnow_key: ""
+
+# ── 분석 도구 (선택) ──────────────────────────────────────────────
+# ID를 입력하면 head에 스크립트가 추가됩니다. 비어 있으면 로드하지 않습니다.
+analytics:
+  google_analytics_id: ""
+  naver_analytics_id: ""
+
+# ── Jekyll ────────────────────────────────────────────────────────
 paginate: 5
-paginate_path: '/page/:num/'
-excerpt_separator: '<!--more-->'
-url: 'https://blog.jiwon.io'
+paginate_path: "/page/:num/"
+excerpt_separator: "<!--more-->"
 
 sass:
   sass_dir: _sass
-  style: 'compressed'
+  style: "compressed"
 
 jekyll-archives:
   enabled:
     - tags
     - year
   permalinks:
-    tag: '/archive/tag/:name/'
-    year: '/archive/:year/'
+    tag: "/archive/tag/:name/"
+    year: "/archive/:year/"
   layouts:
     tag: tag
     year: year
@@ -24,3 +57,13 @@ jekyll-archives:
 plugins:
   - jekyll-paginate
   - jekyll-archives
+  - jekyll-sitemap
+
+# 사이트맵에서 제외할 경로 (필요 시 추가)
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - scripts/
+  - .github/
+  - .idea/
+  - .claude/

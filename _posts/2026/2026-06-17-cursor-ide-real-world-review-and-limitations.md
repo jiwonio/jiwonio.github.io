@@ -1,11 +1,19 @@
 ---
 layout: post
-title: "AI 네이티브 IDE Cursor 실무 적응기: 설정, 장점, 그리고 명확한 한계"
-slug: "cursor-ide-real-world-review-and-limitations"
+title: 'AI 네이티브 IDE Cursor 실무 적응기: 설정, 장점, 그리고 명확한 한계'
+slug: cursor-ide-real-world-review-and-limitations
 date: 2026-06-17 01:40:15 +0900
-categories: [AI]
-tags: [Cursor, AI, IDE, LLM, 코딩도구]
-description: "Cursor IDE의 핵심 기능, 설정법부터 실제 프로젝트 적용 후기까지 다룹니다. AI 기반 코드 생성, 수정, 채팅의 장점과 명확한 한계를 시니어 개발자 관점에서 분석합니다."
+categories:
+- AI
+tags:
+- Cursor
+- AI
+- IDE
+- LLM
+- 코딩도구
+description: Cursor IDE의 핵심 기능, 설정법부터 실제 프로젝트 적용 후기까지 다룹니다. AI 기반 코드 생성, 수정, 채팅의 장점과
+  명확한 한계를 시니어 개발자 관점에서 분석합니다.
+image: /uploads/cursor-ide-real-world-review-and-limitations/thumbnail.webp
 ---
 수많은 AI 코딩 보조 도구가 등장했습니다. GitHub Copilot이 기본적인 자동 완성을 넘어 개발 워크플로의 일부가 되었고, 각 IDE는 자체 AI 기능을 속속 내장하고 있습니다. 하지만 대부분 기존 편집기에 플러그인 형태로 추가되는 방식에 머무릅니다.
 

@@ -1,13 +1,22 @@
 ---
 layout: post
-title: "Nginx 리버스 프록시 완벽 가이드: 캐싱, 로드 밸런싱, 무중단 배포를 위한 실전 설정"
-slug: "nginx-reverse-proxy-caching-load-balancing-blue-green"
+title: 'Nginx 리버스 프록시 완벽 가이드: 캐싱, 로드 밸런싱, 무중단 배포를 위한 실전 설정'
+slug: nginx-reverse-proxy-caching-load-balancing-blue-green
 date: 2026-04-13 09:55:58 +0900
-categories: [DevOps, Backend]
-tags: [Nginx, Reverse Proxy, Load Balancing, Caching, Blue-Green Deployment, DevOps]
-description: "고성능 웹 서비스를 위한 Nginx 리버스 프록시 고급 설정법을 알아봅니다. 캐시 적중률을 높이는 microcache 설정부터 헬스 체크를 포함한 로드 밸런싱, 무중단 배포(블루/그린) 전략까지 실무 코드를 통해 완벽히 마스터하세요."
+categories:
+- DevOps
+- Backend
+tags:
+- Nginx
+- Reverse Proxy
+- Load Balancing
+- Caching
+- Blue-Green Deployment
+- DevOps
+description: 고성능 웹 서비스를 위한 Nginx 리버스 프록시 고급 설정법을 알아봅니다. 캐시 적중률을 높이는 microcache 설정부터
+  헬스 체크를 포함한 로드 밸런싱, 무중단 배포(블루/그린) 전략까지 실무 코드를 통해 완벽히 마스터하세요.
+image: /uploads/nginx-reverse-proxy-caching-load-balancing-blue-green/thumbnail.webp
 ---
-
 숙련된 개발자라면 누구나 **Nginx**를 웹 서버나 간단한 리버스 프록시로 사용해 본 경험이 있을 것입니다. 하지만 단순히 `proxy_pass` 지시어 하나만으로 Nginx의 잠재력을 모두 활용하고 있다고 말하기는 어렵습니다. 트래픽이 증가하고 서비스의 안정성이 중요해지는 프로덕션 환경에서는, Nginx를 더욱 정교하게 활용하여 **성능, 가용성, 그리고 배포 효율성**을 극대화해야 합니다.
 
 이 글에서는 단순한 포트 포워딩을 넘어, 실제 프로덕션 환경에서 마주할 수 있는 문제들을 해결하기 위한 **Nginx 리버스 프록시 고급 활용법**을 심도 있게 다룹니다. 반복적인 요청에 대한 응답 속도를 비약적으로 향상시키는 **고성능 캐싱 전략**, 특정 서버의 장애가 전체 서비스의 장애로 이어지지 않도록 막아주는 **로드 밸런싱과 헬스 체크**, 그리고 사용자가 인지하지 못하는 사이 배포를 완료하는 **무중단 배포(Blue-Green) 아키텍처** 구축까지, 현업에서 즉시 적용 가능한 설정과 코드를 통해 상세히 알아보겠습니다.

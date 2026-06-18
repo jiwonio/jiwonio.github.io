@@ -1,13 +1,24 @@
 ---
 layout: post
-title: "Amazon EKS와 AWS Load Balancer Controller를 활용한 프로덕션 레벨 쿠버네티스 인그레스 완벽 구축"
-slug: "production-kubernetes-ingress-with-aws-eks-and-alb-controller"
+title: Amazon EKS와 AWS Load Balancer Controller를 활용한 프로덕션 레벨 쿠버네티스 인그레스 완벽 구축
+slug: production-kubernetes-ingress-with-aws-eks-and-alb-controller
 date: 2026-04-27 09:59:32 +0900
-categories: [Cloud, DevOps]
-tags: [AWS, EKS, Kubernetes, Ingress, ALB, Load Balancer, DevOps]
-description: "AWS EKS 환경에서 외부 트래픽을 효율적으로 관리하기 위한 'AWS Load Balancer Controller' 설치 및 설정 방법을 심층적으로 다룹니다. 프로덕션 레벨의 쿠버네티스 인그레스(Ingress)를 구축하고, SSL/TLS 적용, 헬스 체크, 고급 라우팅 등 실무 Best Practice를 완벽하게 마스터하세요."
+categories:
+- Cloud
+- DevOps
+tags:
+- AWS
+- EKS
+- Kubernetes
+- Ingress
+- ALB
+- Load Balancer
+- DevOps
+description: AWS EKS 환경에서 외부 트래픽을 효율적으로 관리하기 위한 'AWS Load Balancer Controller' 설치
+  및 설정 방법을 심층적으로 다룹니다. 프로덕션 레벨의 쿠버네티스 인그레스(Ingress)를 구축하고, SSL/TLS 적용, 헬스 체크, 고급 라우팅
+  등 실무 Best Practice를 완벽하게 마스터하세요.
+image: /uploads/production-kubernetes-ingress-with-aws-eks-and-alb-controller/thumbnail.webp
 ---
-
 Amazon EKS(Elastic Kubernetes Service)를 사용하여 쿠버네티스 클러스터를 운영할 때 가장 중요한 과제 중 하나는 외부 트래픽을 클러스터 내부의 서비스로 안정적이고 효율적으로 라우팅하는 것입니다. 쿠버네티스는 `NodePort`나 `LoadBalancer` 타입의 서비스를 제공하지만, 이는 프로덕션 환경의 복잡한 요구사항을 모두 충족시키기에는 한계가 명확합니다. 예를 들어, `LoadBalancer` 타입 서비스를 배포할 때마다 새로운 ELB(Elastic Load Balancer)가 생성되어 비용 부담이 커지고, 세밀한 L7 라우팅 규칙(경로 기반, 호스트 기반 라우팅)을 적용하기도 어렵습니다.
 
 이러한 문제를 해결하기 위해 쿠버네티스는 **인그레스(Ingress)** 라는 오브젝트를 제공합니다. 인그레스는 클러스터 외부의 HTTP/HTTPS 요청을 클러스터 내부 서비스로 연결하는 규칙의 집합이며, 이 규칙을 실제로 이행하는 것이 바로 **인그레스 컨트롤러(Ingress Controller)** 입니다. 특히 AWS 환경에서는 **AWS Load Balancer Controller**가 EKS와 가장 완벽하게 통합되어 AWS의 Application Load Balancer(ALB)나 Network Load Balancer(NLB)를 네이티브하게 활용할 수 있게 해줍니다. 이 컨트롤러를 사용하면 단일 ALB를 통해 여러 서비스를 노출하고, SSL/TLS 인증서 관리, 고급 트래픽 라우팅, WAF 통합 등 강력한 기능을 쿠버네티스 네이티브 방식으로 선언할 수 있습니다.

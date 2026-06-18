@@ -21,4 +21,5 @@ gem 'wdm', '>= 0.1.0' if Gem.win_platform?
 group :jekyll_plugins do
   gem 'jekyll-paginate', '~> 1.1.0'
   gem 'jekyll-archives', '~> 2.2.1'
+  gem 'jekyll-sitemap', '~> 1.4'
 end

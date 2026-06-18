@@ -8,7 +8,7 @@ import yaml
 
 
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
-REQUIRED_FIELDS = ("layout", "title", "tags")
+REQUIRED_FIELDS = ("layout", "title", "tags", "image")
 # AI 생성 스크립트의 프롬프트 지침 문구가 본문에 그대로 남으면 등장하는 표현 (누출 감지용)
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 # 한글 단어 사이에 일본어 가나가 섞이는 등의 모델 출력 오류 감지 (예: '네이ティブ')
@@ -49,17 +49,34 @@ def load_post(path):
     if not isinstance(tags, list) or not all(isinstance(tag, str) and tag.strip() for tag in tags):
         raise ValueError("tags must be a non-empty list of strings")
 
+    if not metadata.get("description") and not metadata.get("meta"):
+        raise ValueError("description or meta is required for SEO")
+
+    image = metadata.get("image")
+    if not isinstance(image, str) or not image.startswith("/uploads/"):
+        raise ValueError("image must be an absolute site path starting with /uploads/")
+
     return content, metadata
 
 
-def validate_posts(posts_dir):
+def validate_image_file(image_path, site_root):
+    relative_path = image_path.lstrip("/")
+    file_path = site_root / relative_path
+    if not file_path.is_file():
+        raise ValueError(f"image file not found: {image_path}")
+
+
+def validate_posts(posts_dir, site_root=None):
     errors = []
     tag_spellings = defaultdict(set)
     output_paths = defaultdict(list)
+    if site_root is None:
+        site_root = posts_dir.parent
 
     for path in sorted(posts_dir.rglob("*.md")):
         try:
             content, metadata = load_post(path)
+            validate_image_file(metadata["image"], site_root)
         except (OSError, UnicodeError, yaml.YAMLError, ValueError) as exc:
             errors.append(f"{path}: {exc}")
             continue

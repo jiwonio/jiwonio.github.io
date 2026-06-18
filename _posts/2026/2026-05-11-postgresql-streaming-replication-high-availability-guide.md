@@ -1,13 +1,24 @@
 ---
 layout: post
-title: "PostgreSQL 스트리밍 복제 완벽 가이드: 프로덕션 환경을 위한 고가용성(HA) 및 읽기 전용 확장 구축"
-slug: "postgresql-streaming-replication-high-availability-guide"
+title: 'PostgreSQL 스트리밍 복제 완벽 가이드: 프로덕션 환경을 위한 고가용성(HA) 및 읽기 전용 확장 구축'
+slug: postgresql-streaming-replication-high-availability-guide
 date: 2026-05-11 10:07:00 +0900
-categories: [DevOps, Backend]
-tags: [PostgreSQL, Database, Replication, High Availability, HA, DevOps, Backend]
-description: "PostgreSQL 스트리밍 복제를 사용하여 데이터베이스 고가용성(HA)을 달성하고 읽기 전용 복제(Read Replica)로 부하를 분산하는 실전 가이드를 확인하세요. 프로덕션 환경을 위한 postgresql.conf, pg_hba.conf 설정, 장애 조치(Failover) 전략 및 모니터링 Best Practice를 다룹니다."
+categories:
+- DevOps
+- Backend
+tags:
+- PostgreSQL
+- Database
+- Replication
+- High Availability
+- HA
+- DevOps
+- Backend
+description: PostgreSQL 스트리밍 복제를 사용하여 데이터베이스 고가용성(HA)을 달성하고 읽기 전용 복제(Read Replica)로
+  부하를 분산하는 실전 가이드를 확인하세요. 프로덕션 환경을 위한 postgresql.conf, pg_hba.conf 설정, 장애 조치(Failover)
+  전략 및 모니터링 Best Practice를 다룹니다.
+image: /uploads/postgresql-streaming-replication-high-availability-guide/thumbnail.webp
 ---
-
 모든 프로덕션 서비스의 심장에는 데이터베이스가 있습니다. 하지만 단일 데이터베이스 인스턴스에만 의존하는 아키텍처는 예기치 않은 하드웨어 장애, 네트워크 문제, 또는 유지보수 작업으로 인해 전체 서비스가 중단될 수 있는 치명적인 단일 장애점(Single Point of Failure)이 됩니다. 이러한 위험을 해결하고 서비스의 안정성을 극대화하기 위해 **데이터베이스 고가용성(High Availability, HA)** 확보는 선택이 아닌 필수입니다.
 
 PostgreSQL은 이러한 요구사항을 충족시키기 위해 강력하고 신뢰성 높은 **스트리밍 복제(Streaming Replication)** 기능을 제공합니다. 이 기능을 활용하면 주(Primary) 서버의 데이터를 하나 이상의 대기(Standby) 서버로 실시간에 가깝게 복제할 수 있습니다. 이를 통해 주 서버에 장애가 발생하더라도 신속하게 대기 서버로 전환하여 서비스 중단을 최소화하고, 동시에 읽기 쿼리를 대기 서버로 분산시켜 전체적인 데이터베이스 성능을 향상시키는 **읽기 전용 확장(Read Scaling)**까지 구현할 수 있습니다. 본 포스트에서는 실무 현장에서 바로 적용할 수 있는 프로덕션 레벨의 PostgreSQL 스트리밍 복제 구축 방법을 심도 있게 다룹니다.

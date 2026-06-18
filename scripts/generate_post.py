@@ -17,7 +17,7 @@ except ImportError:
 
 client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
-REQUIRED_FIELDS = ("layout", "title", "slug", "date", "categories", "tags", "description")
+REQUIRED_FIELDS = ("layout", "title", "slug", "date", "categories", "tags", "description", "image")
 TITLE_PATTERN = re.compile(r'title:\s*"([^"]+)"|title:\s*\'([^\']+)\'')
 SLUG_FROM_FILE = re.compile(r"\d{4}-\d{2}-\d{2}-(.+)\.md$")
 
@@ -323,6 +323,7 @@ date: {current_time}
 categories: [AI]
 tags: [태그1, 태그2, 태그3]
 description: "150자 내외 SEO 요약"
+image: "/uploads/english-slug-for-this-topic/thumbnail.webp"
 ---
 2) 도입부 2~3문단을 작성한 뒤, 줄을 바꿔 `<!--more-->` 한 줄만 단독으로 작성합니다.
 3) 바로 다음 줄에 `[HERO_IMAGE]` 한 줄만 단독으로 작성하고, 그다음 줄에 `-----` 한 줄만 단독으로 작성합니다.
@@ -340,6 +341,22 @@ def strip_code_fence(text):
     text = re.sub(r"\A```[a-zA-Z]*[ \t]*\r?\n", "", text.strip())
     text = re.sub(r"\r?\n```\s*\Z", "", text)
     return text.strip()
+
+
+def inject_front_matter_field(content, field_name, field_value):
+    """기존 front matter에 필드를 추가하거나 값을 갱신합니다."""
+    match = FRONT_MATTER_PATTERN.match(content)
+    if not match:
+        raise ValueError("front matter를 찾을 수 없습니다.")
+
+    metadata = yaml.safe_load(match.group(1))
+    metadata[field_name] = field_value
+    updated_front_matter = (
+        "---\n"
+        + yaml.dump(metadata, allow_unicode=True, default_flow_style=False, sort_keys=False).strip()
+        + "\n---\n"
+    )
+    return updated_front_matter + content[match.end():]
 
 
 def strip_preamble(text):
@@ -410,12 +427,8 @@ def generate_blog_post():
                 if Image:
                     image_path = f"{upload_dir}/thumbnail.webp"
                     img = Image.open(io.BytesIO(thumbnail))
-                    base_width = 800
-                    ratio = base_width / img.size[0]
-                    img = img.resize(
-                        (base_width, int(img.size[1] * ratio)),
-                        Image.Resampling.LANCZOS,
-                    )
+                    # Open Graph 권장 비율(1200×630)에 맞춰 리사이즈
+                    img = img.resize((1200, 630), Image.Resampling.LANCZOS)
                     img.save(image_path, "WEBP", quality=85)
                     print(f"✅ 이미지 압축 저장 완료 (WebP): {image_path}")
                 else:
@@ -423,9 +436,16 @@ def generate_blog_post():
                     with open(image_path, "wb") as f:
                         f.write(thumbnail)
                     print(f"✅ 원본 이미지 저장 완료: {image_path}")
-                
-                # SEO용 Alt/Title 추가
-                image_md = f"![{raw_title}](/{image_path} \"{raw_title}\")\n\n<p style=\"text-align:center;opacity:0.8;\">\n    <small>&copy; AI Generated Image</small>\n</p>"
+
+                # SEO: front matter image 필드 + 본문 히어로 이미지
+                public_image_path = f"/{image_path}"
+                content = inject_front_matter_field(content, "image", public_image_path)
+                image_md = (
+                    f"![{raw_title}]({public_image_path} \"{raw_title}\")\n\n"
+                    f"<p style=\"text-align:center;opacity:0.8;\">\n"
+                    f"    <small>&copy; AI Generated Image</small>\n"
+                    f"</p>"
+                )
                 
             except Exception as img_e:
                 print(f"⚠️ 이미지 생성 실패 (본문만 작성됨): {img_e}")

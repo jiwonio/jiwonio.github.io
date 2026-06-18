@@ -1,13 +1,24 @@
 ---
 layout: post
-title: "AWS Lambda와 API Gateway를 활용한 고성능 서버리스 REST API 구축 A to Z"
-slug: "building-serverless-rest-api-with-aws-lambda-api-gateway"
+title: AWS Lambda와 API Gateway를 활용한 고성능 서버리스 REST API 구축 A to Z
+slug: building-serverless-rest-api-with-aws-lambda-api-gateway
 date: 2026-04-06 15:48:16 +0900
-categories: [Cloud, Backend]
-tags: [AWS, Lambda, API Gateway, Serverless, REST API, Python, IaC, SAM]
-description: "전통적인 서버 관리의 복잡성 없이, AWS Lambda와 API Gateway를 사용하여 확장 가능하고 비용 효율적인 고성능 서버리스 REST API를 구축하는 실전 가이드입니다. Python 기반 실습 코드와 AWS SAM 템플릿, 성능 최적화 팁까지 모든 것을 다룹니다."
+categories:
+- Cloud
+- Backend
+tags:
+- AWS
+- Lambda
+- API Gateway
+- Serverless
+- REST API
+- Python
+- IaC
+- SAM
+description: 전통적인 서버 관리의 복잡성 없이, AWS Lambda와 API Gateway를 사용하여 확장 가능하고 비용 효율적인 고성능
+  서버리스 REST API를 구축하는 실전 가이드입니다. Python 기반 실습 코드와 AWS SAM 템플릿, 성능 최적화 팁까지 모든 것을 다룹니다.
+image: /uploads/building-serverless-rest-api-with-aws-lambda-api-gateway/thumbnail.webp
 ---
-
 전통적인 웹 애플리케이션 개발에서 서버 프로비저닝, 스케일링, 패치 및 유지보수는 개발자의 생산성을 저해하는 주요 요인 중 하나였습니다. 트래픽이 급증할 때마다 수동으로 서버를 증설하거나, 반대로 유휴 상태의 서버 비용을 그대로 지불해야 하는 비효율을 감수해야만 했죠. **AWS Lambda**와 **API Gateway**를 필두로 한 서버리스(Serverless) 아키텍처는 이러한 패러다임을 근본적으로 바꾸었습니다.
 
 서버리스 컴퓨팅은 개발자가 서버를 직접 관리할 필요 없이 비즈니스 로직에만 집중할 수 있게 해주는 클라우드 컴퓨팅 모델입니다. 코드는 이벤트에 의해 트리거될 때만 실행되며, 사용한 만큼만 비용을 지불하므로 매우 경제적입니다. 특히, HTTP 요청을 처리하는 **REST API**를 구축할 때 **API Gateway**와 **Lambda**의 조합은 엄청난 시너지를 발휘하여, 자동 확장성과 고가용성을 기본으로 갖춘 강력한 백엔드를 손쉽게 구현할 수 있게 합니다. 이 글에서는 숙련된 엔지니어를 위해 이론을 넘어, 실무에서 바로 적용 가능한 서버리스 REST API 구축의 모든 과정을 심도 있게 다룹니다.

@@ -1,11 +1,13 @@
 ---
 layout: post
-title: 'Resolving Package Installation Errors During Node.js Setup on Windows 11'
-meta: 'Discover how to fix common package installation errors when setting up Node.js on Windows 11. This guide provides clear solutions for handling compilation issues with C/C++ and Python using Chocolaty.'
+title: Resolving Package Installation Errors During Node.js Setup on Windows 11
+meta: Discover how to fix common package installation errors when setting up Node.js
+  on Windows 11. This guide provides clear solutions for handling compilation issues
+  with C/C++ and Python using Chocolaty.
 tags:
-  - nodejs
+- nodejs
+image: /uploads/nodejs-installation-failure/thumbnail.webp
 ---
-
 When installing [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} on Windows 11, you may encounter errors related to additional package installations. 
 These errors often occur due to the necessity to compile some Node.js packages using **C/C++** and **Python**. 
 This guide provides detailed solutions to efficiently resolve these issues and ensure a smooth installation process.

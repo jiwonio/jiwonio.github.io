@@ -1,13 +1,23 @@
 ---
 layout: post
-title: "쿠버네티스 환경을 위한 Fluentd 기반 프로덕션 레벨 중앙 로깅 시스템 완벽 구축 가이드"
-slug: "building-production-level-centralized-logging-system-with-fluentd-on-kubernetes"
+title: 쿠버네티스 환경을 위한 Fluentd 기반 프로덕션 레벨 중앙 로깅 시스템 완벽 구축 가이드
+slug: building-production-level-centralized-logging-system-with-fluentd-on-kubernetes
 date: 2026-05-04 10:03:05 +0900
-categories: [DevOps, Cloud]
-tags: [Kubernetes, Fluentd, Elasticsearch, Kibana, Logging, EFK, Observability]
-description: "프로덕션 쿠버네티스 클러스터에서 발생하는 대규모 로그를 효율적으로 수집, 처리, 분석하기 위해 Fluentd, Elasticsearch, Kibana (EFK) 스택을 활용한 중앙 로깅 시스템 구축 방법을 심도 있게 다룹니다. 실무 중심의 설정과 최적화 팁을 확인하세요."
+categories:
+- DevOps
+- Cloud
+tags:
+- Kubernetes
+- Fluentd
+- Elasticsearch
+- Kibana
+- Logging
+- EFK
+- Observability
+description: 프로덕션 쿠버네티스 클러스터에서 발생하는 대규모 로그를 효율적으로 수집, 처리, 분석하기 위해 Fluentd, Elasticsearch,
+  Kibana (EFK) 스택을 활용한 중앙 로깅 시스템 구축 방법을 심도 있게 다룹니다. 실무 중심의 설정과 최적화 팁을 확인하세요.
+image: /uploads/building-production-level-centralized-logging-system-with-fluentd-on-kubernetes/thumbnail.webp
 ---
-
 마이크로서비스 아키텍처(MSA)가 보편화되면서 쿠버네티스는 컨테이너 오케스트레이션의 표준으로 자리 잡았습니다. 수많은 컨테이너가 동적으로 생성되고 사라지는 쿠버네티스 환경에서, 분산된 애플리케이션 로그를 추적하고 문제를 해결하는 것은 기존의 방식으로는 거의 불가능에 가깝습니다. 각 파드(Pod)에 접속하여 `kubectl logs` 명령어로 로그를 확인하는 것은 임시방편일 뿐, 실시간 장애 대응과 근본 원인 분석에는 한계가 명확합니다.
 
 이러한 문제를 해결하기 위해 **중앙 로깅 시스템(Centralized Logging System)** 구축은 선택이 아닌 필수가 되었습니다. 중앙 로깅 시스템은 클러스터 전체에서 발생하는 모든 로그를 단일 위치로 수집, 정제, 저장하여 개발자와 운영자가 손쉽게 검색하고 시각화할 수 있도록 지원합니다. 본 포스트에서는 CNCF(Cloud Native Computing Foundation)의 졸업 프로젝트이자 강력한 로그 수집기인 **Fluentd**를 중심으로, **Elasticsearch**, **Kibana**를 조합한 **EFK(Elasticsearch, Fluentd, Kibana) 스택**을 활용하여 프로덕션 레벨의 쿠버네티스 중앙 로깅 시스템을 구축하는 모든 과정을 심도 있게 다룹니다.

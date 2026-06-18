@@ -1,0 +1,66 @@
+{%- comment -%}
+  JSON-LD 구조화 데이터 (Schema.org)
+
+  - 모든 페이지: WebSite + Person(작성자)
+  - 포스트 페이지: BlogPosting 추가
+{%- endcomment -%}
+
+{%- assign schema_description = page.seo_description
+  | default: page.description
+  | default: page.meta
+  | default: site.description
+  | strip_newlines
+  | strip -%}
+
+{%- assign schema_image = page.image | default: site.seo.default_image | absolute_url -%}
+{%- assign schema_page_url = page.canonical | default: page.url | absolute_url -%}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "{{ site.url }}/#website",
+      "url": "{{ site.url }}/",
+      "name": {{ site.title | jsonify }},
+      "description": {{ site.description | strip_newlines | strip | jsonify }},
+      "inLanguage": "{{ site.lang | default: 'ko' }}",
+      "publisher": { "@id": "{{ site.url }}/#person" }
+    },
+    {
+      "@type": "Person",
+      "@id": "{{ site.url }}/#person",
+      "name": {{ site.author.name | jsonify }},
+      "url": "{{ site.url }}/",
+      "email": "{{ site.author.email }}",
+      "sameAs": [
+        "https://twitter.com/{{ site.author.twitter }}",
+        "https://github.com/{{ site.author.github }}"
+      ]
+    }
+    {%- if page.layout == "post" -%}
+    ,{
+      "@type": "BlogPosting",
+      "@id": "{{ schema_page_url }}#article",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "{{ schema_page_url }}"
+      },
+      "headline": {{ page.title | jsonify }},
+      "description": {{ schema_description | jsonify }},
+      "image": {{ schema_image | jsonify }},
+      "datePublished": "{{ page.date | date_to_xmlschema }}",
+      "dateModified": "{{ page.last_modified_at | default: page.date | date_to_xmlschema }}",
+      "author": { "@id": "{{ site.url }}/#person" },
+      "publisher": { "@id": "{{ site.url }}/#person" },
+      "inLanguage": "{{ site.lang | default: 'ko' }}",
+      "isPartOf": { "@id": "{{ site.url }}/#website" }
+      {%- if page.tags.size > 0 -%}
+      ,"keywords": {{ page.tags | join: ", " | jsonify }}
+      {%- endif -%}
+    }
+    {%- endif -%}
+  ]
+}
+</script>

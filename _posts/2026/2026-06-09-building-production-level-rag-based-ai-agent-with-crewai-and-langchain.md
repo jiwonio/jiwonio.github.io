@@ -1,13 +1,24 @@
 ---
 layout: post
-title: "프로덕션급 RAG 기반 AI 에이전트 구축: CrewAI와 LangChain을 활용한 자율 리서치 자동화 시스템"
-slug: "building-production-level-rag-based-ai-agent-with-crewai-and-langchain"
+title: '프로덕션급 RAG 기반 AI 에이전트 구축: CrewAI와 LangChain을 활용한 자율 리서치 자동화 시스템'
+slug: building-production-level-rag-based-ai-agent-with-crewai-and-langchain
 date: 2026-06-09 15:10:01 +0900
-categories: [DevOps, Backend]
-tags: [AI, LLM, RAG, CrewAI, LangChain, Agent, Python]
-description: "CrewAI와 LangChain을 활용하여 프로덕션 환경에서 동작하는 RAG 기반 AI 에이전트를 구축하는 방법을 심도 있게 다룹니다. 자율 리서치 자동화 시스템의 아키텍처, 실제 코드 구현, 성능 최적화 및 운영 Best Practice까지 '실전 노하우'를 완벽하게 가이드합니다."
+categories:
+- DevOps
+- Backend
+tags:
+- AI
+- LLM
+- RAG
+- CrewAI
+- LangChain
+- Agent
+- Python
+description: CrewAI와 LangChain을 활용하여 프로덕션 환경에서 동작하는 RAG 기반 AI 에이전트를 구축하는 방법을 심도 있게
+  다룹니다. 자율 리서치 자동화 시스템의 아키텍처, 실제 코드 구현, 성능 최적화 및 운영 Best Practice까지 '실전 노하우'를 완벽하게
+  가이드합니다.
+image: /uploads/building-production-level-rag-based-ai-agent-with-crewai-and-langchain/thumbnail.webp
 ---
-
 단순한 질문에 답변하는 챗봇을 넘어, 여러 단계의 복잡한 작업을 자율적으로 수행하는 AI 시스템에 대한 요구가 커지고 있습니다. 예를 들어, '최신 AI 반도체 시장 동향'에 대한 리서치를 맡기면, AI가 스스로 웹을 검색하고, 핵심 정보를 요약하며, 경쟁사를 분석하여 최종 보고서를 작성하는 식입니다. 이것이 바로 **AI 에이전트(AI Agent)**의 핵심 개념이며, 이를 구현하는 가장 강력한 기술 중 하나가 바로 **RAG(Retrieval-Augmented Generation)**와 결합된 멀티 에이전트 시스템입니다.
 
 이 글에서는 단순한 RAG 튜토리얼을 넘어, 프로덕션 환경에서 안정적으로 운영 가능한 **RAG 기반 자율 리서치 AI 에이전트**를 구축하는 전 과정을 상세히 다룰 것입니다. 역할 기반 협업 에이전트 프레임워크인 **CrewAI**를 중심으로, **LangChain**을 활용하여 강력한 RAG 기반 검색 도구를 구현하고, 여러 에이전트가 협력하여 하나의 목표를 달성하는 정교한 워크플로우를 설계합니다. 본 가이드를 통해 독자 여러분은 단순한 LLM API 호출을 넘어, 실제로 동작하는 'AI 팀'을 만드는 실전 노하우를 얻게 될 것입니다.

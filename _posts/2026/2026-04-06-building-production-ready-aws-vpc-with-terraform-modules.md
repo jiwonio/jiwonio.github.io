@@ -1,13 +1,23 @@
 ---
 layout: post
-title: "프로덕션 레벨 AWS VPC, Terraform 모듈화로 완벽하게 구축하기"
-slug: "building-production-ready-aws-vpc-with-terraform-modules"
+title: 프로덕션 레벨 AWS VPC, Terraform 모듈화로 완벽하게 구축하기
+slug: building-production-ready-aws-vpc-with-terraform-modules
 date: 2026-04-06 16:44:10 +0900
-categories: [DevOps, Cloud]
-tags: [Terraform, AWS, VPC, IaC, Module, DevOps]
-description: "Terraform을 사용하여 확장 가능하고 재사용 가능한 프로덕션 레벨의 AWS VPC 네트워크를 구축하는 방법을 알아보세요. 본 가이드는 IaC 원칙에 기반한 Terraform 모듈화 전략과 실용적인 HCL 코드를 통해 복잡한 클라우드 인프라를 효율적으로 관리하는 핵심 노하우를 제공합니다."
+categories:
+- DevOps
+- Cloud
+tags:
+- Terraform
+- AWS
+- VPC
+- IaC
+- Module
+- DevOps
+description: Terraform을 사용하여 확장 가능하고 재사용 가능한 프로덕션 레벨의 AWS VPC 네트워크를 구축하는 방법을 알아보세요.
+  본 가이드는 IaC 원칙에 기반한 Terraform 모듈화 전략과 실용적인 HCL 코드를 통해 복잡한 클라우드 인프라를 효율적으로 관리하는 핵심
+  노하우를 제공합니다.
+image: /uploads/building-production-ready-aws-vpc-with-terraform-modules/thumbnail.webp
 ---
-
 클라우드 인프라를 운영하다 보면 '반복'과의 싸움을 피할 수 없습니다. 개발, 스테이징, 프로덕션 등 여러 환경에 걸쳐 유사하지만 미묘하게 다른 네트워크 환경을 구축해야 하는 상황은 모든 서버 엔지니어의 숙명과도 같습니다. AWS 콘솔에서 수작업으로 VPC, 서브넷, 라우팅 테이블을 클릭하며 구성하는 방식은 초기에는 직관적일 수 있지만, 규모가 커질수록 실수의 가능성이 기하급수적으로 증가하며, 변경 이력을 추적하거나 동일한 환경을 재현하는 것은 거의 불가능에 가깝습니다.
 
 이러한 문제를 해결하기 위해 등장한 것이 바로 **IaC(Infrastructure as Code)**, 그리고 그 중심에는 **Terraform**이 있습니다. Terraform을 사용하면 인프라를 코드로 정의하고 버전 관리하며, 자동화된 방식으로 프로비저닝할 수 있습니다. 하지만 단순히 모든 리소스를 하나의 거대한 `.tf` 파일에 쏟아붓는 것은 또 다른 관리의 비극을 낳을 뿐입니다. 코드가 길어지고 복잡해지면 가독성이 떨어지고, 특정 부분만 재사용하기가 어려워지기 때문입니다. 진정한 IaC의 가치는 **'모듈화'**를 통해 빛을 발합니다. 잘 설계된 Terraform 모듈은 마치 프로그래밍 언어의 잘 만든 함수처럼, 복잡한 인프라 구성 요소를 추상화하여 간결하고 재사용 가능한 형태로 만들어 줍니다.

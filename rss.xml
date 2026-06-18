@@ -3,12 +3,14 @@ layout: null
 ---
 
 <?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
     <channel>
-        <title>Jiwon Min</title>
+        <title>{{ site.title }}</title>
         <link>{{ site.url }}</link>
-        <description>I make stuff for the web, and occasionally ramble about it here.</description>
+        <description>{{ site.description | strip_newlines | strip | xml_escape }}</description>
+        <language>{{ site.lang | default: 'ko' }}</language>
         <lastBuildDate>{{ site.time | date_to_xmlschema }}</lastBuildDate>
+        <atom:link href="{{ '/rss.xml' | absolute_url }}" rel="self" type="application/rss+xml" />
         {% for post in site.posts %}
         <item>
             <title>{{ post.title | xml_escape }}</title>
@@ -16,6 +18,10 @@ layout: null
             <description>{{ post.description | default: post.meta | xml_escape }}</description>
             <guid>{% if post.link %}{{ post.link }}{% else %}{{ site.url }}{{ post.url }}{% endif %}</guid>
             <pubDate>{{ post.date | date_to_xmlschema }}</pubDate>
+            {% if post.image %}
+            <enclosure url="{{ post.image | absolute_url }}" type="image/webp" length="0" />
+            <media:content url="{{ post.image | absolute_url }}" medium="image" />
+            {% endif %}
         </item>
         {% endfor %}
     </channel>

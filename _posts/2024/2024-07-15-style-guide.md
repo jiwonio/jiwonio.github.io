@@ -1,11 +1,12 @@
 ---
 layout: post
-title: 'Style Guide'
-meta: 'As this is the first post on my blog, it serves as a record and an explanation of the basic style guide for this site.'
+title: Style Guide
+meta: As this is the first post on my blog, it serves as a record and an explanation
+  of the basic style guide for this site.
 tags:
-  - tutorial
+- tutorial
+image: /uploads/style-guide/thumbnail.webp
 ---
-
 This is the **first** post on my **GitHub Pages powered by Jekyll**. You can consider it a note-taking post.
 When I write after a long time, I tend to forget my previous styles, leading to a mishmash of different styles.
 To prevent such a mess and to practice writing, I decided to write this post.

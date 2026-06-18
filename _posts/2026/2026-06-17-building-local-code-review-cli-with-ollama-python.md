@@ -1,13 +1,20 @@
 ---
 layout: post
-title: "Ollama와 파이썬으로 나만의 로컬 코드 리뷰 CLI 만들기"
-slug: "building-local-code-review-cli-with-ollama-python"
+title: Ollama와 파이썬으로 나만의 로컬 코드 리뷰 CLI 만들기
+slug: building-local-code-review-cli-with-ollama-python
 date: 2026-06-17 11:15:25 +0900
-categories: [AI]
-tags: [Ollama, LLM, Code Review, Python, CLI]
-description: "API 비용과 보안 걱정 없이, Ollama와 Llama 3를 활용해 로컬 환경에서 동작하는 코드 리뷰 CLI 도구를 직접 만들어 봅니다. 프롬프트 설계부터 한계점까지 실무 팁을 다룹니다."
+categories:
+- AI
+tags:
+- Ollama
+- LLM
+- Code Review
+- Python
+- CLI
+description: API 비용과 보안 걱정 없이, Ollama와 Llama 3를 활용해 로컬 환경에서 동작하는 코드 리뷰 CLI 도구를 직접
+  만들어 봅니다. 프롬프트 설계부터 한계점까지 실무 팁을 다룹니다.
+image: /uploads/building-local-code-review-cli-with-ollama-python/thumbnail.webp
 ---
-
 코드 리뷰는 소프트웨어 품질을 유지하는 핵심 과정이지만, 동료의 시간을 많이 소요하게 만드는 작업이기도 합니다. GitHub Copilot이나 ChatGPT 같은 AI 도구가 훌륭한 보조 수단이 되었지만, 민감한 코드를 외부 API로 전송하는 것에 대한 보안 우려나 비용 문제는 여전히 남아있습니다.
 
 이 글에서는 이러한 문제를 해결하기 위해 로컬 환경에서 완전히 독립적으로 동작하는 코드 리뷰 CLI(Command-Line Interface) 도구를 직접 만들어 보겠습니다. 인기 있는 로컬 LLM 실행 도구인 **Ollama**와 **Python**을 사용하여, 외부 네트워크 연결 없이 안전하고 빠르게 코드에 대한 피드백을 받는 방법을 알아봅니다.

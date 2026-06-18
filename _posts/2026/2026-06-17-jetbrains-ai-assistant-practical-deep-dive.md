@@ -1,13 +1,20 @@
 ---
 layout: post
-title: "JetBrains AI Assistant 실무 심층 탐구: 코드 생성부터 리팩토링까지"
-slug: "jetbrains-ai-assistant-practical-deep-dive"
+title: 'JetBrains AI Assistant 실무 심층 탐구: 코드 생성부터 리팩토링까지'
+slug: jetbrains-ai-assistant-practical-deep-dive
 date: 2026-06-17 01:25:10 +0900
-categories: [AI]
-tags: [AI, JetBrains AI Assistant, IDE, Code Generation, Refactoring]
-description: "JetBrains IDE에 내장된 AI Assistant의 설정, 핵심 기능, 장단점을 분석합니다. 단순 코드 완성을 넘어, 리팩토링, 커밋 메시지 작성 등 실무에서 겪는 문제와 해결책을 제시합니다."
+categories:
+- AI
+tags:
+- AI
+- JetBrains AI Assistant
+- IDE
+- Code Generation
+- Refactoring
+description: JetBrains IDE에 내장된 AI Assistant의 설정, 핵심 기능, 장단점을 분석합니다. 단순 코드 완성을 넘어,
+  리팩토링, 커밋 메시지 작성 등 실무에서 겪는 문제와 해결책을 제시합니다.
+image: /uploads/jetbrains-ai-assistant-practical-deep-dive/thumbnail.webp
 ---
-
 개발자는 코드 작성 외에도 수많은 인지적 노동을 합니다. 레거시 코드를 분석하고, 더 나은 구조를 고민하며 리팩토링하고, 변경 사항을 명확히 설명하는 커밋 메시지를 작성하는 일들입니다. GitHub Copilot이 코드 자동 완성의 시대를 열었다면, 이제 AI 도구들은 개발 워크플로 전체에 더 깊이 관여하고 있습니다.
 
 JetBrains AI Assistant는 우리가 매일 사용하는 IntelliJ, PyCharm, WebStorm 같은 IDE에 직접 통합된 AI 도구입니다. 단순 코드 조각 생성을 넘어, IDE가 가진 풍부한 코드 인덱싱 정보를 바탕으로 훨씬 더 문맥에 맞는 제안을 하는 것을 목표로 합니다.
