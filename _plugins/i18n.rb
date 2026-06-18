@@ -10,7 +10,8 @@
 module Jekyll
   module I18n
     LANG_DIRS = %w[en ja zh].freeze
-    LANG_PATH = %r{\A_posts/(#{LANG_DIRS.join('|')})/}i
+    # Jekyll post.path 예: "en/2024/2024-01-01-slug.md" 또는 "_posts/en/..."
+    LANG_PATH = %r{(?:\A_posts/|\A)(#{LANG_DIRS.join('|')})/}i
 
     module_function
 
@@ -61,7 +62,8 @@ module Jekyll
     attr_accessor :posts_by_lang, :translations
   end
 
-  Jekyll::Hooks.register :posts, :post_init do |post|
+  # post_init 이후 Jekyll 기본 permalink가 덮어쓰므로, post_convert에서 최종 URL을 확정합니다.
+  Jekyll::Hooks.register :posts, :post_convert do |post|
     site = post.site
     default = I18n.default_lang(site)
     lang = I18n.detect_lang(post, default)

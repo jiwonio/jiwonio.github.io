@@ -86,6 +86,12 @@ def resolve_year(path: Path) -> str:
     return resolve_date_prefix(path)[:4]
 
 
+def permalink_for_lang(lang: str, slug: str) -> str:
+    if lang == DEFAULT_LANG:
+        return f"/posts/{slug}/"
+    return f"/{lang}/posts/{slug}/"
+
+
 def translation_output_path(source_path: Path, target_lang: str) -> Path:
     year = resolve_year(source_path)
     return POSTS_DIR / target_lang / year / source_path.name
@@ -99,6 +105,7 @@ def ensure_translation_metadata(content: str, source_content: str, target_lang: 
     metadata["lang"] = target_lang
     metadata["translation_key"] = slug
     metadata["slug"] = slug
+    metadata["permalink"] = permalink_for_lang(target_lang, slug)
 
     if not metadata.get("date") and source_metadata.get("date"):
         metadata["date"] = source_metadata["date"]

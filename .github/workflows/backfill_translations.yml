@@ -80,17 +80,7 @@ jobs:
           ARGS+=(--sleep "${{ inputs.sleep }}")
           python scripts/backfill_translations.py "${ARGS[@]}"
 
-      - name: Validate posts
-        if: inputs.prepare_only != true
-        run: python scripts/validate_posts.py
-
-      - name: Build Jekyll site
-        if: inputs.prepare_only != true
-        env:
-          JEKYLL_ENV: production
-        run: bundle exec jekyll build
-
-      - name: Commit and push
+      - name: Commit and push translations
         if: inputs.prepare_only != true
         env:
           GH_TOKEN: ${{ secrets.MY_PAT }}
@@ -107,3 +97,13 @@ jobs:
 
           git commit -m "Backfill post translations (${{ inputs.langs }})"
           git push origin gh-pages
+
+      - name: Validate posts
+        if: inputs.prepare_only != true
+        run: python scripts/validate_posts.py
+
+      - name: Build Jekyll site
+        if: inputs.prepare_only != true
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build
