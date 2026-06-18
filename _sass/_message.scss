@@ -6,6 +6,6 @@
 .message {
   margin-bottom: 1rem;
   padding: 1rem;
-  color: #717171;
-  background-color: #f9f9f9;
+  color: var(--color-message-text);
+  background-color: var(--color-message-bg);
 }

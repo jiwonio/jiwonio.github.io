@@ -1,0 +1,111 @@
+// Theme tokens (light / dark / system via prefers-color-scheme)
+//
+// User override: <html data-theme="light|dark">
+// Default (no data-theme): follows OS preference
+
+@mixin theme-light {
+  --color-bg: #ffffff;
+  --color-text: #515151;
+  --color-text-strong: #303030;
+  --color-heading: #313131;
+  --color-muted: #9a9a9a;
+  --color-masthead: #505050;
+  --color-masthead-subtle: #c0c0c0;
+  --color-link: #268bd2;
+  --color-border: #e5e5e5;
+  --color-border-subtle: #eee;
+  --color-table-stripe: #f9f9f9;
+  --color-code-text: #bf616a;
+  --color-code-bg: #f9f9f9;
+  --color-highlight-bg: #f9f9f9;
+  --color-blockquote: #7a7a7a;
+  --color-abbr: #555;
+  --color-message-text: #717171;
+  --color-message-bg: #f9f9f9;
+  --color-pagination: #ccc;
+  --color-pagination-hover: #f5f5f5;
+  --color-theme-toggle: #505050;
+  --color-theme-toggle-hover: #268bd2;
+}
+
+@mixin theme-dark {
+  --color-bg: #1a1a2e;
+  --color-text: #c8c8d4;
+  --color-text-strong: #e8e8f0;
+  --color-heading: #f0f0f8;
+  --color-muted: #8b8b9e;
+  --color-masthead: #d4d4e0;
+  --color-masthead-subtle: #6b6b80;
+  --color-link: #5eb3f0;
+  --color-border: #2e2e42;
+  --color-border-subtle: #35354a;
+  --color-table-stripe: #222236;
+  --color-code-text: #f78c6c;
+  --color-code-bg: #222236;
+  --color-highlight-bg: #222236;
+  --color-blockquote: #9a9ab0;
+  --color-abbr: #a0a0b4;
+  --color-message-text: #b0b0c4;
+  --color-message-bg: #222236;
+  --color-pagination: #5a5a70;
+  --color-pagination-hover: #2a2a3e;
+  --color-theme-toggle: #d4d4e0;
+  --color-theme-toggle-hover: #5eb3f0;
+}
+
+@mixin theme-dark-syntax {
+  .highlight .hll { background-color: #3d3d52; }
+  .highlight .ow { color: #c8c8d4; }
+  .highlight .gh,
+  .highlight .gu { color: #9cdcfe; }
+  .highlight .go { color: #6b6b80; }
+}
+
+:root {
+  @include theme-light;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    @include theme-dark;
+    color-scheme: dark;
+    @include theme-dark-syntax;
+  }
+}
+
+:root[data-theme="light"] {
+  @include theme-light;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  @include theme-dark;
+  color-scheme: dark;
+  @include theme-dark-syntax;
+}
+
+.theme-toggle {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-theme-toggle);
+  font-size: inherit;
+  line-height: 1;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: color 0.15s ease;
+
+  &:hover,
+  &:focus {
+    color: var(--color-theme-toggle-hover);
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}

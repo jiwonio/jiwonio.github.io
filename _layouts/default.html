@@ -12,6 +12,9 @@
                     <a href="https://twitter.com/{{ site.author.twitter }}" title="X (formerly Twitter)" target="_blank" rel="noopener noreferrer"><i class="fa fa-twitter"></i></a>
                     <a href="https://github.com/{{ site.author.github }}" title="GitHub" target="_blank" rel="noopener noreferrer"><i class="fa fa-github"></i></a>
                     <a href="mailto:{{ site.author.email }}" title="e-mail"><i class="fa fa-envelope"></i></a>
+                    <button type="button" id="theme-toggle" class="theme-toggle" data-theme-preference="system" aria-label="시스템 설정 (클릭하여 변경)" title="시스템 설정">
+                        <i class="fa fa-adjust" aria-hidden="true"></i>
+                    </button>
                 </nav>
                 <div class="cf"></div>
             </header>
@@ -30,5 +33,6 @@
                 <div class="cf"></div>
             </footer>
         </div>
+        <script src="/assets/js/theme.js" defer></script>
     </body>
 </html>

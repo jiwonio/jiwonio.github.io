@@ -1,0 +1,12 @@
+<script>
+(function () {
+  try {
+    var preference = localStorage.getItem("theme-preference");
+    if (preference === "light" || preference === "dark") {
+      document.documentElement.setAttribute("data-theme", preference);
+    }
+  } catch (error) {
+    // ignore storage errors before paint
+  }
+})();
+</script>

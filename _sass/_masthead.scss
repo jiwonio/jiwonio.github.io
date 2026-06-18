@@ -14,7 +14,11 @@
       margin-left: .5rem;
     }
     a {
-      color: #505050;
+      color: var(--color-masthead);
+    }
+
+    .theme-toggle {
+      margin-left: .5rem;
     }
   }
 }
@@ -22,17 +26,17 @@
 .masthead-title {
   margin-top: 1rem;
   margin-bottom: 0;
-  color: #505050;
+  color: var(--color-masthead);
   float: left;
 
   a {
-    color: #505050;
+    color: var(--color-masthead);
   }
 
   small {
     font-size: 75%;
     font-weight: 400;
-    color: #c0c0c0;
+    color: var(--color-masthead-subtle);
     letter-spacing: 0;
   }
 }
