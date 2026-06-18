@@ -51,6 +51,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
+          python -c "from google import genai; print('google-genai OK')"
 
       - name: Run backfill script
         working-directory: scripts
