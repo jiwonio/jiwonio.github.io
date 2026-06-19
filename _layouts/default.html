@@ -63,5 +63,8 @@
         {% if site.ads.adsense_client != "" %}
         <script src="/assets/js/ads.js" defer></script>
         {% endif %}
+        {% if page.layout == "post" %}
+        <script src="/assets/js/share.js" defer></script>
+        {% endif %}
     </body>
 </html>

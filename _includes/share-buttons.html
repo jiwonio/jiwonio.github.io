@@ -1,0 +1,48 @@
+{%- assign current_lang = page.lang | default: site.default_lang | default: 'ko' -%}
+{%- assign lang_meta = site.data.languages[current_lang] -%}
+{%- assign share_url = page.url | absolute_url -%}
+{%- assign share_text = page.title | uri_escape -%}
+{%- assign share = lang_meta.share -%}
+
+<nav class="post-share" aria-label="{{ share.aria_label }}">
+    <span class="post-share__label">{{ share.label }}</span>
+    <ul class="post-share__list">
+        <li>
+            <a class="post-share__btn"
+               href="https://www.facebook.com/sharer/sharer.php?u={{ share_url | cgi_escape }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="{{ share.facebook }}">
+                <i class="fa fa-facebook" aria-hidden="true"></i>
+            </a>
+        </li>
+        <li>
+            <a class="post-share__btn"
+               href="https://twitter.com/intent/tweet?url={{ share_url | cgi_escape }}&amp;text={{ share_text }}&amp;via={{ site.author.twitter }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="{{ share.twitter }}">
+                <i class="fa fa-twitter" aria-hidden="true"></i>
+            </a>
+        </li>
+        <li>
+            <a class="post-share__btn"
+               href="https://www.linkedin.com/sharing/share-offsite/?url={{ share_url | cgi_escape }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="{{ share.linkedin }}">
+                <i class="fa fa-linkedin" aria-hidden="true"></i>
+            </a>
+        </li>
+        <li>
+            <button type="button"
+                    class="post-share__btn"
+                    data-share-copy
+                    data-share-url="{{ share_url }}"
+                    data-share-copied="{{ share.copied }}"
+                    aria-label="{{ share.copy }}">
+                <i class="fa fa-link" aria-hidden="true"></i>
+            </button>
+        </li>
+    </ul>
+</nav>

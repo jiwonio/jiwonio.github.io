@@ -18,6 +18,14 @@ ko:
     system: "시스템 설정"
     light: "라이트 모드"
     dark: "다크 모드"
+  share:
+    aria_label: "공유하기"
+    label: "공유"
+    facebook: "Facebook에 공유"
+    twitter: "X에 공유"
+    linkedin: "LinkedIn에 공유"
+    copy: "링크 복사"
+    copied: "링크가 복사되었습니다"
 
 en:
   label: "English"
@@ -38,6 +46,14 @@ en:
     system: "System theme"
     light: "Light mode"
     dark: "Dark mode"
+  share:
+    aria_label: "Share"
+    label: "Share"
+    facebook: "Share on Facebook"
+    twitter: "Share on X"
+    linkedin: "Share on LinkedIn"
+    copy: "Copy link"
+    copied: "Link copied"
 
 ja:
   label: "日本語"
@@ -58,6 +74,14 @@ ja:
     system: "システム設定"
     light: "ライトモード"
     dark: "ダークモード"
+  share:
+    aria_label: "共有"
+    label: "共有"
+    facebook: "Facebookで共有"
+    twitter: "Xで共有"
+    linkedin: "LinkedInで共有"
+    copy: "リンクをコピー"
+    copied: "リンクをコピーしました"
 
 zh:
   label: "中文"
@@ -78,3 +102,11 @@ zh:
     system: "跟随系统"
     light: "浅色模式"
     dark: "深色模式"
+  share:
+    aria_label: "分享"
+    label: "分享"
+    facebook: "分享到 Facebook"
+    twitter: "分享到 X"
+    linkedin: "分享到 LinkedIn"
+    copy: "复制链接"
+    copied: "链接已复制"

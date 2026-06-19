@@ -35,6 +35,64 @@
   color: var(--color-muted);
 }
 
+.post-share {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem .75rem;
+  margin: 0 0 1.25rem;
+  font-size: .9rem;
+
+  &__label {
+    color: var(--color-muted);
+  }
+
+  &__list {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-masthead);
+    background: transparent;
+    font: inherit;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-link);
+      border-color: var(--color-link);
+      background: var(--color-pagination-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-link);
+      outline-offset: 2px;
+    }
+
+    &--copied {
+      color: var(--color-link);
+      border-color: var(--color-link);
+    }
+  }
+}
+
 .ad-slot {
   display: none;
   margin: 0;
