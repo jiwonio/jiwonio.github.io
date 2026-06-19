@@ -36,15 +36,31 @@
 }
 
 .ad-slot {
-  margin: 1.5rem 0;
+  display: none;
+  margin: 0;
   overflow: hidden;
 
   &--display {
-    margin-top: 1rem;
+    margin-top: 0;
   }
 
   &--autorelaxed {
     margin-bottom: 0;
+  }
+
+  &--filled,
+  &:has(ins.adsbygoogle[data-ad-status="filled"]) {
+    display: block;
+    margin: 1.5rem 0;
+
+    &.ad-slot--display {
+      margin-top: 1rem;
+    }
+  }
+
+  &--hidden {
+    display: none;
+    margin: 0;
   }
 }
 

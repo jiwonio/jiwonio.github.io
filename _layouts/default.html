@@ -60,5 +60,8 @@
         </script>
         <script src="/assets/js/theme.js" defer></script>
         <script src="/assets/js/lang-switcher.js" defer></script>
+        {% if site.ads.adsense_client != "" %}
+        <script src="/assets/js/ads.js" defer></script>
+        {% endif %}
     </body>
 </html>
