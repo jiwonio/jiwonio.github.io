@@ -5,6 +5,7 @@
 {%- endcomment -%}
 
 {%- if site.ads.adsense_client != "" -%}
+<meta name="google-adsense-account" content="{{ site.ads.adsense_client }}">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.ads.adsense_client }}"
      crossorigin="anonymous"></script>
 {%- endif -%}
