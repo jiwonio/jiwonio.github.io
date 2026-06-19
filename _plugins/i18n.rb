@@ -56,10 +56,47 @@ module Jekyll
         page_num == 1 ? "/#{lang}/" : "/#{lang}/page/#{page_num}/"
       end
     end
+
+    def tag_slug(tag_name)
+      slug = Jekyll::Utils.slugify(tag_name.to_s.encode("UTF-8"))
+      slug unless slug.nil? || slug.empty?
+    end
+
+    def build_tag_archives(tags_hash)
+      grouped = {}
+
+      tags_hash.each do |tag_name, posts|
+        next if posts.nil? || posts.empty?
+
+        slug = tag_slug(tag_name)
+        next unless slug
+
+        entry = (grouped[slug] ||= {
+          "slug" => slug,
+          "title" => tag_name,
+          "names" => [],
+          "posts" => []
+        })
+
+        entry["names"] << tag_name unless entry["names"].include?(tag_name)
+        entry["posts"].concat(posts)
+      end
+
+      grouped.each_value do |entry|
+        entry["posts"].uniq!
+        counts = entry["names"].to_h do |name|
+          [name, entry["posts"].count { |post| Array(post.data["tags"]).include?(name) }]
+        end
+        entry["title"] = counts.max_by { |_, count| count }&.first || entry["names"].first
+        entry.delete("posts")
+      end
+
+      grouped.values.sort_by { |entry| entry["title"].to_s.downcase }
+    end
   end
 
   class Site
-    attr_accessor :posts_by_lang, :translations
+    attr_accessor :posts_by_lang, :translations, :tags_by_lang, :tag_archives_by_lang
   end
 
   # post_init 이후 Jekyll 기본 permalink가 덮어쓰므로, post_convert에서 최종 URL을 확정합니다.
@@ -78,19 +115,31 @@ module Jekyll
   Jekyll::Hooks.register :site, :post_read do |site|
     default = I18n.default_lang(site)
     by_lang = Hash.new { |hash, key| hash[key] = [] }
+    tags_by_lang = Hash.new { |hash, key| hash[key] = Hash.new { |inner, tag| inner[tag] = [] } }
     translations = Hash.new { |hash, key| hash[key] = {} }
 
     site.posts.docs.each do |post|
       lang = post.data["lang"] || default
       by_lang[lang] << post
 
+      Array(post.data["tags"]).each do |tag|
+        tags_by_lang[lang][tag] << post
+      end
+
       key = post.data["translation_key"]
       translations[key][lang] = post if key
     end
 
     by_lang.each_value { |posts| posts.sort_by! { |doc| -doc.date.to_i } }
+    tags_by_lang.each_value do |tags|
+      tags.each_value { |posts| posts.sort_by! { |doc| -doc.date.to_i } }
+    end
+
+    tag_archives_by_lang = tags_by_lang.transform_values { |tags| I18n.build_tag_archives(tags) }
 
     site.posts_by_lang = by_lang
+    site.tags_by_lang = tags_by_lang
+    site.tag_archives_by_lang = tag_archives_by_lang
     site.translations = translations
   end
 
@@ -98,7 +147,41 @@ module Jekyll
     payload["site"]["default_lang"] = I18n.default_lang(site)
     payload["site"]["lang_codes"] = I18n.lang_codes(site)
     payload["site"]["posts_by_lang"] = site.posts_by_lang || {}
+    payload["site"]["tags_by_lang"] = site.tags_by_lang || {}
+    payload["site"]["tag_archives_by_lang"] = site.tag_archives_by_lang || {}
     payload["site"]["translations"] = site.translations || {}
+  end
+
+  class I18nTagArchiveGenerator < Generator
+    safe true
+    priority :lowest
+
+    def generate(site)
+      default = I18n.default_lang(site)
+
+      I18n.lang_codes(site).each do |lang|
+        archives = (site.tag_archives_by_lang || {})[lang] || []
+        archives.each do |entry|
+          slug = entry["slug"]
+          dir = if lang == default
+                  File.join("archive", "tag", slug)
+                else
+                  File.join(lang, "archive", "tag", slug)
+                end
+
+          page = PageWithoutAFile.new(site, site.source, dir, "index.html")
+          page.data["layout"] = "tag"
+          page.data["lang"] = lang
+          page.data["archives"] = true
+          page.data["title"] = entry["title"]
+          page.data["tag_names"] = entry["names"]
+          page.data["image"] = site.config.dig("seo", "default_image")
+          lang_meta = site.data.dig("languages", lang) || {}
+          page.data["seo_description"] = lang_meta["description"] || site.config["description"]
+          site.pages << page
+        end
+      end
+    end
   end
 
   class I18nYearArchiveGenerator < Generator

@@ -48,7 +48,6 @@ sass:
 
 jekyll-archives:
   enabled:
-    - tags
     - year
   permalinks:
     tag: "/archive/tag/:name/"

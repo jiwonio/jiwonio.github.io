@@ -3,13 +3,22 @@ layout: default
 archives: true
 ---
 
+{% assign archive_lang = page.lang | default: site.default_lang %}
+{% assign archive_meta = site.data.languages[archive_lang] %}
+{% assign tag_names = page.tag_names %}
+
 <article class="page">
-    <h1 class="page-title">Archive</h1>
+    <h1 class="page-title">{{ archive_meta.archive_title }}</h1>
     <h3>{{ page.title }}</h3>
     <ul class="archive">
-        {% for post in page.posts %}
-            {% assign post_lang = post.lang | default: site.default_lang %}
-            {% if post_lang == site.default_lang %}
+        {% for post in site.posts_by_lang[archive_lang] %}
+            {% assign show_post = false %}
+            {% for tag_name in tag_names %}
+                {% if post.tags contains tag_name %}
+                    {% assign show_post = true %}
+                {% endif %}
+            {% endfor %}
+            {% if show_post %}
             <li>{{ post.date | date:"%Y" }} <a href="{% if post.link %}{{ post.link }}{% else %}{{ post.url }}{% endif %}">{{ post.title }}</a></li>
             {% endif %}
         {% endfor %}

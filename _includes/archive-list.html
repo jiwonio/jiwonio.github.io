@@ -1,6 +1,7 @@
 {% assign archive_lang = include.lang | default: page.lang | default: site.default_lang %}
 {% assign archive_meta = site.data.languages[archive_lang] %}
 {% assign archive_posts = site.posts_by_lang[archive_lang] %}
+{% assign archive_tag_entries = site.tag_archives_by_lang[archive_lang] %}
 
 <article class="page">
     <h1 class="page-title">{{ archive_meta.archive_title }}</h1>
@@ -22,12 +23,17 @@
         {% endfor %}
     </ul>
 
-    {% if archive_lang == site.default_lang %}
+    {% if archive_tag_entries.size > 0 %}
     <h3>{{ archive_meta.tag_heading }}</h3>
     <ul class="archive">
-        {% assign sorted_tags = site.tags | sort %}
-        {% for tag in sorted_tags %}
-            <li><a href="{{ site.url }}/archive/tag/{{ tag | first | slugify }}/">{{ tag | first }}</a></li>
+        {% for entry in archive_tag_entries %}
+            <li>
+                {% if archive_lang == site.default_lang %}
+                    <a href="{{ site.url }}/archive/tag/{{ entry.slug }}/">{{ entry.title }}</a>
+                {% else %}
+                    <a href="{{ site.url }}/{{ archive_lang }}/archive/tag/{{ entry.slug }}/">{{ entry.title }}</a>
+                {% endif %}
+            </li>
         {% endfor %}
     </ul>
     {% endif %}
