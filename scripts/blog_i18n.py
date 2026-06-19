@@ -86,6 +86,18 @@ def resolve_year(path: Path) -> str:
     return resolve_date_prefix(path)[:4]
 
 
+def resolve_effective_date(path: Path, metadata: dict | None = None) -> str:
+    """front matter date가 있으면 우선, 없으면 파일명 날짜를 사용합니다."""
+    if metadata and metadata.get("date"):
+        return str(metadata["date"])[:10]
+    return resolve_date_prefix(path)
+
+
+def explicit_post_date(metadata: dict) -> str | None:
+    """front matter에 명시된 date만 반환합니다. 없으면 None(파일명 사용)."""
+    return metadata.get("date") if metadata.get("date") else None
+
+
 def permalink_for_lang(lang: str, slug: str) -> str:
     if lang == DEFAULT_LANG:
         return f"/posts/{slug}/"
@@ -107,8 +119,11 @@ def ensure_translation_metadata(content: str, source_content: str, target_lang: 
     metadata["slug"] = slug
     metadata["permalink"] = permalink_for_lang(target_lang, slug)
 
-    if not metadata.get("date") and source_metadata.get("date"):
-        metadata["date"] = source_metadata["date"]
+    source_date = explicit_post_date(source_metadata)
+    if source_date:
+        metadata["date"] = source_date
+    else:
+        metadata.pop("date", None)
     if not metadata.get("description") and metadata.get("meta"):
         metadata["description"] = str(metadata["meta"]).strip()
     if not metadata.get("layout"):

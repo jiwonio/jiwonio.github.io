@@ -10,11 +10,11 @@ image: /uploads/nodejs-installation-failure/thumbnail.webp
 lang: en
 translation_key: nodejs-installation-failure
 slug: nodejs-installation-failure
-date: 2023-11-20 00:00:00 +0900
 categories:
 - dev
 permalink: /en/posts/nodejs-installation-failure/
 ---
+
 When installing [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} on Windows 11, you may encounter errors related to additional package installations. 
 These errors often occur due to the necessity to compile some Node.js packages using **C/C++** and **Python**. 
 This guide provides detailed solutions to efficiently resolve these issues and ensure a smooth installation process.

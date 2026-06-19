@@ -6,6 +6,9 @@ from pathlib import Path
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from blog_i18n import resolve_effective_date
+
 
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 REQUIRED_FIELDS = ("layout", "title", "tags", "image")
@@ -76,7 +79,7 @@ def validate_posts(posts_dir, site_root=None):
     errors = []
     tag_spellings = defaultdict(set)
     output_paths = defaultdict(list)
-    translation_keys = defaultdict(set)
+    translation_groups = defaultdict(dict)
     if site_root is None:
         site_root = posts_dir.parent
 
@@ -97,7 +100,7 @@ def validate_posts(posts_dir, site_root=None):
         output_paths[(lang, normalized_slug)].append(path)
 
         translation_key = metadata.get("translation_key") or normalized_slug
-        translation_keys[translation_key].add(lang)
+        translation_groups[translation_key][lang] = (path, metadata)
 
         if not has_standalone_line(content, "<!--more-->"):
             errors.append(f"{path}: missing standalone <!--more--> excerpt separator")
@@ -132,6 +135,24 @@ def validate_posts(posts_dir, site_root=None):
                 f"duplicate post output slug '{slug}' for lang '{lang}': "
                 + ", ".join(str(path) for path in paths)
             )
+
+    for key, langs in translation_groups.items():
+        if len(langs) < 2:
+            continue
+        source = langs.get(DEFAULT_LANG)
+        if not source:
+            continue
+        source_path, source_meta = source
+        source_date = resolve_effective_date(source_path, source_meta)
+        for lang, (path, metadata) in langs.items():
+            if lang == DEFAULT_LANG:
+                continue
+            post_date = resolve_effective_date(path, metadata)
+            if post_date != source_date:
+                errors.append(
+                    f"translation date mismatch for '{key}': "
+                    f"{DEFAULT_LANG}={source_date}, {lang}={post_date} ({path})"
+                )
 
     return errors
 
