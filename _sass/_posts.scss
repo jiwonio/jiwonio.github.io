@@ -34,3 +34,16 @@
   margin-bottom: 1rem;
   color: var(--color-muted);
 }
+
+.ad-slot {
+  margin: 1.5rem 0;
+  overflow: hidden;
+
+  &--display {
+    margin-top: 1rem;
+  }
+
+  &--autorelaxed {
+    margin-bottom: 0;
+  }
+}

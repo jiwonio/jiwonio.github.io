@@ -42,6 +42,10 @@ analytics:
 # AdSense Publisher ID. 비어 있으면 광고 스크립트를 로드하지 않습니다.
 ads:
   adsense_client: "ca-pub-5956369720806472"
+  slots:
+    display: "1782007029"
+    in_article: "3275318027"
+    autorelaxed: "3993503325"
 
 # ── Jekyll ────────────────────────────────────────────────────────
 posts_per_page: 5

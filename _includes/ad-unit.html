@@ -1,0 +1,32 @@
+{%- assign client = site.ads.adsense_client -%}
+{%- if client == "" -%}
+{%- elsif include.unit == "display" and site.ads.slots.display != "" -%}
+<div class="ad-slot ad-slot--display">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="{{ client }}"
+         data-ad-slot="{{ site.ads.slots.display }}"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+{%- elsif include.unit == "in-article" and site.ads.slots.in_article != "" -%}
+<div class="ad-slot ad-slot--in-article">
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-ad-client="{{ client }}"
+         data-ad-slot="{{ site.ads.slots.in_article }}"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+{%- elsif include.unit == "autorelaxed" and site.ads.slots.autorelaxed != "" -%}
+<div class="ad-slot ad-slot--autorelaxed">
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-format="autorelaxed"
+         data-ad-client="{{ client }}"
+         data-ad-slot="{{ site.ads.slots.autorelaxed }}"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
+{%- endif -%}
