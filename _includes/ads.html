@@ -1,0 +1,10 @@
+{%- comment -%}
+  Google AdSense
+
+  _config.yml의 ads.adsense_client가 비어 있으면 출력하지 않습니다.
+{%- endcomment -%}
+
+{%- if site.ads.adsense_client != "" -%}
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.ads.adsense_client }}"
+     crossorigin="anonymous"></script>
+{%- endif -%}

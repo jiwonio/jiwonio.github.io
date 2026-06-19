@@ -38,6 +38,11 @@ analytics:
   google_analytics_id: "G-QB0ZTLELGE"
   naver_analytics_id: "1ab6ce6f3ed0010"
 
+# ── 광고 (선택) ───────────────────────────────────────────────────
+# AdSense Publisher ID. 비어 있으면 광고 스크립트를 로드하지 않습니다.
+ads:
+  adsense_client: "ca-pub-5956369720806472"
+
 # ── Jekyll ────────────────────────────────────────────────────────
 posts_per_page: 5
 excerpt_separator: "<!--more-->"
