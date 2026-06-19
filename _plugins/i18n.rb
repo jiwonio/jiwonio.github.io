@@ -101,6 +101,33 @@ module Jekyll
     payload["site"]["translations"] = site.translations || {}
   end
 
+  class I18nYearArchiveGenerator < Generator
+    safe true
+    priority :lowest
+
+    def generate(site)
+      default = I18n.default_lang(site)
+
+      I18n.lang_codes(site).each do |lang|
+        next if lang == default
+
+        posts = site.posts_by_lang[lang] || []
+        posts.map { |post| post.date.year }.uniq.sort.each do |year|
+          dir = File.join(lang, "archive", year.to_s)
+          page = PageWithoutAFile.new(site, site.source, dir, "index.html")
+          page.data["layout"] = "year"
+          page.data["lang"] = lang
+          page.data["archives"] = true
+          page.data["date"] = Date.new(year, 1, 1)
+          page.data["image"] = site.config.dig("seo", "default_image")
+          lang_meta = site.data.dig("languages", lang) || {}
+          page.data["seo_description"] = lang_meta["description"] || site.config["description"]
+          site.pages << page
+        end
+      end
+    end
+  end
+
   class I18nPaginationGenerator < Generator
     safe true
     priority :lowest
