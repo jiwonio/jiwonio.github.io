@@ -1,27 +1,41 @@
 {% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
+{% assign current_meta = site.data.languages[current_lang] %}
 <nav class="lang-switcher" aria-label="Language">
-    {% for lang in site.lang_codes %}
-        {% assign meta = site.data.languages[lang] %}
-        {% if page.layout == 'post' and page.translation_key %}
-            {% assign translated = site.translations[page.translation_key][lang] %}
-            {% if translated %}
-                <a href="{{ translated.url }}"
-                   hreflang="{{ lang }}"
-                   {% if lang == current_lang %}aria-current="page"{% endif %}
-                   title="{{ meta.label }}">{{ lang | upcase }}</a>
-            {% else %}
-                <span class="lang-switcher__missing" title="{{ meta.label }} (준비 중)">{{ lang | upcase }}</span>
-            {% endif %}
-        {% else %}
-            {% if lang == site.default_lang %}
-                {% assign lang_url = '/' %}
-            {% else %}
-                {% assign lang_url = '/' | append: lang | append: '/' %}
-            {% endif %}
-            <a href="{{ lang_url }}"
-               hreflang="{{ lang }}"
-               {% if lang == current_lang %}aria-current="page"{% endif %}
-               title="{{ meta.label }}">{{ lang | upcase }}</a>
-        {% endif %}
-    {% endfor %}
+    <details class="lang-switcher__details">
+        <summary class="lang-switcher__trigger" title="{{ current_meta.label }}">
+            <i class="fa fa-globe" aria-hidden="true"></i>
+            <span class="lang-switcher__current">{{ current_lang | upcase }}</span>
+            <i class="fa fa-caret-down lang-switcher__caret" aria-hidden="true"></i>
+        </summary>
+        <ul class="lang-switcher__menu" role="list">
+            {% for lang in site.lang_codes %}
+                {% assign meta = site.data.languages[lang] %}
+                <li class="lang-switcher__item{% if lang == current_lang %} lang-switcher__item--active{% endif %}">
+                    {% if page.layout == 'post' and page.translation_key %}
+                        {% assign translated = site.translations[page.translation_key][lang] %}
+                        {% if translated %}
+                            {% if lang == current_lang %}
+                                <span class="lang-switcher__option" aria-current="page">{{ meta.label }}</span>
+                            {% else %}
+                                <a class="lang-switcher__option" href="{{ translated.url }}" hreflang="{{ lang }}" title="{{ meta.label }}">{{ meta.label }}</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="lang-switcher__option lang-switcher__missing" title="{{ meta.label }} (준비 중)">{{ meta.label }}</span>
+                        {% endif %}
+                    {% else %}
+                        {% if lang == site.default_lang %}
+                            {% assign lang_url = '/' %}
+                        {% else %}
+                            {% assign lang_url = '/' | append: lang | append: '/' %}
+                        {% endif %}
+                        {% if lang == current_lang %}
+                            <span class="lang-switcher__option" aria-current="page">{{ meta.label }}</span>
+                        {% else %}
+                            <a class="lang-switcher__option" href="{{ lang_url }}" hreflang="{{ lang }}" title="{{ meta.label }}">{{ meta.label }}</a>
+                        {% endif %}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </details>
 </nav>
