@@ -47,3 +47,50 @@
     margin-bottom: 0;
   }
 }
+
+.privacy-policy {
+  &__languages {
+    margin: .5rem 0 1.5rem;
+    font-size: .9rem;
+
+    a {
+      margin-right: .75rem;
+      text-decoration: none;
+
+      &[aria-current="page"] {
+        font-weight: 600;
+        color: var(--color-link);
+      }
+    }
+  }
+
+  &__updated {
+    margin-bottom: 1.25rem;
+    color: var(--color-muted);
+    font-size: .95rem;
+  }
+
+  &__content {
+    h2 {
+      margin-top: 2rem;
+      margin-bottom: .75rem;
+      font-size: 1.15rem;
+      color: var(--color-heading);
+    }
+
+    p,
+    ul {
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      padding-left: 1.25rem;
+    }
+
+    table {
+      width: 100%;
+      margin: 1rem 0 1.25rem;
+      font-size: .9rem;
+    }
+  }
+}

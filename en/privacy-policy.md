@@ -1,15 +1,16 @@
 ---
-layout: page
+layout: privacy-policy
 title: Privacy Policy
 lang: en
+page_key: privacy-policy
 permalink: /en/privacy-policy/
 seo_description: Privacy policy for the Jiwon Min blog, including Google AdSense, Google Analytics, and Naver Analytics.
 image: /assets/og-default.webp
 ---
 
-**Last updated:** June 19, 2026
+<p class="privacy-policy__updated"><strong>Last updated:</strong> June 19, 2026</p>
 
-This blog (https://blog.jiwon.io, the "Site") is operated by Jiwon Min ("Operator"). By using the Site, you agree to this policy.
+<p>This blog (<a href="https://blog.jiwon.io">blog.jiwon.io</a>, the "Site") is operated by Jiwon Min ("Operator"). By using the Site, you agree to this policy.</p>
 
 ## 1. Information We Collect
 
@@ -30,7 +31,7 @@ The Site has no user accounts and does not ask visitors to submit personal infor
 The Site uses the services below. Each provider processes data under its own privacy policy.
 
 | Service | Provider | Purpose |
-|---------|----------|---------|
+| --- | --- | --- |
 | Google AdSense | Google | Advertising |
 | Google Analytics | Google | Traffic analytics |
 | Naver Analytics | Naver | Traffic analytics |

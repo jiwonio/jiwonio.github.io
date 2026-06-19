@@ -28,4 +28,13 @@
         {%- endif -%}
     {%- endfor -%}
 <link rel="alternate" hreflang="x-default" href="{{ '/' | absolute_url }}">
+{%- elsif page.page_key == 'privacy-policy' -%}
+    {%- for lang in site.lang_codes -%}
+        {%- if lang == site.default_lang -%}
+<link rel="alternate" hreflang="{{ lang }}" href="{{ '/privacy-policy/' | absolute_url }}">
+        {%- else -%}
+<link rel="alternate" hreflang="{{ lang }}" href="{{ '/' | append: lang | append: '/privacy-policy/' | absolute_url }}">
+        {%- endif -%}
+    {%- endfor -%}
+<link rel="alternate" hreflang="x-default" href="{{ '/privacy-policy/' | absolute_url }}">
 {%- endif -%}

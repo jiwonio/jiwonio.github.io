@@ -1,15 +1,16 @@
 ---
-layout: page
+layout: privacy-policy
 title: プライバシーポリシー
 lang: ja
+page_key: privacy-policy
 permalink: /ja/privacy-policy/
 seo_description: Jiwon Min ブログのプライバシーポリシー。Google AdSense、Google Analytics、Naver Analytics の利用について説明します。
 image: /assets/og-default.webp
 ---
 
-**最終更新日:** 2026年6月19日
+<p class="privacy-policy__updated"><strong>最終更新日:</strong> 2026年6月19日</p>
 
-本ブログ（https://blog.jiwon.io、以下「サイト」）は Jiwon Min（以下「運営者」）が運営しています。サイトを利用することで、本ポリシーに同意したものとみなします。
+<p>本ブログ（<a href="https://blog.jiwon.io">blog.jiwon.io</a>、以下「サイト」）は Jiwon Min（以下「運営者」）が運営しています。サイトを利用することで、本ポリシーに同意したものとみなします。</p>
 
 ## 1. 収集する情報
 
@@ -30,7 +31,7 @@ image: /assets/og-default.webp
 サイトは以下のサービスを利用します。各サービスは独自のプライバシーポリシーに基づきデータを処理します。
 
 | サービス | 提供者 | 用途 |
-|----------|--------|------|
+| --- | --- | --- |
 | Google AdSense | Google | 広告配信 |
 | Google Analytics | Google | アクセス解析 |
 | Naver Analytics | Naver | アクセス解析 |

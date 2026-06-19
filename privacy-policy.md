@@ -1,15 +1,16 @@
 ---
-layout: page
+layout: privacy-policy
 title: 개인정보 처리방침
 lang: ko
+page_key: privacy-policy
 permalink: /privacy-policy/
 seo_description: Jiwon Min 블로그의 개인정보 처리방침입니다. Google AdSense, Google Analytics, Naver Analytics 이용에 대해 안내합니다.
 image: /assets/og-default.webp
 ---
 
-**최종 업데이트:** 2026년 6월 19일
+<p class="privacy-policy__updated"><strong>최종 업데이트:</strong> 2026년 6월 19일</p>
 
-본 블로그(https://blog.jiwon.io, 이하 "사이트")는 Jiwon Min(이하 "운영자")이 운영합니다. 사이트를 이용하면 아래 내용에 동의한 것으로 간주합니다.
+<p>본 블로그(<a href="https://blog.jiwon.io">blog.jiwon.io</a>, 이하 "사이트")는 Jiwon Min(이하 "운영자")이 운영합니다. 사이트를 이용하면 아래 내용에 동의한 것으로 간주합니다.</p>
 
 ## 1. 수집하는 정보
 
@@ -30,7 +31,7 @@ image: /assets/og-default.webp
 사이트는 다음 서비스를 사용합니다. 각 서비스는 자체 개인정보 처리방침에 따라 데이터를 처리합니다.
 
 | 서비스 | 제공자 | 용도 |
-|--------|--------|------|
+| --- | --- | --- |
 | Google AdSense | Google | 광고 게재 |
 | Google Analytics | Google | 방문 통계 |
 | Naver Analytics | Naver | 방문 통계 |

@@ -1,0 +1,23 @@
+---
+layout: default
+---
+{% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
+
+<article class="page privacy-policy">
+    <h1 class="page-title">{{ page.title }}</h1>
+
+    <nav class="privacy-policy__languages" aria-label="Language">
+        {% for lang in site.lang_codes %}
+            {% assign lang_meta = site.data.languages[lang] %}
+            {% if lang == site.default_lang %}
+                <a href="/privacy-policy/" hreflang="{{ lang }}" lang="{{ lang }}"{% if lang == current_lang %} aria-current="page"{% endif %}>{{ lang_meta.label }}</a>
+            {% else %}
+                <a href="/{{ lang }}/privacy-policy/" hreflang="{{ lang }}" lang="{{ lang }}"{% if lang == current_lang %} aria-current="page"{% endif %}>{{ lang_meta.label }}</a>
+            {% endif %}
+        {% endfor %}
+    </nav>
+
+    <div class="privacy-policy__content">
+        {{ content }}
+    </div>
+</article>
