@@ -43,6 +43,13 @@
                             <a href="/{{ current_lang }}/archive/" title="{{ lang_meta.archive_title }}">{{ lang_meta.archive_title }}</a>
                         {% endif %}
                     </li>
+                    <li>
+                        {% if current_lang == site.default_lang %}
+                            <a href="/privacy-policy/" title="{{ lang_meta.privacy_title }}">{{ lang_meta.footer.privacy_link }}</a>
+                        {% else %}
+                            <a href="/{{ current_lang }}/privacy-policy/" title="{{ lang_meta.privacy_title }}">{{ lang_meta.footer.privacy_link }}</a>
+                        {% endif %}
+                    </li>
                 </ul>
                 <div class="cf"></div>
             </footer>
