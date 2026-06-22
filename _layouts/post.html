@@ -44,3 +44,12 @@ layout: default
 
     {% include ad-unit.html unit="autorelaxed" %}
 </article>
+
+{% if page.post_type and site.analytics.google_analytics_id != "" %}
+<script>
+  gtag('event', 'page_view_typed', {
+    post_type: '{{ page.post_type }}',
+    post_slug: '{{ page.slug }}'
+  });
+</script>
+{% endif %}

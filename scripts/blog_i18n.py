@@ -18,6 +18,10 @@ POSTS_DIR = SITE_ROOT / "_posts"
 
 DEFAULT_LANG = "ko"
 TRANSLATION_LANGS = ("en", "ja", "zh")
+TRANSLATION_LANGS_BY_TYPE = {
+    "deep-dive": ("en", "ja", "zh"),
+    "ai-news": ("en",),
+}
 LANG_LABELS = {
     "en": "English",
     "ja": "Japanese",
@@ -26,6 +30,11 @@ LANG_LABELS = {
 
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
+
+
+def translation_langs_for_metadata(metadata: dict) -> tuple[str, ...]:
+    post_type = str(metadata.get("post_type", "deep-dive")).strip()
+    return TRANSLATION_LANGS_BY_TYPE.get(post_type, TRANSLATION_LANGS)
 
 
 def detect_lang_from_path(path: str | Path) -> str:
@@ -128,6 +137,8 @@ def ensure_translation_metadata(content: str, source_content: str, target_lang: 
         metadata["description"] = str(metadata["meta"]).strip()
     if not metadata.get("layout"):
         metadata["layout"] = "post"
+    if source_metadata.get("post_type"):
+        metadata["post_type"] = source_metadata["post_type"]
 
     body = content[FRONT_MATTER_PATTERN.match(content).end() :]
     return dump_front_matter(metadata) + body
@@ -178,7 +189,7 @@ You are a senior technical translator. Translate the Jekyll blog post below into
 
 Rules:
 - Output only the translated markdown file. No preamble or explanation.
-- Keep these front matter fields exactly unchanged: layout, slug, date, categories, tags, image
+- Keep these front matter fields exactly unchanged: layout, slug, date, categories, tags, image, post_type
 - Set lang: {target_lang}
 - Set translation_key: {slug}
 - Translate title, description, and all prose. Keep code blocks unchanged.
