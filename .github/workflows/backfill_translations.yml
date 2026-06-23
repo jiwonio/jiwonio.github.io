@@ -20,6 +20,10 @@ on:
         type: boolean
         required: false
         default: false
+      slug:
+        description: "특정 slug만 처리 (비우면 전체)"
+        required: false
+        default: ""
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -75,6 +79,9 @@ jobs:
           fi
           if [ "${{ inputs.limit }}" != "0" ]; then
             ARGS+=(--limit "${{ inputs.limit }}")
+          fi
+          if [ -n "${{ inputs.slug }}" ]; then
+            ARGS+=(--slug "${{ inputs.slug }}")
           fi
           ARGS+=(--langs "${{ inputs.langs }}")
           ARGS+=(--sleep "${{ inputs.sleep }}")

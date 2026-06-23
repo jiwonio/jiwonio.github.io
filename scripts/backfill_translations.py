@@ -87,6 +87,7 @@ def backfill(
     client = None if dry_run else get_gemini_client()
     created = 0
     skipped = 0
+    failures = 0
 
     for index, source_path in enumerate(posts, start=1):
         source_content = source_path.read_text(encoding="utf-8")
@@ -116,9 +117,10 @@ def backfill(
                 if sleep_seconds > 0:
                     time.sleep(sleep_seconds)
             except Exception as exc:
+                failures += 1
                 print(f"  ⚠️ {lang} 실패 ({slug}): {exc}")
 
-    return created, skipped
+    return created, skipped, failures
 
 
 def main() -> int:
@@ -155,11 +157,13 @@ def main() -> int:
     if args.prepare:
         return 0
 
-    created, skipped = backfill(posts, langs, dry_run=args.dry_run, sleep_seconds=args.sleep)
-    print(f"Done. created={created}, skipped_complete={skipped}")
+    created, skipped, failures = backfill(
+        posts, langs, dry_run=args.dry_run, sleep_seconds=args.sleep
+    )
+    print(f"Done. created={created}, skipped_complete={skipped}, failures={failures}")
 
-    if not args.dry_run and created == 0 and skipped < len(posts):
-        print("ERROR: no translations were created.", file=sys.stderr)
+    if not args.dry_run and failures > 0:
+        print("ERROR: one or more translations failed.", file=sys.stderr)
         return 1
 
     return 0
