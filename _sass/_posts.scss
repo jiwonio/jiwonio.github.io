@@ -35,6 +35,22 @@
   color: var(--color-muted);
 }
 
+.post-series {
+  margin: 0 0 .75rem;
+  font-size: .9rem;
+
+  a {
+    color: var(--color-muted);
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--color-link);
+      text-decoration: underline;
+    }
+  }
+}
+
 .post-share {
   display: flex;
   align-items: center;

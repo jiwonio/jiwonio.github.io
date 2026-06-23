@@ -18,6 +18,9 @@ ko:
     system: "시스템 설정"
     light: "라이트 모드"
     dark: "다크 모드"
+  ai_news_series:
+    label: "AI News 시리즈"
+    path: "/archive/tag/ai-news/"
   share:
     aria_label: "공유하기"
     label: "공유"
@@ -48,6 +51,9 @@ en:
     system: "System theme"
     light: "Light mode"
     dark: "Dark mode"
+  ai_news_series:
+    label: "AI News series"
+    path: "/en/archive/tag/ai-news/"
   share:
     aria_label: "Share"
     label: "Share"
@@ -78,6 +84,9 @@ ja:
     system: "システム設定"
     light: "ライトモード"
     dark: "ダークモード"
+  ai_news_series:
+    label: "AI News シリーズ"
+    path: "/ja/archive/tag/ai-news/"
   share:
     aria_label: "共有"
     label: "共有"
@@ -108,6 +117,9 @@ zh:
     system: "跟随系统"
     light: "浅色模式"
     dark: "深色模式"
+  ai_news_series:
+    label: "AI News 系列"
+    path: "/zh/archive/tag/ai-news/"
   share:
     aria_label: "分享"
     label: "分享"

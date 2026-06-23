@@ -20,6 +20,11 @@ on:
         required: false
         default: false
         type: boolean
+      auto_merge:
+        description: 'PR 자동 머지'
+        required: false
+        default: true
+        type: boolean
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -143,9 +148,41 @@ jobs:
 
             echo "PR Created: $PR_URL"
 
-            gh pr merge $BRANCH_NAME --merge --delete-branch
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              AUTO_MERGE="${{ github.event.inputs.auto_merge }}"
+            else
+              AUTO_MERGE="true"
+            fi
 
-            echo "✅ PR 생성 및 즉시 병합이 완료되었습니다!"
+            if [ "$AUTO_MERGE" = "true" ]; then
+              gh pr merge $BRANCH_NAME --merge --delete-branch
+              echo "✅ PR 생성 및 즉시 병합이 완료되었습니다!"
+            else
+              echo "📋 PR이 열린 상태로 남았습니다. 검토 후 수동 머지하세요: $PR_URL"
+            fi
           else
             echo "⚠️ 커밋할 새로운 변경 사항이 없습니다."
           fi
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: build-and-post
+    if: failure()
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not configured, skipping Slack notification."
+            exit 0
+          fi
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"❌ Bi-weekly AI Post Generation failed\n${RUN_URL}\"}" \
+            "$SLACK_WEBHOOK_URL"
+
+      - name: Print failure summary
+        run: |
+          echo "::error::Bi-weekly AI Post Generation failed."
+          echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

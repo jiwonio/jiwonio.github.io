@@ -449,16 +449,19 @@ def generate_ai_news_post() -> str:
     )
 
 
-def dry_run() -> None:
+def dry_run(*, strict: bool = False) -> int:
     """API 호출 없이 RSS 수집·후보·내부 링크만 확인합니다."""
     today = get_kst_now()
     today_slug = f"ai-news-{today.strftime('%Y-%m-%d')}"
+    issues: list[str] = []
 
     print("🔍 AI News dry-run (API 호출 없음)")
     print(f"  예상 slug: {today_slug}")
 
     if today_slug in get_existing_ko_slugs():
         print(f"  ⚠️ 오늘 slug가 이미 존재합니다: {today_slug}")
+        if strict:
+            issues.append(f"slug already exists: {today_slug}")
     else:
         print("  ✅ slug 사용 가능")
 
@@ -470,6 +473,7 @@ def dry_run() -> None:
 
     if len(ranked) < MIN_REFERENCE_URLS:
         print(f"  ❌ 후보 부족: {len(ranked)}건 (최소 {MIN_REFERENCE_URLS}건 필요)")
+        issues.append(f"insufficient RSS candidates: {len(ranked)}")
     else:
         print(f"  ✅ 후보 충분 (최소 {MIN_REFERENCE_URLS}건)")
 
@@ -486,8 +490,17 @@ def dry_run() -> None:
 
     if len(internal_candidates) < MIN_INTERNAL_LINKS:
         print(f"  ⚠️ 내부 링크 후보가 {MIN_INTERNAL_LINKS}건 미만입니다.")
+        issues.append(f"insufficient internal links: {len(internal_candidates)}")
     else:
         print(f"  ✅ 내부 링크 후보 충분 (최소 {MIN_INTERNAL_LINKS}건)")
+
+    if strict and issues:
+        print("\n❌ dry-run strict 모드 실패:")
+        for issue in issues:
+            print(f"  - {issue}")
+        return 1
+
+    return 0
 
 
 if __name__ == "__main__":
@@ -497,9 +510,13 @@ if __name__ == "__main__":
         action="store_true",
         help="RSS 수집·후보·내부 링크만 확인하고 API 호출 없이 종료",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="dry-run 시 후보·링크 부족하면 exit code 1 반환",
+    )
     args = parser.parse_args()
 
     if args.dry_run:
-        dry_run()
-    else:
-        generate_ai_news_post()
+        raise SystemExit(dry_run(strict=args.strict))
+    generate_ai_news_post()
