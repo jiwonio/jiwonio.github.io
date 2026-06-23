@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -23,6 +24,7 @@ from feeds_config import (
     MAX_ITEMS_PER_FEED,
     MAX_TOTAL_CANDIDATES,
     RSS_DAYS_LOOKBACK_BY_TIER,
+    RSS_FETCH_TIMEOUT,
     RSS_FETCH_USER_AGENT,
     TIER_WEIGHTS,
 )
@@ -107,10 +109,12 @@ def fetch_rss_items() -> list[dict]:
         lookback = RSS_DAYS_LOOKBACK_BY_TIER.get(tier, 7)
         cutoff = datetime.now(timezone.utc) - timedelta(days=lookback)
         try:
-            parsed = feedparser.parse(
+            request = Request(
                 feed_cfg["url"],
-                agent=RSS_FETCH_USER_AGENT,
+                headers={"User-Agent": RSS_FETCH_USER_AGENT},
             )
+            with urlopen(request, timeout=RSS_FETCH_TIMEOUT) as response:
+                parsed = feedparser.parse(response.read())
             entries = filter_ai_relevant_entries(parsed.entries[: MAX_ITEMS_PER_FEED * 2], name)
             count = 0
             for entry in entries:
@@ -405,8 +409,61 @@ def generate_ai_news_post() -> str:
         image_prompt=image_prompt,
         post_type="ai-news",
         today=today,
+        require_translations=True,
     )
 
 
+def dry_run() -> None:
+    """API 호출 없이 RSS 수집·후보·내부 링크만 확인합니다."""
+    today = get_kst_now()
+    today_slug = f"ai-news-{today.strftime('%Y-%m-%d')}"
+
+    print("🔍 AI News dry-run (API 호출 없음)")
+    print(f"  예상 slug: {today_slug}")
+
+    if today_slug in get_existing_ko_slugs():
+        print(f"  ⚠️ 오늘 slug가 이미 존재합니다: {today_slug}")
+    else:
+        print("  ✅ slug 사용 가능")
+
+    print("\n📡 RSS 피드 수집 중...")
+    raw_items = fetch_rss_items() + fetch_hn_items()
+    deduped = deduplicate_items(raw_items)
+    ranked = score_and_rank_items(deduped)
+    print(f"\n✅ 후보 {len(ranked)}건 (원본 {len(raw_items)}건 → 중복 제거 {len(deduped)}건)")
+
+    if len(ranked) < MIN_REFERENCE_URLS:
+        print(f"  ❌ 후보 부족: {len(ranked)}건 (최소 {MIN_REFERENCE_URLS}건 필요)")
+    else:
+        print(f"  ✅ 후보 충분 (최소 {MIN_REFERENCE_URLS}건)")
+
+    print("\n📰 상위 후보:")
+    for index, item in enumerate(ranked[:10], start=1):
+        print(f"  {index}. [tier {item['tier']}] {item['source']}: {item['title'][:80]}")
+
+    past_urls = collect_past_reference_urls()
+    print(f"\n🔗 과거 ai-news 참고 URL: {len(past_urls)}건")
+
+    internal_candidates = get_internal_link_candidates([item["title"] for item in ranked])
+    print(f"\n🏠 내부 링크 후보: {len(internal_candidates)}건")
+    print(format_internal_links_for_prompt(internal_candidates))
+
+    if len(internal_candidates) < MIN_INTERNAL_LINKS:
+        print(f"  ⚠️ 내부 링크 후보가 {MIN_INTERNAL_LINKS}건 미만입니다.")
+    else:
+        print(f"  ✅ 내부 링크 후보 충분 (최소 {MIN_INTERNAL_LINKS}건)")
+
+
 if __name__ == "__main__":
-    generate_ai_news_post()
+    parser = argparse.ArgumentParser(description="개발자 관점 AI 소식 다이제스트 생성")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="RSS 수집·후보·내부 링크만 확인하고 API 호출 없이 종료",
+    )
+    args = parser.parse_args()
+
+    if args.dry_run:
+        dry_run()
+    else:
+        generate_ai_news_post()

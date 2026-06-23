@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import os
 import re
+import shutil
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -43,6 +44,14 @@ INTERNAL_LINK_PATTERN = re.compile(r"\]\(/posts/[^)]+\)")
 REFERENCE_URL_PATTERN = re.compile(r"\[[^\]]+\]\((https?://[^)]+)\)")
 
 REQUIRED_FIELDS = ("layout", "title", "slug", "date", "categories", "tags", "description", "image")
+DEFAULT_THUMBNAIL_SOURCE = Path(__file__).resolve().parent.parent / "assets" / "og-default.webp"
+TOKEN_STOP_WORDS = frozenset({
+    "and", "for", "on", "the", "with", "from", "into", "that", "this", "how",
+    "are", "was", "were", "has", "have", "had", "not", "but", "can", "will",
+    "your", "our", "all", "any", "its", "new", "now", "get", "use", "using",
+    "full", "more", "also", "just", "one", "two", "way", "may", "via", "out",
+    "about", "what", "when", "where", "who", "why", "than", "then", "over",
+})
 
 
 def get_kst_now() -> datetime:
@@ -107,6 +116,11 @@ def get_recent_slugs(limit: int = 50) -> list[str]:
 
 def tokenize(text: str) -> list[str]:
     return [t for t in re.findall(r"[\w가-힣]+", text.casefold()) if len(t) >= 2]
+
+
+def content_tokens(text: str) -> list[str]:
+    """내부 링크 매칭용 토큰 (불용어 제외)."""
+    return [token for token in tokenize(text) if token not in TOKEN_STOP_WORDS]
 
 
 def count_token_frequency(titles: list[str], slugs: list[str]) -> dict[str, int]:
@@ -277,7 +291,7 @@ def get_internal_link_candidates(rss_titles: list[str], limit: int = 8) -> list[
     """RSS 제목·태그와 매칭되는 기존 심층 글 후보."""
     rss_tokens: set[str] = set()
     for title in rss_titles:
-        rss_tokens.update(tokenize(title))
+        rss_tokens.update(content_tokens(title))
 
     candidates: list[tuple[int, dict]] = []
     for path in list_post_files():
@@ -294,9 +308,9 @@ def get_internal_link_candidates(rss_titles: list[str], limit: int = 8) -> list[
         except (OSError, ValueError):
             continue
 
-        post_tokens = set(tokenize(title)) | set(tokenize(slug.replace("-", " ")))
+        post_tokens = set(content_tokens(title)) | set(content_tokens(slug.replace("-", " ")))
         for tag in tags:
-            post_tokens.update(tokenize(str(tag)))
+            post_tokens.update(content_tokens(str(tag)))
 
         overlap = rss_tokens & post_tokens
         if not overlap:
@@ -377,6 +391,26 @@ def save_thumbnail(slug: str, thumbnail: bytes, title: str) -> tuple[str, str]:
     return public_image_path, image_md
 
 
+def copy_default_thumbnail(slug: str, title: str) -> tuple[str, str]:
+    if not DEFAULT_THUMBNAIL_SOURCE.is_file():
+        raise FileNotFoundError(f"기본 썸네일이 없습니다: {DEFAULT_THUMBNAIL_SOURCE}")
+
+    upload_dir = f"uploads/{slug}"
+    os.makedirs(upload_dir, exist_ok=True)
+    image_path = f"{upload_dir}/thumbnail.webp"
+    shutil.copy2(DEFAULT_THUMBNAIL_SOURCE, image_path)
+    print(f"✅ 기본 썸네일 복사 완료: {image_path}")
+
+    public_image_path = f"/{image_path}"
+    image_md = (
+        f"![{title}]({public_image_path} \"{title}\")\n\n"
+        f"<p style=\"text-align:center;opacity:0.8;\">\n"
+        f"    <small>Default thumbnail</small>\n"
+        f"</p>"
+    )
+    return public_image_path, image_md
+
+
 def inject_hero_image(content: str, image_md: str) -> str:
     if "[HERO_IMAGE]" in content:
         return content.replace("[HERO_IMAGE]", image_md)
@@ -430,7 +464,13 @@ def save_ko_post(content: str, slug: str, today: datetime) -> str:
     return filename
 
 
-def generate_translations(client, source_content: str, source_path: Path) -> None:
+def generate_translations(
+    client,
+    source_content: str,
+    source_path: Path,
+    *,
+    fail_on_error: bool = False,
+) -> None:
     metadata = parse_front_matter(source_content)
     langs = translation_langs_for_metadata(metadata)
     for target_lang in langs:
@@ -439,6 +479,8 @@ def generate_translations(client, source_content: str, source_path: Path) -> Non
             output = _generate_translation(client, source_content, source_path, target_lang)
             print(f"✅ 번역 포스트 저장 완료 ({target_lang}): {output}")
         except Exception as exc:
+            if fail_on_error:
+                raise RuntimeError(f"{target_lang} 번역 실패: {exc}") from exc
             print(f"⚠️ {target_lang} 번역 실패: {exc}")
 
 
@@ -451,6 +493,7 @@ def publish_post(
     image_prompt: str,
     post_type: str,
     today: datetime | None = None,
+    require_translations: bool = False,
 ) -> str:
     today = today or get_kst_now()
     raw_title = str(metadata["title"])
@@ -460,16 +503,23 @@ def publish_post(
     content = inject_front_matter_field(content, "post_type", post_type)
     content = inject_front_matter_field(content, "permalink", permalink_for_lang(DEFAULT_LANG, slug))
 
+    public_image_path = ""
     image_md = ""
     try:
         print(f"🎨 '{raw_title}' 주제로 썸네일 생성 중...")
         thumbnail = generate_thumbnail(client, image_prompt)
         public_image_path, image_md = save_thumbnail(slug, thumbnail, raw_title)
-        content = inject_front_matter_field(content, "image", public_image_path)
     except Exception as exc:
-        print(f"⚠️ 이미지 생성 실패 (본문만 작성됨): {exc}")
+        print(f"⚠️ 이미지 생성 실패, 기본 썸네일로 대체합니다: {exc}")
+        public_image_path, image_md = copy_default_thumbnail(slug, raw_title)
 
+    content = inject_front_matter_field(content, "image", public_image_path)
     content = inject_hero_image(content, image_md)
     filename = save_ko_post(content, slug, today)
-    generate_translations(client, content, Path(filename))
+    generate_translations(
+        client,
+        content,
+        Path(filename),
+        fail_on_error=require_translations,
+    )
     return filename

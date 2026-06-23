@@ -74,3 +74,4 @@ HN_ALGOLIA_URL = (
 )
 
 RSS_FETCH_USER_AGENT = "jwjp-blog-ai-news-bot/1.0 (+https://blog.jiwon.io)"
+RSS_FETCH_TIMEOUT = 15
