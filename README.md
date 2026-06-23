@@ -87,6 +87,16 @@ python scripts/backfill_translations.py --dry-run --langs ja
 python scripts/backfill_translations.py --slug my-post --langs en,ja,zh
 ```
 
+### 수동 번역 백필 (Actions)
+
+Actions 탭 → **Backfill Post Translations** → Run workflow
+
+| 입력 | 설명 |
+|------|------|
+| `langs` | `en,ja,zh` 등 (쉼표 구분) |
+| `slug` | 특정 포스트만 처리 (비우면 전체) |
+| `prepare_only` | 메타데이터 정규화만 수행 |
+
 ### 수동 AI 글 생성 (Actions)
 
 Actions 탭 → **Bi-weekly AI Post Generation** → Run workflow
