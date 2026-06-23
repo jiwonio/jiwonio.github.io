@@ -1,29 +1,60 @@
 (function () {
+  var copiedClass = "post-share__btn--copied-state";
+
   function getToast(button) {
     return button.querySelector(".post-share__toast");
   }
 
-  function showCopied(button) {
+  function isCopied(button) {
+    return button.classList.contains(copiedClass);
+  }
+
+  function showToast(button, text) {
     var toast = getToast(button);
+    if (!toast) {
+      return;
+    }
+    toast.textContent = text;
+    toast.classList.add("post-share__toast--visible");
+  }
+
+  function hideToast(button) {
+    var toast = getToast(button);
+    if (!toast) {
+      return;
+    }
+    toast.textContent = "";
+    toast.classList.remove("post-share__toast--visible");
+  }
+
+  function showHoverToast(button) {
+    if (isCopied(button)) {
+      return;
+    }
+    showToast(button, button.getAttribute("data-share-toast") || "Copy");
+  }
+
+  function showCopied(button) {
     var copiedLabel = button.getAttribute("data-share-toast-copied") || "Copied!";
+    var resetMs = 2000;
 
     button.classList.add("post-share__btn--copied");
+    button.classList.add(copiedClass);
     button.setAttribute("aria-label", button.getAttribute("data-share-copied") || copiedLabel);
+    showToast(button, copiedLabel);
 
-    if (toast) {
-      toast.textContent = copiedLabel;
-      toast.classList.add("post-share__toast--visible");
-    }
-
-    window.setTimeout(function () {
+    window.clearTimeout(button._shareCopiedTimer);
+    button._shareCopiedTimer = window.setTimeout(function () {
       button.classList.remove("post-share__btn--copied");
+      button.classList.remove(copiedClass);
       button.setAttribute("aria-label", button.getAttribute("data-share-label") || "");
 
-      if (toast) {
-        toast.textContent = button.getAttribute("data-share-toast") || "Copy";
-        toast.classList.remove("post-share__toast--visible");
+      if (button.matches(":hover") || button.matches(":focus-visible")) {
+        showHoverToast(button);
+      } else {
+        hideToast(button);
       }
-    }, 2000);
+    }, resetMs);
   }
 
   function copyUrl(button) {
@@ -67,6 +98,26 @@
     }
 
     buttons.forEach(function (button) {
+      button.addEventListener("mouseenter", function () {
+        showHoverToast(button);
+      });
+
+      button.addEventListener("mouseleave", function () {
+        if (!isCopied(button)) {
+          hideToast(button);
+        }
+      });
+
+      button.addEventListener("focus", function () {
+        showHoverToast(button);
+      });
+
+      button.addEventListener("blur", function () {
+        if (!isCopied(button)) {
+          hideToast(button);
+        }
+      });
+
       button.addEventListener("click", function () {
         copyUrl(button);
       });
