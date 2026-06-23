@@ -36,12 +36,16 @@
         </li>
         <li>
             <button type="button"
-                    class="post-share__btn"
+                    class="post-share__btn post-share__btn--copy"
                     data-share-copy
                     data-share-url="{{ share_url }}"
+                    data-share-label="{{ share.copy }}"
                     data-share-copied="{{ share.copied }}"
+                    data-share-toast="{{ share.copy_toast }}"
+                    data-share-toast-copied="{{ share.copied_toast }}"
                     aria-label="{{ share.copy }}">
                 <i class="fa fa-link" aria-hidden="true"></i>
+                <span class="post-share__toast" aria-hidden="true">{{ share.copy_toast }}</span>
             </button>
         </li>
     </ul>

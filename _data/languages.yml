@@ -26,6 +26,8 @@ ko:
     linkedin: "LinkedIn에 공유"
     copy: "링크 복사"
     copied: "링크가 복사되었습니다"
+    copy_toast: "복사"
+    copied_toast: "복사됨!"
 
 en:
   label: "English"
@@ -54,6 +56,8 @@ en:
     linkedin: "Share on LinkedIn"
     copy: "Copy link"
     copied: "Link copied"
+    copy_toast: "Copy"
+    copied_toast: "Copied!"
 
 ja:
   label: "日本語"
@@ -82,6 +86,8 @@ ja:
     linkedin: "LinkedInで共有"
     copy: "リンクをコピー"
     copied: "リンクをコピーしました"
+    copy_toast: "コピー"
+    copied_toast: "コピー完了!"
 
 zh:
   label: "中文"
@@ -110,3 +116,5 @@ zh:
     linkedin: "分享到 LinkedIn"
     copy: "复制链接"
     copied: "链接已复制"
+    copy_toast: "复制"
+    copied_toast: "已复制!"

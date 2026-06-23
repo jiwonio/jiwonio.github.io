@@ -54,6 +54,11 @@ MIN_INTERNAL_LINKS = 2
 MIN_REFERENCE_URLS = 5
 DEVELOPER_PERSPECTIVE_LABEL = "**개발자 관점:**"
 SUMMARY_SECTIONS = ("이번 주 한 줄 정리",)
+BANNED_INTRO_PHRASES = (
+    "시니어 풀스택 개발자이자 기술 블로거",
+    "안녕하세요, 시니어",
+)
+BANNED_CLI_NOTATIONS = ("gh?", "git?")
 
 
 def normalize_title(title: str) -> str:
@@ -287,6 +292,18 @@ def validate_ai_news_content(content: str, past_urls: set[str]) -> tuple[dict, s
     if overlap:
         raise ValueError(f"이미 다룬 참고문헌 URL이 포함되어 있습니다: {list(overlap)[:3]}")
 
+    excerpt = content.split("<!--more-->", 1)[0]
+    for phrase in BANNED_INTRO_PHRASES:
+        if phrase in excerpt:
+            raise ValueError(f"도입부에 금지된 자기소개 표현이 있습니다: {phrase}")
+
+    for notation in BANNED_CLI_NOTATIONS:
+        if notation in content:
+            raise ValueError(
+                f"검증되지 않은 CLI 표기({notation})가 있습니다. "
+                "슬래시 명령어는 /explain 형식이거나 한글로 설명하세요."
+            )
+
     return metadata, slug
 
 
@@ -301,14 +318,21 @@ def build_generation_prompt(
     past_urls_str = "\n".join(f"- {url}" for url in sorted(past_urls)[:30]) or "- 없음"
 
     return f"""
-당신은 시니어 풀스택 개발자이자 기술 블로거입니다.
 아래 RSS 수집 결과를 바탕으로 **개발자 관점 AI 소식 다이제스트**를 작성하세요.
+이 블로그 주인이 직접 쓰는 1인칭 기술 글입니다.
+
+**[글쓰기 톤]**
+- 1인칭 시점: "이번 주에는 ~가 눈에 띄었어요", "직접 써보니 ~할 것 같아요"
+- "시니어 풀스택 개발자이자 기술 블로거입니다" 같은 자기소개·직함 나열 금지
+- 문장 끝을 전부 "~다/~습니다"로 통일하지 말고, 해요체("~해요", "~이에요", "~할 거예요")를 자연스럽게 섞기
+- 도입부 2~3문단: 이번 주 소식 중 무엇이 왜 중요한지 개인적인 관점으로 시작
 
 **[금지]**
 - 헤드라인만 나열하는 뉴스 큐레이션
 - "요약:" 한 줄로 끝나는 항목 (각 항목 최소 150자 이상)
 - 이미 다룬 URL 재사용 (아래 목록)
 - 일반 뉴스 사이트 톤, 투자·정책 중심 나열
+- RSS 원문에 없는 CLI 표기 임의 생성 (예: gh?, git?) — 슬래시 명령어는 /explain, /fix 형식이거나 한글로 설명
 
 **[필수]**
 - 5~7개 소식 (H2 섹션, "이번 주 한 줄 정리" 제외)

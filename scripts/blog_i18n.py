@@ -193,6 +193,7 @@ Rules:
 - Set lang: {target_lang}
 - Set translation_key: {slug}
 - Translate title, description, and all prose. Keep code blocks unchanged.
+- Preserve a natural first-person blog voice. Avoid stiff self-introductions like "I am a senior full-stack developer and tech blogger."
 - Preserve marker lines exactly as standalone lines: <!--more-->, -----
 - Do not output [HERO_IMAGE]; keep hero images that already exist in the body.
 - Translate the references heading appropriately for {label}, but keep link URLs unchanged.

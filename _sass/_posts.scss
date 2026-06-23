@@ -86,9 +86,37 @@
       outline-offset: 2px;
     }
 
+    &--copy {
+      position: relative;
+      overflow: visible;
+    }
+
     &--copied {
       color: var(--color-link);
       border-color: var(--color-link);
+    }
+  }
+
+  &__toast {
+    position: absolute;
+    bottom: calc(100% + .45rem);
+    left: 50%;
+    transform: translateX(-50%) translateY(.25rem);
+    padding: .2rem .55rem;
+    border-radius: 4px;
+    background: var(--color-masthead);
+    color: var(--color-background);
+    font-size: .72rem;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+
+    &--visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
   }
 }

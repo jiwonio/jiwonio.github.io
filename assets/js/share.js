@@ -1,14 +1,28 @@
 (function () {
+  function getToast(button) {
+    return button.querySelector(".post-share__toast");
+  }
+
   function showCopied(button) {
+    var toast = getToast(button);
+    var copiedLabel = button.getAttribute("data-share-toast-copied") || "Copied!";
+
     button.classList.add("post-share__btn--copied");
-    var copiedLabel = button.getAttribute("data-share-copied");
-    if (copiedLabel) {
-      button.setAttribute("aria-label", copiedLabel);
+    button.setAttribute("aria-label", button.getAttribute("data-share-copied") || copiedLabel);
+
+    if (toast) {
+      toast.textContent = copiedLabel;
+      toast.classList.add("post-share__toast--visible");
     }
 
     window.setTimeout(function () {
       button.classList.remove("post-share__btn--copied");
       button.setAttribute("aria-label", button.getAttribute("data-share-label") || "");
+
+      if (toast) {
+        toast.textContent = button.getAttribute("data-share-toast") || "Copy";
+        toast.classList.remove("post-share__toast--visible");
+      }
     }, 2000);
   }
 
