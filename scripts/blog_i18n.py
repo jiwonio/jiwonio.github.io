@@ -266,7 +266,7 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
-TRANSLATION_MODELS = ("gemini-2.5-pro", "gemini-2.0-flash")
+TRANSLATION_MODELS = ("gemini-2.5-pro", "gemini-2.5-flash")
 
 
 def generate_translation(
