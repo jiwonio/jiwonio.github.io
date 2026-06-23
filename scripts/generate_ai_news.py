@@ -459,9 +459,7 @@ def dry_run(*, strict: bool = False) -> int:
     print(f"  예상 slug: {today_slug}")
 
     if today_slug in get_existing_ko_slugs():
-        print(f"  ⚠️ 오늘 slug가 이미 존재합니다: {today_slug}")
-        if strict:
-            issues.append(f"slug already exists: {today_slug}")
+        print(f"  ⚠️ 오늘 slug가 이미 존재합니다: {today_slug} (게시 완료 상태, strict 실패 조건 아님)")
     else:
         print("  ✅ slug 사용 가능")
 
@@ -513,7 +511,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="dry-run 시 후보·링크 부족하면 exit code 1 반환",
+        help="dry-run 시 RSS 후보·내부 링크 부족하면 exit code 1 반환 (slug 중복은 제외)",
     )
     args = parser.parse_args()
 
