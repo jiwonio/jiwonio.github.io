@@ -103,6 +103,7 @@ jobs:
           fi
 
           git commit -m "Backfill post translations (${{ inputs.langs }})"
+          git pull --rebase origin gh-pages
           git push origin gh-pages
 
       - name: Validate posts
