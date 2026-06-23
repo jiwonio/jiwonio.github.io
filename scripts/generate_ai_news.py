@@ -14,7 +14,7 @@ import feedparser
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from blog_i18n import get_gemini_client
+from blog_i18n import FRONT_MATTER_PATTERN, get_gemini_client
 from feeds_config import (
     AI_FILTER_FEEDS,
     ALL_FEEDS,
@@ -59,6 +59,9 @@ BANNED_INTRO_PHRASES = (
     "안녕하세요, 시니어",
 )
 BANNED_CLI_NOTATIONS = ("gh?", "git?")
+YO_ENDING_PATTERN = re.compile(
+    r"(?:해요|했어요|이에요|예요|거예요|할게요|볼게요|보여요|같아요|있어요|없어요|되죠|있죠|하세요|줄게요|테니|테고요|었고요|였어요|일까요)"
+)
 
 
 def normalize_title(title: str) -> str:
@@ -304,6 +307,15 @@ def validate_ai_news_content(content: str, past_urls: set[str]) -> tuple[dict, s
                 "슬래시 명령어는 /explain 형식이거나 한글로 설명하세요."
             )
 
+    fm_match = FRONT_MATTER_PATTERN.match(content)
+    prose = content[fm_match.end() :] if fm_match else content
+    yo_matches = YO_ENDING_PATTERN.findall(prose.split("### 참고문헌", 1)[0])
+    if yo_matches:
+        raise ValueError(
+            "본문에 '~요' 어미가 포함되어 있습니다. '~다' 체(~한다, ~이다, ~된다)로 통일하세요: "
+            + ", ".join(sorted(set(yo_matches))[:5])
+        )
+
     return metadata, slug
 
 
@@ -322,12 +334,9 @@ def build_generation_prompt(
 이 블로그 주인이 직접 쓰는 1인칭 기술 글입니다.
 
 **[글쓰기 톤]**
-- 1인칭 시점: "이번 주에는 ~가 눈에 띄었어요", "직접 써보니 ~할 것 같아요"
+- 1인칭 시점의 기술 블로그 글 (~했다, ~인 것 같다, ~해 볼 것이다)
 - "시니어 풀스택 개발자이자 기술 블로거입니다" 같은 자기소개·직함 나열 금지
-- 문장 어미는 해요체와 합니다체를 **문단마다 자연스럽게 섞기** (한 어미로 끝까지 통일 금지)
-  - 해요체(~해요, ~이에요, ~거예요, ~죠): 개인 소감, 체감, 독자에게 말 걸기, 제안
-  - 합니다체(~습니다, ~입니다, ~됩니다): 사실·기능·배경 설명, 요약 첫 문장
-  - 한 섹션 안에서도 2~3문장마다 어미를 바꿔 리듬을 만들 것
+- 문장 끝은 **'~다' 체로 통일** (~한다, ~이다, ~된다, ~다). '~요', '~해요', '~습니다' 어미 금지
 - 도입부 2~3문단: 이번 주 소식 중 무엇이 왜 중요한지 개인적인 관점으로 시작
 
 **[금지]**
