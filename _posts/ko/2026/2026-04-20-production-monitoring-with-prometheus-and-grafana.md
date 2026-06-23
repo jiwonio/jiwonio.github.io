@@ -18,6 +18,7 @@ description: 서버 엔지니어와 개발자를 위한 Prometheus와 Grafana를
 image: /uploads/production-monitoring-with-prometheus-and-grafana/thumbnail.webp
 lang: ko
 translation_key: production-monitoring-with-prometheus-and-grafana
+post_type: deep-dive
 ---
 성공적인 웹 서비스 운영의 핵심은 단순히 기능을 구현하는 것을 넘어, 서비스가 '살아있는' 동안 어떤 상태인지 지속적으로 관찰하고 문제를 예측하는 데 있습니다. 사용자가 서비스 장애를 겪기 전에 잠재적인 병목 현상을 파악하고, 리소스 사용량의 추이를 분석하여 인프라를 효율적으로 확장하는 것은 모든 숙련된 엔지니어의 필수 역량입니다. 그러나 분산된 마이크로서비스 아키텍처 환경에서 수많은 서버와 애플리케이션의 상태를 파편적으로 관리하는 것은 거의 불가능에 가깝습니다.
 

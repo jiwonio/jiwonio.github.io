@@ -11,7 +11,7 @@ import yaml
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 SLUG_FROM_FILE = re.compile(r"\d{4}-\d{2}-\d{2}-(.+)\.md$")
 DATE_FROM_FILE = re.compile(r"(\d{4}-\d{2}-\d{2})")
-LANG_PATH = re.compile(r"_posts/(en|ja|zh)/")
+LANG_PATH = re.compile(r"_posts/(en|ja|zh|ko)/")
 
 SITE_ROOT = Path(__file__).resolve().parent.parent
 POSTS_DIR = SITE_ROOT / "_posts"
@@ -168,7 +168,7 @@ def is_primarily_english(content: str) -> bool:
 
 
 def prepare_ko_post_content(path: Path) -> str:
-    """레거시 포스트에 lang, translation_key, slug, description을 보강합니다."""
+    """레거시 포스트에 lang, translation_key, slug, description, post_type을 보강합니다."""
     content = path.read_text(encoding="utf-8")
     metadata = parse_front_matter(content)
     slug = resolve_slug(path, metadata)
@@ -176,6 +176,8 @@ def prepare_ko_post_content(path: Path) -> str:
     metadata["lang"] = DEFAULT_LANG
     metadata["translation_key"] = metadata.get("translation_key") or slug
     metadata["slug"] = slug
+    if not metadata.get("post_type"):
+        metadata["post_type"] = "deep-dive"
     if not metadata.get("description") and metadata.get("meta"):
         metadata["description"] = str(metadata["meta"]).strip()
 

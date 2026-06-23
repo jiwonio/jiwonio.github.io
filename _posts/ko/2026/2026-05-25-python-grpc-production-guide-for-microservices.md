@@ -19,6 +19,7 @@ description: 현대적인 마이크로서비스 아키텍처에서 REST API의 �
 image: /uploads/python-grpc-production-guide-for-microservices/thumbnail.webp
 lang: ko
 translation_key: python-grpc-production-guide-for-microservices
+post_type: deep-dive
 ---
 현대적인 클라우드 네이티브 환경에서 수많은 **마이크로서비스(Microservices)**가 서로 통신하며 복잡한 비즈니스 로직을 수행합니다. 이때 가장 보편적으로 사용되는 통신 방식은 단연 REST API입니다. 하지만 서비스 간 내부 통신(East-West traffic)이 폭발적으로 증가하는 환경에서, JSON 기반의 텍스트 프로토콜인 REST는 때로 성능 병목의 원인이 되기도 합니다. 메시지 직렬화/역직렬화 오버헤드, 명확한 API 계약의 부재, 스트리밍 기능의 한계 등은 고성능과 낮은 지연 시간(latency)이 요구되는 시스템에서 해결해야 할 과제입니다.
 

@@ -19,6 +19,7 @@ description: Terraform을 사용하여 확장 가능하고 재사용 가능한 �
 image: /uploads/building-production-ready-aws-vpc-with-terraform-modules/thumbnail.webp
 lang: ko
 translation_key: building-production-ready-aws-vpc-with-terraform-modules
+post_type: deep-dive
 ---
 클라우드 인프라를 운영하다 보면 '반복'과의 싸움을 피할 수 없습니다. 개발, 스테이징, 프로덕션 등 여러 환경에 걸쳐 유사하지만 미묘하게 다른 네트워크 환경을 구축해야 하는 상황은 모든 서버 엔지니어의 숙명과도 같습니다. AWS 콘솔에서 수작업으로 VPC, 서브넷, 라우팅 테이블을 클릭하며 구성하는 방식은 초기에는 직관적일 수 있지만, 규모가 커질수록 실수의 가능성이 기하급수적으로 증가하며, 변경 이력을 추적하거나 동일한 환경을 재현하는 것은 거의 불가능에 가깝습니다.
 

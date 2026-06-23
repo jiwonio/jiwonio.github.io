@@ -20,6 +20,7 @@ description: LLM 애플리케이션의 '깜깜이' 운영에 지치셨나요? �
 image: /uploads/llm-application-monitoring-observability-with-langsmith/thumbnail.webp
 lang: ko
 translation_key: llm-application-monitoring-observability-with-langsmith
+post_type: deep-dive
 ---
 AI 기반 애플리케이션, 특히 LLM(대규모 언어 모델)을 활용하는 시스템은 복잡한 내부 동작으로 인해 종종 '블랙박스'처럼 느껴지곤 합니다. 사용자의 프롬프트가 입력되고 그럴듯한 결과가 출력되지만, 그 과정에서 어떤 일이 벌어지는지, 비용은 얼마나 발생하는지, 어디서 병목이 생기는지 파악하기는 매우 어렵습니다. 기존의 서버 모니터링 방식으로는 CPU, 메모리 사용량 정도만 알 수 있을 뿐, LLM 애플리케이션의 핵심인 '품질', '비용', '지연 시간'을 추적할 수 없습니다.
 

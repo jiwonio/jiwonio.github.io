@@ -29,6 +29,7 @@ from blog_i18n import (
     parse_front_matter,
     prepare_ko_post_content,
     resolve_slug,
+    translation_langs_for_metadata,
     translation_output_path,
 )
 
@@ -44,11 +45,19 @@ def list_ko_posts() -> list[Path]:
     ]
 
 
-def missing_translations(source_path: Path, langs: tuple[str, ...]) -> list[str]:
+def missing_translations(
+    source_path: Path,
+    langs: tuple[str, ...],
+    *,
+    metadata: dict | None = None,
+) -> list[str]:
+    if metadata is None:
+        metadata = parse_front_matter(source_path.read_text(encoding="utf-8"))
+    allowed = set(translation_langs_for_metadata(metadata))
     return [
         lang
         for lang in langs
-        if not translation_output_path(source_path, lang).exists()
+        if lang in allowed and not translation_output_path(source_path, lang).exists()
     ]
 
 
@@ -80,8 +89,10 @@ def backfill(
     skipped = 0
 
     for index, source_path in enumerate(posts, start=1):
-        slug = resolve_slug(source_path, parse_front_matter(source_path.read_text(encoding="utf-8")))
-        pending_langs = missing_translations(source_path, langs)
+        source_content = source_path.read_text(encoding="utf-8")
+        metadata = parse_front_matter(source_content)
+        slug = resolve_slug(source_path, metadata)
+        pending_langs = missing_translations(source_path, langs, metadata=metadata)
 
         if not pending_langs:
             print(f"[{index}/{len(posts)}] skip (complete): {slug}")
@@ -95,8 +106,6 @@ def backfill(
                 out = translation_output_path(source_path, lang)
                 print(f"  would create {out.as_posix()}")
             continue
-
-        source_content = source_path.read_text(encoding="utf-8")
 
         for lang in pending_langs:
             print(f"  🌐 {LANG_LABELS[lang]} ({lang})...")

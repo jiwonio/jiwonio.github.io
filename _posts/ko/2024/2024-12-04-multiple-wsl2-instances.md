@@ -13,6 +13,7 @@ slug: multiple-wsl2-instances
 description: Learn how to set up and manage multiple development environments using
   WSL2 on Windows 11. This guide covers installation, configuration, and tips for
   optimizing your workflow.
+post_type: deep-dive
 ---
 In today's fast-paced development world, efficiently managing **multiple development environments** is essential. 
 Windows Subsystem for Linux 2 (**WSL2**) provides a powerful and flexible way to create and manage isolated environments directly on your **Windows 11** machine.

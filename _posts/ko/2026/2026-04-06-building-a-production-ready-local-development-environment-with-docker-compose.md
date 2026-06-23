@@ -17,6 +17,7 @@ slug: building-a-production-ready-local-development-environment-with-docker-comp
 description: Docker와 Docker Compose를 활용하여 '내 PC에서만 동작하는' 문제를 해결하는 방법을 알아봅니다. Python
   Django, PostgreSQL, Redis를 포함하는 다중 컨테이너 개발 환경을 구축하여 프로덕션과 유사한 환경을 구성하는 실용적인 가이드를
   제공합니다.
+post_type: deep-dive
 ---
 "제 컴퓨터에서는 잘 되는데요?" 개발자라면 한 번쯤 겪어봤을 혹은 내뱉어봤을 말일 겁니다. 개발 환경과 실제 서비스가 운영되는 프로덕션 환경의 미세한 차이는 예상치 못한 버그와 배포 실패의 주된 원인이 됩니다. 라이브러리 버전, 운영체제, 시스템 설정 등 수많은 변수가 존재하기 때문입니다. 이러한 문제를 해결하기 위해 등장한 기술이 바로 **Docker**입니다.
 

@@ -15,6 +15,7 @@ description: Gemini 1.5 Pro의 Tool Use(함수 호출) 기능을 실무에 적�
 image: /uploads/gemini-1-5-pro-tool-use-connecting-llms/thumbnail.webp
 lang: ko
 translation_key: gemini-1-5-pro-tool-use-connecting-llms
+post_type: deep-dive
 ---
 대규모 언어 모델(LLM)은 방대한 텍스트 데이터를 기반으로 놀라운 언어 능력을 보여줍니다. 하지만 LLM은 그 자체로 외부 세계와 단절되어 있습니다. 실시간 주식 정보를 가져오거나, 데이터베이스에 쿼리하거나, 이메일을 보내는 등의 작업은 직접 수행할 수 없습니다. 이 한계를 극복하는 핵심 기술이 바로 'Tool Use', 즉 함수 호출(Function Calling)입니다.
 

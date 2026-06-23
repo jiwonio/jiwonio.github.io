@@ -12,7 +12,7 @@ from blog_i18n import resolve_effective_date
 
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 REQUIRED_FIELDS = ("layout", "title", "tags", "image")
-LANG_PATH = re.compile(r"(?:^|/)_posts/(en|ja|zh)(?:/|$)")
+LANG_PATH = re.compile(r"(?:^|/)_posts/(en|ja|zh|ko)(?:/|$)")
 DEFAULT_LANG = "ko"
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ]")

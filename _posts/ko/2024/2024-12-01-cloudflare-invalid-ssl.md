@@ -13,6 +13,7 @@ slug: cloudflare-invalid-ssl
 description: Learn why the Cloudflare Full (strict) SSL mode fails while Full mode
   works, especially when using GitHub Pages as the origin server. Understand common
   SSL issues and how to fix them for a secure and seamless connection.
+post_type: deep-dive
 ---
 The reason why the **Full (strict)** SSL mode in **Cloudflare** doesn't work while the Full mode does is typically due to issues with the SSL certificate provided by the origin server, 
 in this case, **GitHub Pages**. The Full (strict) mode requires that the SSL certificate on the origin server is not only valid but also trusted by a recognized Certificate Authority (CA), 

@@ -19,6 +19,7 @@ description: 프로덕션 환경에서 API 키, DB 자격 증명과 같은 민�
 image: /uploads/aws-secrets-manager-ecs-integration-guide/thumbnail.webp
 lang: ko
 translation_key: aws-secrets-manager-ecs-integration-guide
+post_type: deep-dive
 ---
 프로덕션 환경에서 컨테이너 기반의 애플리케이션을 운영할 때, 가장 까다로운 문제 중 하나는 바로 **비밀(Secret) 관리**입니다. 데이터베이스 자격 증명, 외부 API 키, 인증서 등 민감한 정보를 코드에 하드코딩하거나, Git 리포지토리에 커밋하거나, 심지어 일반 환경 변수로 주입하는 것은 심각한 보안 취약점으로 이어질 수 있습니다. 이러한 방식은 비밀 정보가 유출될 위험을 높이며, 비밀 값 변경 시 애플리케이션의 재배포가 필요해 관리 복잡성을 증가시킵니다.
 
