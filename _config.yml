@@ -76,3 +76,5 @@ exclude:
   - .github/
   - .idea/
   - .claude/
+  - terminals/
+  - agent-tools/
