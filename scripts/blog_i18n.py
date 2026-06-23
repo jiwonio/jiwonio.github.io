@@ -266,7 +266,13 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
-TRANSLATION_MODELS = ("gemini-2.5-pro", "gemini-2.5-flash")
+TRANSLATION_MODELS = (
+    "gemini-2.5-pro",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
+)
 
 
 def generate_translation(
@@ -275,7 +281,7 @@ def generate_translation(
     source_path: Path,
     target_lang: str,
     *,
-    max_retries: int = 3,
+    max_retries: int = 5,
 ) -> Path:
     slug = resolve_slug(source_path, parse_front_matter(source_content))
 
@@ -301,6 +307,6 @@ def generate_translation(
             if attempt < max_retries:
                 import time
 
-                time.sleep(15 * attempt)
+                time.sleep(20 * attempt)
 
     raise RuntimeError(f"{target_lang} 번역 실패 ({source_path.name}): {last_error}") from last_error
