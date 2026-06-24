@@ -2,7 +2,9 @@
   hreflang alternate 링크
 
   - 포스트: translation_key 로 묶인 번역본
-  - 그 외: 같은 경로의 언어별 홈/아카이브
+  - page_key: search, archive, privacy-policy
+  - layout.archives: 연도/태그 아카이브
+  - home: 언어별 홈·페이지네이션
 {%- endcomment -%}
 
 {%- assign current_lang = page.lang | default: site.default_lang | default: 'ko' -%}
@@ -19,31 +21,15 @@
     {%- if default_post -%}
 <link rel="alternate" hreflang="x-default" href="{{ default_post.url | absolute_url }}">
     {%- endif -%}
-{%- elsif page.layout == 'home' -%}
+{%- else -%}
     {%- for lang in site.lang_codes -%}
-        {%- if lang == site.default_lang -%}
-<link rel="alternate" hreflang="{{ lang }}" href="{{ '/' | absolute_url }}">
-        {%- else -%}
-<link rel="alternate" hreflang="{{ lang }}" href="{{ '/' | append: lang | append: '/' | absolute_url }}">
+        {%- include i18n-page-url.html lang=lang -%}
+        {%- if i18n_page_url -%}
+<link rel="alternate" hreflang="{{ lang }}" href="{{ i18n_page_url | absolute_url }}">
         {%- endif -%}
     {%- endfor -%}
-<link rel="alternate" hreflang="x-default" href="{{ '/' | absolute_url }}">
-{%- elsif page.page_key == 'search' -%}
-    {%- for lang in site.lang_codes -%}
-        {%- if lang == site.default_lang -%}
-<link rel="alternate" hreflang="{{ lang }}" href="{{ '/search/' | absolute_url }}">
-        {%- else -%}
-<link rel="alternate" hreflang="{{ lang }}" href="{{ '/' | append: lang | append: '/search/' | absolute_url }}">
-        {%- endif -%}
-    {%- endfor -%}
-<link rel="alternate" hreflang="x-default" href="{{ '/search/' | absolute_url }}">
-{%- elsif page.page_key == 'privacy-policy' -%}
-    {%- for lang in site.lang_codes -%}
-        {%- if lang == site.default_lang -%}
-<link rel="alternate" hreflang="{{ lang }}" href="{{ '/privacy-policy/' | absolute_url }}">
-        {%- else -%}
-<link rel="alternate" hreflang="{{ lang }}" href="{{ '/' | append: lang | append: '/privacy-policy/' | absolute_url }}">
-        {%- endif -%}
-    {%- endfor -%}
-<link rel="alternate" hreflang="x-default" href="{{ '/privacy-policy/' | absolute_url }}">
+    {%- include i18n-page-url.html lang=site.default_lang -%}
+    {%- if i18n_page_url -%}
+<link rel="alternate" hreflang="x-default" href="{{ i18n_page_url | absolute_url }}">
+    {%- endif -%}
 {%- endif -%}

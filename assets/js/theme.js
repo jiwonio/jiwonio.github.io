@@ -2,7 +2,6 @@
   var STORAGE_KEY = "theme-preference";
   var CYCLE = ["system", "light", "dark"];
 
-  // i18n: replace via window.SITE_I18N.theme when multilingual support ships
   var LABELS = {
     system: "시스템 설정",
     light: "라이트 모드",
@@ -39,6 +38,10 @@
     return LABELS;
   }
 
+  function clickToChangeSuffix(labels) {
+    return labels.click_to_change ? " (" + labels.click_to_change + ")" : "";
+  }
+
   function updateToggle(button, preference) {
     var labels = resolveLabels();
     var icon = button.querySelector("i");
@@ -46,7 +49,7 @@
       icon.className = "fa " + ICONS[preference];
     }
     button.dataset.themePreference = preference;
-    button.setAttribute("aria-label", labels[preference] + " (클릭하여 변경)");
+    button.setAttribute("aria-label", labels[preference] + clickToChangeSuffix(labels));
     button.setAttribute("title", labels[preference]);
   }
 

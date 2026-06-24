@@ -33,8 +33,12 @@ _posts/
 
 | `post_type` | 설명 | 자동 번역 대상 |
 |-------------|------|----------------|
-| `deep-dive` | 심층 기술 글 (기본값) | en, ja, zh |
-| `ai-news` | 개발자 관점 AI 뉴스 다이제스트 | en만 |
+| `deep-dive` | 심층 기술 글 (기본값) | en, ja, zh (3개) |
+| `ai-news` | 개발자 관점 AI 뉴스 다이제스트 | en만 (1개) |
+
+`deep-dive`는 en·ja·zh 3개 언어로 번역되며, `ai-news`는 빠른 발행을 위해 en만 생성합니다.  
+ja/zh는 deep-dive 전용이므로 ai-news 포스트에는 ja/zh 번역이 없는 것이 정상입니다.  
+`validate_posts.py --audit-deep-dive`는 deep-dive 그룹의 en/ja/zh 누락만 주간 점검합니다.
 
 ### URL 규칙
 
@@ -46,11 +50,13 @@ _posts/
 
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
-| `jekyll.yml` | push → `gh-pages` | test → validate → build → htmlproofer → Pagefind → 참고 URL 검증 → 배포 |
+| `jekyll.yml` | push/PR → `gh-pages` | test → validate → build → htmlproofer → Pagefind → 참고 URL 검증 → 배포 (PR은 빌드만) |
 | `scheduled_ai_post.yml` | 월·목 00:00 | 월=deep-dive, 목=ai-news 생성 후 PR(기본 자동 머지) |
-| `ai_news_health_check.yml` | 수 06:00 | ai-news RSS `--dry-run --strict` 사전 점검 |
-| `deep_dive_health_check.yml` | 일 06:00 | deep-dive `--dry-run` 사전 점검 |
-| `thumbnail_check.yml` | 화 07:00 | 누락 썸네일 `--dry-run` 점검 |
+| `ai_news_health_check.yml` | 수 06:00 | 단위 테스트 + ai-news RSS `--dry-run --strict` 사전 점검 |
+| `deep_dive_health_check.yml` | 일 06:00 | 단위 테스트 + deep-dive `--dry-run` 사전 점검 |
+| `thumbnail_check.yml` | 화 07:00 | 누락 썸네일 `--dry-run` 점검·자동 생성 |
+| `translation_audit.yml` | 일 05:00 | deep-dive en/ja/zh 번역 완전성 주간 감사 |
+| `schedule_watchdog.yml` | 매일 08:00 | `scheduled_ai_post` 최근 8일 내 성공 실행 여부 감시 |
 | `backfill_translations.yml` | 수동 | 누락 번역 백필 (`workflow_dispatch`) |
 
 ### LLM 라우팅
@@ -73,8 +79,12 @@ _posts/
 | `ANTHROPIC_API_KEY` | Claude API (ai-news·폴백·번역) |
 | `OPENAI_API_KEY` | OpenAI API (ai-news·폴백·번역) |
 | `XAI_API_KEY` | Grok/xAI API (ai-news·폴백·번역·이미지) |
-| `MY_PAT` | Actions에서 커밋·PR 생성·푸시용 PAT |
-| `SLACK_WEBHOOK_URL` | (선택) 워크플로 실패·LLM API 호출 Slack 알림 |
+| `MY_PAT` | Actions에서 커밋·PR 생성·푸시용 PAT (`repo` 권한, 만료 전 주기적 교체 권장) |
+| `SLACK_WEBHOOK_URL` | 워크플로 실패·LLM API 호출 Slack 알림 (**운영 모니터링에 권장**) |
+
+`MY_PAT`는 GitHub PAT 만료·권한 변경 시 `scheduled_ai_post`, `backfill_translations` 등이 커밋·푸시에 실패합니다.  
+만료 30일 전 교체하고, 교체 후 Actions에서 수동 `workflow_dispatch`로 한 번 실행해 검증하세요.  
+`SLACK_WEBHOOK_URL`을 설정하면 배포 실패, 헬스체크 실패, AI 글 생성 실패, 번역 감사 실패, 스케줄 워치독 알림을 Slack으로 받을 수 있습니다.
 
 ## 로컬 개발
 
@@ -96,6 +106,9 @@ export GEMINI_API_KEY=...   # Windows: $env:GEMINI_API_KEY="..."
 
 # 포스트 검증 (배포와 동일)
 python scripts/validate_posts.py
+
+# deep-dive en/ja/zh 번역 완전성만 점검
+python scripts/validate_posts.py --audit-deep-dive
 
 # 참고문헌 URL HEAD 검증 (네트워크 필요)
 python scripts/validate_posts.py --check-ref-urls

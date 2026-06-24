@@ -22,6 +22,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
 
+      - name: Run Python unit tests
+        run: python -m unittest discover -s scripts/tests -v
+
       - name: Run RSS dry-run (strict)
         run: python scripts/generate_ai_news.py --dry-run --strict
 

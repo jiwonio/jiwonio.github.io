@@ -48,6 +48,26 @@ Body.
 """
         self.assertIsNotNone(validate_language_content("ja", content))
 
+    def test_validate_japanese_content_fails_without_kana(self):
+        content = """---
+layout: post
+---
+人工知能機械学習実務設定手順注意点整理本番環境運用詳細説明項目一覧確認記録管理方法実装検証結果報告
+<!--more-->
+追加本文説明設定項目詳細整理確認手順実装検証結果報告記録管理方法運用監視障害対応手順書整備
+"""
+        self.assertIsNotNone(validate_language_content("ja", content))
+
+    def test_validate_chinese_content_fails_with_kana(self):
+        content = """---
+layout: post
+---
+これは人工知能に関する記事です。実務で使える設定をまとめます。
+<!--more-->
+詳しい手順を説明します。
+"""
+        self.assertIsNotNone(validate_language_content("zh", content))
+
 
 if __name__ == "__main__":
     unittest.main()

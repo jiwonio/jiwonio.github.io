@@ -13,9 +13,9 @@
             {% if current_year != year %}
                 <li>
                     {% if archive_lang == site.default_lang %}
-                        <a href="{{ site.url }}/archive/{{ year }}/">{{ year }}</a>
+                        <a href="/archive/{{ year }}/">{{ year }}</a>
                     {% else %}
-                        <a href="{{ site.url }}/{{ archive_lang }}/archive/{{ year }}/">{{ year }}</a>
+                        <a href="/{{ archive_lang }}/archive/{{ year }}/">{{ year }}</a>
                     {% endif %}
                 </li>
                 {% assign current_year = year %}
@@ -29,9 +29,9 @@
         {% for entry in archive_tag_entries %}
             <li>
                 {% if archive_lang == site.default_lang %}
-                    <a href="{{ site.url }}/archive/tag/{{ entry.slug }}/">{{ entry.title }}</a>
+                    <a href="/archive/tag/{{ entry.slug }}/">{{ entry.title }}</a>
                 {% else %}
-                    <a href="{{ site.url }}/{{ archive_lang }}/archive/tag/{{ entry.slug }}/">{{ entry.title }}</a>
+                    <a href="/{{ archive_lang }}/archive/tag/{{ entry.slug }}/">{{ entry.title }}</a>
                 {% endif %}
             </li>
         {% endfor %}

@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import base64
 import os
-from typing import Literal
+import time
+from collections.abc import Callable
+from typing import Literal, TypeVar
 from urllib.request import urlopen
 
 from models_config import (
@@ -18,6 +20,11 @@ from models_config import (
 Provider = Literal["gemini", "anthropic", "openai", "xai"]
 XAI_BASE_URL = "https://api.x.ai/v1"
 MAX_OUTPUT_TOKENS = 16384
+HTTP_TIMEOUT = 120
+MAX_IMAGE_BYTES = 10_000_000
+MAX_TRANSPORT_RETRIES = 3
+
+T = TypeVar("T")
 
 
 def get_api_key(provider: str) -> str:
@@ -120,39 +127,97 @@ def pick_translation_target(providers: list[str], attempt: int) -> tuple[str, st
     return provider, model
 
 
+def _is_retryable_error(exc: Exception) -> bool:
+    status = getattr(exc, "status_code", None) or getattr(exc, "code", None)
+    if status in {429, 500, 502, 503, 504, 529}:
+        return True
+    message = str(exc).lower()
+    if "429" in message or "rate limit" in message or "too many requests" in message:
+        return True
+    return any(code in message for code in ("500", "502", "503", "504", "529", "unavailable"))
+
+
+def with_transport_retry(func: Callable[[], T]) -> T:
+    last_error: Exception | None = None
+    for attempt in range(1, MAX_TRANSPORT_RETRIES + 1):
+        try:
+            return func()
+        except Exception as exc:
+            last_error = exc
+            if not _is_retryable_error(exc) or attempt >= MAX_TRANSPORT_RETRIES:
+                raise
+            delay = 2**attempt
+            time.sleep(delay)
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("transport retry failed without an error")
+
+
+def _read_url_with_size_cap(url: str, *, max_bytes: int = MAX_IMAGE_BYTES) -> bytes:
+    with urlopen(url, timeout=HTTP_TIMEOUT) as remote:
+        chunks: list[bytes] = []
+        total = 0
+        while True:
+            chunk = remote.read(8192)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > max_bytes:
+                raise ValueError(f"Image exceeds {max_bytes} bytes")
+            chunks.append(chunk)
+        return b"".join(chunks)
+
+
 def _generate_gemini_text(prompt: str, model: str) -> str:
     from google import genai
+    from google.genai import types
 
-    client = genai.Client(api_key=get_api_key("gemini"))
-    response = client.models.generate_content(model=model, contents=prompt)
-    return response.text or ""
+    client = genai.Client(
+        api_key=get_api_key("gemini"),
+        http_options=types.HttpOptions(timeout=HTTP_TIMEOUT * 1000),
+    )
+
+    def _call() -> str:
+        response = client.models.generate_content(model=model, contents=prompt)
+        return response.text or ""
+
+    return with_transport_retry(_call)
 
 
 def _generate_anthropic_text(prompt: str, model: str) -> str:
     from anthropic import Anthropic
 
-    client = Anthropic(api_key=get_api_key("anthropic"))
-    message = client.messages.create(
-        model=model,
-        max_tokens=MAX_OUTPUT_TOKENS,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    parts = [block.text for block in message.content if hasattr(block, "text")]
-    return "\n".join(parts).strip()
+    client = Anthropic(api_key=get_api_key("anthropic"), timeout=HTTP_TIMEOUT)
+
+    def _call() -> str:
+        message = client.messages.create(
+            model=model,
+            max_tokens=MAX_OUTPUT_TOKENS,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        parts = [block.text for block in message.content if hasattr(block, "text")]
+        return "\n".join(parts).strip()
+
+    return with_transport_retry(_call)
 
 
 def _generate_openai_compatible_text(prompt: str, model: str, *, provider: str) -> str:
     from openai import OpenAI
 
-    kwargs = {"api_key": get_api_key(provider)}
+    kwargs = {"api_key": get_api_key(provider), "timeout": HTTP_TIMEOUT}
     if provider == "xai":
         kwargs["base_url"] = XAI_BASE_URL
     client = OpenAI(**kwargs)
-    response = client.chat.completions.create(
-        model=model,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return (response.choices[0].message.content or "").strip()
+
+    def _call() -> str:
+        response = client.chat.completions.create(
+            model=model,
+            max_tokens=MAX_OUTPUT_TOKENS,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return (response.choices[0].message.content or "").strip()
+
+    return with_transport_retry(_call)
 
 
 def generate_text(*, prompt: str, provider: str, model: str | None = None) -> str:
@@ -173,38 +238,51 @@ def _generate_gemini_image(prompt: str, model: str) -> bytes:
     from google import genai
     from google.genai import types
 
-    client = genai.Client(api_key=get_api_key("gemini"))
-    response = client.models.generate_content(
-        model=model,
-        contents=[prompt],
-        config=types.GenerateContentConfig(
-            response_modalities=["IMAGE"],
-            image_config=types.ImageConfig(aspect_ratio="16:9"),
-        ),
+    client = genai.Client(
+        api_key=get_api_key("gemini"),
+        http_options=types.HttpOptions(timeout=HTTP_TIMEOUT * 1000),
     )
-    for part in response.parts:
-        if part.inline_data is not None:
-            return part.inline_data.data
-    raise ValueError("Gemini 이미지 응답이 없습니다.")
+
+    def _call() -> bytes:
+        response = client.models.generate_content(
+            model=model,
+            contents=[prompt],
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+                image_config=types.ImageConfig(aspect_ratio="16:9"),
+            ),
+        )
+        for part in response.parts:
+            if part.inline_data is not None:
+                return part.inline_data.data
+        raise ValueError("Gemini 이미지 응답이 없습니다.")
+
+    return with_transport_retry(_call)
 
 
 def _generate_xai_image(prompt: str, model: str) -> bytes:
     from openai import OpenAI
 
-    client = OpenAI(api_key=get_api_key("xai"), base_url=XAI_BASE_URL)
-    response = client.images.generate(
-        model=model,
-        prompt=prompt,
-        response_format="b64_json",
-        extra_body={"aspect_ratio": "16:9"},
-    )
-    item = response.data[0]
-    if getattr(item, "b64_json", None):
-        return base64.b64decode(item.b64_json)
-    if getattr(item, "url", None):
-        with urlopen(item.url, timeout=60) as remote:
-            return remote.read()
-    raise ValueError("xAI 이미지 응답이 없습니다.")
+    client = OpenAI(api_key=get_api_key("xai"), base_url=XAI_BASE_URL, timeout=HTTP_TIMEOUT)
+
+    def _call() -> bytes:
+        response = client.images.generate(
+            model=model,
+            prompt=prompt,
+            response_format="b64_json",
+            extra_body={"aspect_ratio": "16:9"},
+        )
+        item = response.data[0]
+        if getattr(item, "b64_json", None):
+            data = base64.b64decode(item.b64_json)
+            if len(data) > MAX_IMAGE_BYTES:
+                raise ValueError(f"Image exceeds {MAX_IMAGE_BYTES} bytes")
+            return data
+        if getattr(item, "url", None):
+            return _read_url_with_size_cap(item.url)
+        raise ValueError("xAI 이미지 응답이 없습니다.")
+
+    return with_transport_retry(_call)
 
 
 def generate_image(*, prompt: str, provider: str, model: str | None = None) -> bytes:

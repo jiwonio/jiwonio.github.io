@@ -1,0 +1,77 @@
+{%- comment -%}
+  대상 언어(include.lang)의 현재 페이지 URL을 계산합니다 (assign i18n_page_url).
+{%- endcomment -%}
+{%- assign target_lang = include.lang -%}
+{%- assign page_num = page.page | default: 1 -%}
+{%- assign i18n_page_url = nil -%}
+
+{%- if page.layout == 'post' and page.translation_key -%}
+    {%- assign translated = site.translations[page.translation_key][target_lang] -%}
+    {%- if translated -%}
+        {%- assign i18n_page_url = translated.url -%}
+    {%- endif -%}
+{%- elsif page.page_key == 'search' -%}
+    {%- if target_lang == site.default_lang -%}
+        {%- assign i18n_page_url = '/search/' -%}
+    {%- else -%}
+        {%- assign i18n_page_url = '/' | append: target_lang | append: '/search/' -%}
+    {%- endif -%}
+{%- elsif page.page_key == 'archive' -%}
+    {%- if target_lang == site.default_lang -%}
+        {%- assign i18n_page_url = '/archive/' -%}
+    {%- else -%}
+        {%- assign i18n_page_url = '/' | append: target_lang | append: '/archive/' -%}
+    {%- endif -%}
+{%- elsif page.page_key == 'privacy-policy' -%}
+    {%- if target_lang == site.default_lang -%}
+        {%- assign i18n_page_url = '/privacy-policy/' -%}
+    {%- else -%}
+        {%- assign i18n_page_url = '/' | append: target_lang | append: '/privacy-policy/' -%}
+    {%- endif -%}
+{%- elsif layout.archives and page.date -%}
+    {%- assign archive_year = page.date | date: '%Y' -%}
+    {%- if target_lang == site.default_lang -%}
+        {%- assign i18n_page_url = '/archive/' | append: archive_year | append: '/' -%}
+    {%- else -%}
+        {%- assign i18n_page_url = '/' | append: target_lang | append: '/archive/' | append: archive_year | append: '/' -%}
+    {%- endif -%}
+{%- elsif layout.archives -%}
+    {%- assign tag_slug = nil -%}
+    {%- assign after_tag = false -%}
+    {%- assign url_parts = page.url | split: '/' -%}
+    {%- for part in url_parts -%}
+        {%- if part == 'tag' -%}
+            {%- assign after_tag = true -%}
+        {%- elsif after_tag and part != '' -%}
+            {%- assign tag_slug = part -%}
+            {%- break -%}
+        {%- endif -%}
+    {%- endfor -%}
+    {%- if tag_slug -%}
+        {%- if target_lang == site.default_lang -%}
+            {%- assign i18n_page_url = '/archive/tag/' | append: tag_slug | append: '/' -%}
+        {%- else -%}
+            {%- assign i18n_page_url = '/' | append: target_lang | append: '/archive/tag/' | append: tag_slug | append: '/' -%}
+        {%- endif -%}
+    {%- endif -%}
+{%- elsif page.layout == 'home' -%}
+    {%- if target_lang == site.default_lang -%}
+        {%- if page_num == 1 -%}
+            {%- assign i18n_page_url = '/' -%}
+        {%- else -%}
+            {%- assign i18n_page_url = '/page/' | append: page_num | append: '/' -%}
+        {%- endif -%}
+    {%- else -%}
+        {%- if page_num == 1 -%}
+            {%- assign i18n_page_url = '/' | append: target_lang | append: '/' -%}
+        {%- else -%}
+            {%- assign i18n_page_url = '/' | append: target_lang | append: '/page/' | append: page_num | append: '/' -%}
+        {%- endif -%}
+    {%- endif -%}
+{%- else -%}
+    {%- if target_lang == site.default_lang -%}
+        {%- assign i18n_page_url = '/' -%}
+    {%- else -%}
+        {%- assign i18n_page_url = '/' | append: target_lang | append: '/' -%}
+    {%- endif -%}
+{%- endif -%}

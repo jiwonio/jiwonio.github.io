@@ -1,0 +1,29 @@
+// Pagefind UI theme overrides (light / dark via site tokens)
+
+#pagefind-search {
+  --pagefind-ui-font: inherit;
+  --pagefind-ui-scale: 1;
+  --pagefind-ui-primary: var(--color-link);
+  --pagefind-ui-text: var(--color-text);
+  --pagefind-ui-background: var(--color-bg);
+  --pagefind-ui-border: var(--color-border);
+  --pagefind-ui-tag: var(--color-bg-subtle);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) #pagefind-search {
+    --pagefind-ui-primary: var(--color-link);
+    --pagefind-ui-text: var(--color-text);
+    --pagefind-ui-background: var(--color-bg);
+    --pagefind-ui-border: var(--color-border);
+    --pagefind-ui-tag: var(--color-bg-subtle);
+  }
+}
+
+:root[data-theme="dark"] #pagefind-search {
+  --pagefind-ui-primary: var(--color-link);
+  --pagefind-ui-text: var(--color-text);
+  --pagefind-ui-background: var(--color-bg);
+  --pagefind-ui-border: var(--color-border);
+  --pagefind-ui-tag: var(--color-bg-subtle);
+}

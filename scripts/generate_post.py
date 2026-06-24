@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import re
 import sys
 from pathlib import Path
@@ -206,7 +205,9 @@ def dry_run() -> int:
 
     print("🔍 Deep-dive dry-run (API 호출 없음)")
 
-    if not list_available_providers():
+    available = list_available_providers()
+    print(f"  사용 가능 provider: {', '.join(available) or '없음'}")
+    if not available:
         issues.append("No LLM API keys configured (GEMINI/ANTHROPIC/OPENAI/XAI)")
 
     recent_titles = get_recent_titles(50)
@@ -215,6 +216,11 @@ def dry_run() -> int:
     forbidden = find_forbidden_tokens(token_counts)
     print(f"  금지 토큰: {', '.join(sorted(forbidden)) or '없음'}")
     print(f"  기존 ko slug 수: {len(get_existing_ko_slugs())}")
+
+    if recent_slugs:
+        print(f"  최근 slug: {', '.join(recent_slugs[:5])}")
+    else:
+        print("  최근 slug: 없음")
 
     if issues:
         print("\n❌ dry-run 실패:")

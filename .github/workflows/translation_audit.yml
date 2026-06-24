@@ -1,12 +1,12 @@
-name: Deep-dive Generation Health Check
+name: Deep-dive Translation Audit
 
 on:
   schedule:
-    - cron: '0 6 * * 0'
+    - cron: '0 5 * * 0'
   workflow_dispatch:
 
 jobs:
-  health-check:
+  audit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -22,30 +22,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
 
-      - name: Verify secrets
-        run: |
-          if [ -z "${{ secrets.GEMINI_API_KEY }}" ] \
-            && [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ] \
-            && [ -z "${{ secrets.OPENAI_API_KEY }}" ] \
-            && [ -z "${{ secrets.XAI_API_KEY }}" ]; then
-            echo "At least one LLM API key secret is required."
-            exit 1
-          fi
-
-      - name: Run Python unit tests
-        run: python -m unittest discover -s scripts/tests -v
-
-      - name: Run deep-dive dry-run
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-        run: python scripts/generate_post.py --dry-run
+      - name: Audit deep-dive translation completeness
+        run: python scripts/validate_posts.py --audit-deep-dive
 
   notify-failure:
     runs-on: ubuntu-latest
-    needs: health-check
+    needs: audit
     if: failure()
     steps:
       - name: Notify Slack
@@ -58,10 +40,10 @@ jobs:
           fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -sS -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"⚠️ Deep-dive health check failed\n${RUN_URL}\"}" \
+            --data "{\"text\":\"⚠️ Deep-dive translation audit failed\n${RUN_URL}\"}" \
             "$SLACK_WEBHOOK_URL"
 
       - name: Print failure summary
         run: |
-          echo "::error::Deep-dive health check failed."
+          echo "::error::Deep-dive translation audit failed."
           echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

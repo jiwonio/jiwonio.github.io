@@ -11,19 +11,22 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from blog_i18n import DEFAULT_LANG, resolve_effective_date, translation_langs_for_metadata
+from post_schema import (
+    CODE_BLOCK_PATTERN,
+    EXTERNAL_IMAGE_PATTERN,
+    FRONT_MATTER_PATTERN,
+    PROMPT_LEAK_PHRASES,
+    UNEXPECTED_SCRIPT_PATTERN,
+    has_standalone_line,
+)
 
-
-FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 REQUIRED_FIELDS = ("layout", "title", "tags", "image", "categories", "post_type")
 LANG_PATH = re.compile(r"(?:^|/)_posts/(en|ja|zh|ko)(?:/|$)")
 INTERNAL_LINK_PATTERN = re.compile(r"\]\(/posts/([^)/\s]+)")
 REFERENCE_URL_PATTERN = re.compile(r"\[[^\]]+\]\((https?://[^)\s\"]+)")
 BODY_EXTERNAL_LINK_PATTERN = re.compile(r"(?<!!)\[[^\]]+\]\((https?://[^)\s\"]+)")
-PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
-UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ]")
-CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
-EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
 KOREAN_PATTERN = re.compile(r"[가-힣]")
+KANA_PATTERN = re.compile(r"[\u3040-\u30ff]")
 JAPANESE_PATTERN = re.compile(r"[\u3040-\u30ff\u4e00-\u9fff]")
 CHINESE_PATTERN = re.compile(r"[\u4e00-\u9fff]")
 MIN_KO_CHARS = 40
@@ -53,10 +56,6 @@ def detect_lang(path: Path, metadata: dict) -> str:
     if LANG_PATH.search(path.as_posix()):
         return LANG_PATH.search(path.as_posix()).group(1)
     return DEFAULT_LANG
-
-
-def has_standalone_line(content, marker):
-    return any(line.strip() == marker for line in content.splitlines())
 
 
 def find_unexpected_scripts(content):
@@ -99,9 +98,13 @@ def validate_language_content(lang: str, content: str) -> str | None:
     elif lang == "ja":
         if len(JAPANESE_PATTERN.findall(prose)) < MIN_JA_CHARS:
             return f"ja translation needs at least {MIN_JA_CHARS} Japanese characters in prose"
+        if not KANA_PATTERN.search(prose):
+            return "ja translation must include Japanese kana (hiragana/katakana)"
     elif lang == "zh":
         if len(CHINESE_PATTERN.findall(prose)) < MIN_ZH_CHARS:
             return f"zh translation needs at least {MIN_ZH_CHARS} Chinese characters in prose"
+        if KANA_PATTERN.search(prose):
+            return "zh translation must not contain Japanese kana"
     return None
 
 
@@ -332,6 +335,43 @@ def validate_posts(
     return errors
 
 
+def audit_deep_dive_translations(posts_dir) -> list[str]:
+    """Report missing en/ja/zh translations for Korean deep-dive posts only."""
+    errors = []
+    translation_groups: dict[str, dict] = defaultdict(dict)
+
+    for path in sorted(posts_dir.rglob("*.md")):
+        try:
+            _, metadata = load_post(path)
+        except (OSError, UnicodeError, yaml.YAMLError, ValueError):
+            continue
+
+        lang = detect_lang(path, metadata)
+        slug = metadata.get("slug") or path.stem[11:]
+        normalized_slug = re.sub(r"[^a-z0-9]+", "-", str(slug).lower()).strip("-")
+        translation_key = metadata.get("translation_key") or normalized_slug
+        translation_groups[translation_key][lang] = (path, metadata)
+
+    for key, langs in translation_groups.items():
+        source = langs.get(DEFAULT_LANG)
+        if not source:
+            continue
+
+        source_path, source_meta = source
+        if str(source_meta.get("post_type", "")).strip() != "deep-dive":
+            continue
+
+        expected_langs = set(translation_langs_for_metadata(source_meta))
+        missing_langs = sorted(expected_langs - set(langs))
+        if missing_langs:
+            errors.append(
+                f"missing translations for '{key}' ({source_path.name}): "
+                + ", ".join(missing_langs)
+            )
+
+    return errors
+
+
 def main():
     parser = argparse.ArgumentParser(description="Validate Jekyll post metadata and archive paths.")
     parser.add_argument("--posts-dir", type=Path, default=Path("_posts"))
@@ -345,7 +385,21 @@ def main():
         action="store_true",
         help="HEAD-check all external markdown links in post bodies (slower, needs network)",
     )
+    parser.add_argument(
+        "--audit-deep-dive",
+        action="store_true",
+        help="Audit en/ja/zh translation completeness for deep-dive posts only",
+    )
     args = parser.parse_args()
+
+    if args.audit_deep_dive:
+        errors = audit_deep_dive_translations(args.posts_dir)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}", file=sys.stderr)
+            return 1
+        print("Deep-dive translation audit passed.")
+        return 0
 
     errors = validate_posts(
         args.posts_dir,

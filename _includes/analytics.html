@@ -2,7 +2,7 @@
   분석 스크립트
 
   _config.yml의 analytics.* ID가 비어 있으면 아무것도 출력하지 않습니다.
-  검색엔진 등록 후 트래픽을 추적하려면 ID를 입력하세요.
+  Google Analytics는 consent 기본값만 설정하고, Naver는 consent.js에서 로드합니다.
 {%- endcomment -%}
 
 {%- if site.analytics.google_analytics_id != "" -%}
@@ -19,16 +19,5 @@
   });
   gtag("js", new Date());
   gtag("config", "{{ site.analytics.google_analytics_id }}");
-</script>
-{%- endif -%}
-
-{%- if site.analytics.naver_analytics_id != "" -%}
-<script type="text/javascript" src="https://wcs.pstatic.net/wcslog.js"></script>
-<script type="text/javascript">
-  if (!window.wcs_add) window.wcs_add = {};
-  window.wcs_add.wa = "{{ site.analytics.naver_analytics_id }}";
-  if (window.wcs) {
-    wcs_do();
-  }
 </script>
 {%- endif -%}

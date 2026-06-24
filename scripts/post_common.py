@@ -13,15 +13,26 @@ from urllib.parse import urlparse, urlunparse
 
 from blog_i18n import (
     DEFAULT_LANG,
-    FRONT_MATTER_PATTERN,
     LANG_LABELS,
     detect_lang_from_path,
     inject_front_matter_field,
     parse_front_matter,
     permalink_for_lang,
     translation_langs_for_metadata,
+    translation_output_path,
 )
 from blog_i18n import generate_translation as _generate_translation
+from blog_i18n import generate_translation_content as _generate_translation_content
+from post_schema import (
+    EXTERNAL_IMAGE_PATTERN,
+    POSTS_DIR,
+    PROMPT_LEAK_PHRASES,
+    REFERENCE_URL_PATTERN,
+    has_standalone_line,
+    sanitize_generated_content,
+    write_bytes_atomic,
+    write_text_atomic,
+)
 from llm_client import (
     generate_image_with_fallback,
     generate_text as llm_generate_text,
@@ -35,14 +46,11 @@ try:
 except ImportError:
     Image = None
 FORBIDDEN_REPEAT_COUNT = 3
-PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ]")
 CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
-EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
 TITLE_PATTERN = re.compile(r'title:\s*"([^"]+)"|title:\s*\'([^\']+)\'')
 SLUG_FROM_FILE = re.compile(r"\d{4}-\d{2}-\d{2}-(.+)\.md$")
 INTERNAL_LINK_PATTERN = re.compile(r"\]\(/posts/[^)]+\)")
-REFERENCE_URL_PATTERN = re.compile(r"\[[^\]]+\]\((https?://[^)]+)\)")
 
 REQUIRED_FIELDS = ("layout", "title", "slug", "date", "categories", "tags", "description", "image")
 DEFAULT_THUMBNAIL_SOURCE = Path(__file__).resolve().parent.parent / "assets" / "og-default.webp"
@@ -61,16 +69,7 @@ def get_kst_now() -> datetime:
 
 
 def list_post_files() -> list[str]:
-    return [
-        os.path.join(root, name)
-        for root, _, names in os.walk("_posts")
-        for name in names
-        if name.endswith(".md")
-    ]
-
-
-def has_standalone_line(content: str, marker: str) -> bool:
-    return any(line.strip() == marker for line in content.splitlines())
+    return [str(path) for path in sorted(POSTS_DIR.rglob("*.md"))]
 
 
 def find_unexpected_scripts(content: str) -> list[str]:
@@ -152,19 +151,6 @@ def strip_code_fence(text: str) -> str:
     text = re.sub(r"\A```[a-zA-Z]*[ \t]*\r?\n", "", text.strip())
     text = re.sub(r"\r?\n```\s*\Z", "", text)
     return text.strip()
-
-
-def sanitize_generated_content(content: str) -> str:
-    content = re.sub(
-        r"https://hooks\.slack\.com/services/[A-Za-z0-9]+/[A-Za-z0-9]+/[A-Za-z0-9]+",
-        "https://hooks.slack.com/services/YOUR_WORKSPACE/YOUR_CHANNEL/YOUR_TOKEN",
-        content,
-    )
-    return re.sub(
-        r'(?i)(api_key|secret_key|password|token)\s*[:=]\s*["\'][A-Za-z0-9_-]{15,}["\']',
-        r'\1: "YOUR_DUMMY_SECRET_HERE"',
-        content,
-    )
 
 
 def parse_required_front_matter(content: str) -> dict:
@@ -363,12 +349,13 @@ def save_thumbnail(slug: str, thumbnail: bytes, title: str) -> tuple[str, str]:
         image_path = f"{upload_dir}/thumbnail.webp"
         img = Image.open(io.BytesIO(thumbnail))
         img = img.resize((1200, 630), Image.Resampling.LANCZOS)
-        img.save(image_path, "WEBP", quality=85)
+        buffer = io.BytesIO()
+        img.save(buffer, "WEBP", quality=85)
+        write_bytes_atomic(image_path, buffer.getvalue())
         print(f"✅ 이미지 압축 저장 완료 (WebP): {image_path}")
     else:
         image_path = f"{upload_dir}/thumbnail.jpg"
-        with open(image_path, "wb") as file:
-            file.write(thumbnail)
+        write_bytes_atomic(image_path, thumbnail)
         print(f"✅ 원본 이미지 저장 완료: {image_path}")
 
     public_image_path = f"/{image_path}"
@@ -418,6 +405,7 @@ def generate_with_retry(
 ) -> tuple[str, dict, str]:
     providers = resolve_text_providers(post_type, text_provider)
     last_error = None
+    current_prompt = prompt
     for attempt in range(1, max_retries + 1):
         provider = pick_provider_for_attempt(providers, attempt)
         model = get_text_model(provider)
@@ -426,7 +414,7 @@ def generate_with_retry(
                 f"🔄 AI 글쓰기 API 요청 중... "
                 f"({provider}/{model}, 시도 {attempt}/{max_retries})"
             )
-            raw = llm_generate_text(prompt=prompt, provider=provider, model=model)
+            raw = llm_generate_text(prompt=current_prompt, provider=provider, model=model)
             content = sanitize_generated_content(
                 strip_preamble(strip_code_fence(raw))
             )
@@ -455,6 +443,12 @@ def generate_with_retry(
             )
             last_error = exc
             error_msg = str(exc)
+            if attempt < max_retries:
+                current_prompt = (
+                    f"{prompt}\n\n"
+                    f"[Previous attempt failed validation: {error_msg}. "
+                    "Fix these issues and regenerate.]"
+                )
             if "503" in error_msg or "UNAVAILABLE" in error_msg:
                 wait = retry_backoff_seconds * attempt
                 print(f"⚠️ 503 에러(서버 과부하). {wait}초 후 재시도...")
@@ -467,16 +461,17 @@ def generate_with_retry(
     raise RuntimeError(f"포스트 생성에 실패했습니다: {last_error}")
 
 
-def save_ko_post(content: str, slug: str, today: datetime) -> str:
+def ko_post_path(slug: str, today: datetime) -> Path:
     year = today.strftime("%Y")
     today_date = today.strftime("%Y-%m-%d")
-    post_dir = f"_posts/{DEFAULT_LANG}/{year}"
-    os.makedirs(post_dir, exist_ok=True)
-    filename = f"{post_dir}/{today_date}-{slug}.md"
-    with open(filename, "w", encoding="utf-8") as file:
-        file.write(content)
+    return POSTS_DIR / DEFAULT_LANG / year / f"{today_date}-{slug}.md"
+
+
+def save_ko_post(content: str, slug: str, today: datetime) -> str:
+    filename = ko_post_path(slug, today)
+    write_text_atomic(filename, content)
     print(f"✅ 포스트 저장 완료: {filename}")
-    return filename
+    return str(filename)
 
 
 def generate_translations(
@@ -504,6 +499,18 @@ def generate_translations(
             print(f"⚠️ {target_lang} 번역 실패: {exc}")
 
 
+def _cleanup_publish_artifacts(slug: str, written_paths: list[Path]) -> None:
+    upload_dir = Path(f"uploads/{slug}")
+    for path in written_paths:
+        try:
+            if path.is_file():
+                path.unlink()
+        except OSError:
+            pass
+    if upload_dir.is_dir():
+        shutil.rmtree(upload_dir, ignore_errors=True)
+
+
 def publish_post(
     content: str,
     metadata: dict,
@@ -517,6 +524,7 @@ def publish_post(
 ) -> str:
     today = today or get_kst_now()
     raw_title = str(metadata["title"])
+    written_paths: list[Path] = []
 
     content = inject_front_matter_field(content, "lang", DEFAULT_LANG)
     content = inject_front_matter_field(content, "translation_key", slug)
@@ -524,24 +532,54 @@ def publish_post(
     content = inject_front_matter_field(content, "ai_generated", True)
     content = inject_front_matter_field(content, "permalink", permalink_for_lang(DEFAULT_LANG, slug))
 
-    public_image_path = ""
-    image_md = ""
     try:
-        print(f"🎨 '{raw_title}' 주제로 썸네일 생성 중...")
-        thumbnail, image_provider, image_model = generate_thumbnail(image_prompt)
-        print(f"  이미지 provider: {image_provider} ({image_model})")
-        public_image_path, image_md = save_thumbnail(slug, thumbnail, raw_title)
-    except Exception as exc:
-        print(f"⚠️ 이미지 생성 실패, 기본 썸네일로 대체합니다: {exc}")
-        public_image_path, image_md = copy_default_thumbnail(slug, raw_title)
+        public_image_path = ""
+        image_md = ""
+        try:
+            print(f"🎨 '{raw_title}' 주제로 썸네일 생성 중...")
+            thumbnail, image_provider, image_model = generate_thumbnail(image_prompt)
+            print(f"  이미지 provider: {image_provider} ({image_model})")
+            public_image_path, image_md = save_thumbnail(slug, thumbnail, raw_title)
+        except Exception as exc:
+            print(f"⚠️ 이미지 생성 실패, 기본 썸네일로 대체합니다: {exc}")
+            public_image_path, image_md = copy_default_thumbnail(slug, raw_title)
 
-    content = inject_front_matter_field(content, "image", public_image_path)
-    content = inject_hero_image(content, image_md)
-    filename = save_ko_post(content, slug, today)
-    generate_translations(
-        content,
-        Path(filename),
-        translation_provider=translation_provider,
-        fail_on_error=require_translations,
-    )
-    return filename
+        written_paths.append(Path(public_image_path.lstrip("/")))
+
+        content = inject_front_matter_field(content, "image", public_image_path)
+        content = inject_hero_image(content, image_md)
+        ko_path = ko_post_path(slug, today)
+
+        if require_translations:
+            langs = translation_langs_for_metadata(parse_front_matter(content))
+            pending_writes: list[tuple[Path, str]] = [(ko_path, content)]
+            for target_lang in langs:
+                print(f"🌐 {LANG_LABELS[target_lang]} 번역 생성 중...")
+                translated = _generate_translation_content(
+                    content,
+                    ko_path,
+                    target_lang,
+                    translation_provider=translation_provider,
+                )
+                pending_writes.append((translation_output_path(ko_path, target_lang), translated))
+
+            for path, file_content in pending_writes:
+                write_text_atomic(path, file_content)
+                written_paths.append(path)
+                if path != ko_path:
+                    print(f"✅ 번역 포스트 저장 완료 ({path.parent.parent.name}): {path}")
+            print(f"✅ 포스트 저장 완료: {ko_path}")
+            return str(ko_path)
+
+        filename = save_ko_post(content, slug, today)
+        written_paths.append(Path(filename))
+        generate_translations(
+            content,
+            Path(filename),
+            translation_provider=translation_provider,
+            fail_on_error=False,
+        )
+        return filename
+    except Exception:
+        _cleanup_publish_artifacts(slug, written_paths)
+        raise

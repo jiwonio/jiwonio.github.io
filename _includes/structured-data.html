@@ -1,8 +1,8 @@
 {%- comment -%}
   JSON-LD 구조화 데이터 (Schema.org)
 
-  - 모든 페이지: WebSite + Person(작성자)
-  - 포스트 페이지: BlogPosting 추가
+  - 모든 페이지: WebSite + Person(작성자) + SearchAction
+  - 포스트 페이지: BlogPosting + BreadcrumbList
 {%- endcomment -%}
 
 {%- assign schema_description = page.seo_description
@@ -15,6 +15,13 @@
 {%- assign schema_image = page.image | default: site.seo.default_image | absolute_url -%}
 {%- assign schema_lang = page.lang | default: site.default_lang | default: 'ko' -%}
 {%- assign schema_page_url = page.canonical | default: page.url | absolute_url -%}
+{%- if schema_lang == site.default_lang -%}
+  {%- assign schema_search_url = site.url | append: '/search/?q={search_term_string}' -%}
+  {%- assign schema_home_url = site.url | append: '/' -%}
+{%- else -%}
+  {%- assign schema_search_url = site.url | append: '/' | append: schema_lang | append: '/search/?q={search_term_string}' -%}
+  {%- assign schema_home_url = site.url | append: '/' | append: schema_lang | append: '/' -%}
+{%- endif -%}
 
 <script type="application/ld+json">
 {
@@ -27,7 +34,15 @@
       "name": {{ site.title | jsonify }},
       "description": {{ site.description | strip_newlines | strip | jsonify }},
       "inLanguage": "{{ schema_lang }}",
-      "publisher": { "@id": "{{ site.url }}/#person" }
+      "publisher": { "@id": "{{ site.url }}/#person" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "{{ schema_search_url }}"
+        },
+        "query-input": "required name=search_term_string"
+      }
     },
     {
       "@type": "Person",
@@ -60,6 +75,24 @@
       {%- if page.tags.size > 0 -%}
       ,"keywords": {{ page.tags | join: ", " | jsonify }}
       {%- endif -%}
+    }
+    ,{
+      "@type": "BreadcrumbList",
+      "@id": "{{ schema_page_url }}#breadcrumb",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": {{ site.title | jsonify }},
+          "item": "{{ schema_home_url }}"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": {{ page.title | jsonify }},
+          "item": "{{ schema_page_url }}"
+        }
+      ]
     }
     {%- endif -%}
   ]

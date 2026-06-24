@@ -2,10 +2,9 @@
   Google AdSense
 
   _config.yml의 ads.adsense_client가 비어 있으면 출력하지 않습니다.
+  스크립트는 consent.js에서 동의 후 로드합니다.
 {%- endcomment -%}
 
 {%- if site.ads.adsense_client != "" -%}
 <meta name="google-adsense-account" content="{{ site.ads.adsense_client }}">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site.ads.adsense_client }}"
-     crossorigin="anonymous"></script>
 {%- endif -%}

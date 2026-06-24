@@ -65,11 +65,11 @@ class LlmClientTests(unittest.TestCase):
         providers = ["gemini", "anthropic"]
         provider, model = pick_translation_target(providers, 1)
         self.assertEqual(provider, "gemini")
-        self.assertEqual(model, "gemini-2.5-pro")
+        self.assertEqual(model, "gemini-2.5-flash")
 
         provider, model = pick_translation_target(providers, 3)
         self.assertEqual(provider, "gemini")
-        self.assertEqual(model, "gemini-2.5-flash")
+        self.assertEqual(model, "gemini-2.5-pro")
 
     def test_resolve_translation_providers_defaults_to_chain(self):
         env = {

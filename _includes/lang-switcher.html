@@ -2,7 +2,7 @@
 {% assign current_meta = site.data.languages[current_lang] %}
 <div class="lang-switcher">
     <details class="lang-switcher__details">
-        <summary class="lang-switcher__trigger" title="{{ current_meta.label }}" aria-label="Language: {{ current_meta.label }}">
+        <summary class="lang-switcher__trigger" title="{{ current_meta.label }}" aria-label="{{ current_meta.lang_switcher.aria_label }}: {{ current_meta.label }}">
             <i class="fa fa-globe" aria-hidden="true"></i>
             <span class="lang-switcher__current">{{ current_lang | upcase }}</span>
             <i class="fa fa-angle-down lang-switcher__caret" aria-hidden="true"></i>
@@ -11,28 +11,15 @@
             {% for lang in site.lang_codes %}
                 {% assign meta = site.data.languages[lang] %}
                 <li class="lang-switcher__item{% if lang == current_lang %} lang-switcher__item--active{% endif %}">
-                    {% if page.layout == 'post' and page.translation_key %}
-                        {% assign translated = site.translations[page.translation_key][lang] %}
-                        {% if translated %}
-                            {% if lang == current_lang %}
-                                <span class="lang-switcher__option" aria-current="page">{{ meta.label }}</span>
-                            {% else %}
-                                <a class="lang-switcher__option" href="{{ translated.url }}" hreflang="{{ lang }}" title="{{ meta.label }}">{{ meta.label }}</a>
-                            {% endif %}
-                        {% else %}
-                            <span class="lang-switcher__option lang-switcher__missing" title="{{ meta.label }} (준비 중)">{{ meta.label }}</span>
-                        {% endif %}
-                    {% else %}
-                        {% if lang == site.default_lang %}
-                            {% assign lang_url = '/' %}
-                        {% else %}
-                            {% assign lang_url = '/' | append: lang | append: '/' %}
-                        {% endif %}
+                    {% include i18n-page-url.html lang=lang %}
+                    {% if i18n_page_url %}
                         {% if lang == current_lang %}
                             <span class="lang-switcher__option" aria-current="page">{{ meta.label }}</span>
                         {% else %}
-                            <a class="lang-switcher__option" href="{{ lang_url }}" hreflang="{{ lang }}" title="{{ meta.label }}">{{ meta.label }}</a>
+                            <a class="lang-switcher__option" href="{{ i18n_page_url }}" hreflang="{{ lang }}" title="{{ meta.label }}">{{ meta.label }}</a>
                         {% endif %}
+                    {% else %}
+                        <span class="lang-switcher__option lang-switcher__missing" title="{{ meta.label }} ({{ current_meta.lang_switcher.coming_soon }})">{{ meta.label }}</span>
                     {% endif %}
                 </li>
             {% endfor %}

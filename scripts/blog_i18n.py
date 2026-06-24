@@ -2,19 +2,29 @@
 
 from __future__ import annotations
 
-import os
 import re
+import warnings
 from pathlib import Path
 
 import yaml
 
-FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
+from post_schema import (
+    EXTERNAL_IMAGE_PATTERN,
+    FRONT_MATTER_PATTERN,
+    POSTS_DIR,
+    PROMPT_LEAK_PHRASES,
+    extract_reference_urls,
+    has_standalone_line,
+    sanitize_generated_content,
+    strip_references_section,
+    write_text_atomic,
+)
+
 SLUG_FROM_FILE = re.compile(r"\d{4}-\d{2}-\d{2}-(.+)\.md$")
 DATE_FROM_FILE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 LANG_PATH = re.compile(r"_posts/(en|ja|zh|ko)/")
 
 SITE_ROOT = Path(__file__).resolve().parent.parent
-POSTS_DIR = SITE_ROOT / "_posts"
 
 from llm_client import (
     generate_text as llm_generate_text,
@@ -97,10 +107,6 @@ LANG_LABELS = {
     "ja": "Japanese",
     "zh": "Simplified Chinese",
 }
-
-PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
-EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
-
 
 def translation_langs_for_metadata(metadata: dict) -> tuple[str, ...]:
     post_type = str(metadata.get("post_type", "deep-dive")).strip()
@@ -214,10 +220,6 @@ def ensure_translation_metadata(content: str, source_content: str, target_lang: 
 
     body = content[FRONT_MATTER_PATTERN.match(content).end() :]
     return dump_front_matter(metadata) + body
-
-
-def has_standalone_line(content: str, marker: str) -> bool:
-    return any(line.strip() == marker for line in content.splitlines())
 
 
 def strip_preamble(text: str) -> str:
@@ -336,6 +338,15 @@ def prepare_ko_post_content(path: Path) -> str:
 
 def build_translation_prompt(source_content: str, target_lang: str, slug: str) -> str:
     label = LANG_LABELS[target_lang]
+    ref_urls = extract_reference_urls(source_content)
+    translation_input = strip_references_section(source_content)
+    urls_note = ""
+    if ref_urls:
+        urls_note = (
+            "\n- Add a translated references section at the end. "
+            "Keep these reference URLs unchanged:\n"
+            + "\n".join(f"  - {url}" for url in ref_urls)
+        )
     return f"""
 You are a senior technical translator. Translate the Jekyll blog post below into {label}.
 
@@ -351,10 +362,10 @@ Rules:
 - Do not output [HERO_IMAGE]; keep hero images that already exist in the body.
 - Translate the references heading appropriately for {label}, but keep link URLs unchanged.
 - Remove lines like "This translation was provided by ..." from the body.
-- Do not add external image URLs.
+- Do not add external image URLs.{urls_note}
 
-Source post:
-{source_content}
+Source post (references section omitted from input):
+{translation_input}
 """
 
 
@@ -402,14 +413,20 @@ def copy_as_english_translation(source_content: str, slug: str) -> str:
 
 def save_translation(content: str, source_path: Path, target_lang: str) -> Path:
     output_path = translation_output_path(source_path, target_lang)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(content, encoding="utf-8")
+    write_text_atomic(output_path, content)
     return output_path
 
 
 def get_gemini_client():
-    """하위 호환용 Gemini 클라이언트 (신규 코드는 llm_client 사용)."""
+    """Deprecated: use llm_client instead."""
+    warnings.warn(
+        "get_gemini_client() is deprecated; use llm_client.generate_text instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     from google import genai
+
+    import os
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if not api_key:
@@ -420,32 +437,33 @@ def get_gemini_client():
 TRANSLATION_MODELS = _TRANSLATION_MODELS
 
 
-def generate_translation(
+def generate_translation_content(
     source_content: str,
     source_path: Path,
     target_lang: str,
     *,
     translation_provider: str | None = None,
     max_retries: int = 5,
-) -> Path:
+) -> str:
     slug = resolve_slug(source_path, parse_front_matter(source_content))
 
     if target_lang == "en" and is_primarily_english(source_content):
         content = copy_as_english_translation(source_content, slug)
         content = ensure_translation_metadata(content, source_content, target_lang, slug)
         validate_translation_content(content, target_lang, slug)
-        return save_translation(content, source_path, target_lang)
+        return content
 
-    prompt = build_translation_prompt(source_content, target_lang, slug)
+    base_prompt = build_translation_prompt(source_content, target_lang, slug)
     providers = resolve_translation_providers(translation_provider)
     last_error = None
+    current_prompt = base_prompt
 
     for attempt in range(1, max_retries + 1):
         provider, model = pick_translation_target(providers, attempt)
         try:
             print(f"  번역 API: {provider}/{model} (시도 {attempt}/{max_retries})")
-            raw = llm_generate_text(prompt=prompt, provider=provider, model=model)
-            content = strip_preamble(strip_code_fence(raw))
+            raw = llm_generate_text(prompt=current_prompt, provider=provider, model=model)
+            content = sanitize_generated_content(strip_preamble(strip_code_fence(raw)))
             content = ensure_translation_metadata(content, source_content, target_lang, slug)
             validate_translation_content(content, target_lang, slug)
             from api_monitor import notify_llm_usage
@@ -458,7 +476,7 @@ def generate_translation(
                 slug=slug,
                 success=True,
             )
-            return save_translation(content, source_path, target_lang)
+            return content
         except Exception as exc:
             from api_monitor import notify_llm_usage
 
@@ -473,8 +491,31 @@ def generate_translation(
             )
             last_error = exc
             if attempt < max_retries:
+                current_prompt = (
+                    f"{base_prompt}\n\n"
+                    f"[Previous attempt failed validation: {exc}. "
+                    "Fix these issues and regenerate.]"
+                )
                 import time
 
                 time.sleep(20 * attempt)
 
     raise RuntimeError(f"{target_lang} 번역 실패 ({source_path.name}): {last_error}") from last_error
+
+
+def generate_translation(
+    source_content: str,
+    source_path: Path,
+    target_lang: str,
+    *,
+    translation_provider: str | None = None,
+    max_retries: int = 5,
+) -> Path:
+    content = generate_translation_content(
+        source_content,
+        source_path,
+        target_lang,
+        translation_provider=translation_provider,
+        max_retries=max_retries,
+    )
+    return save_translation(content, source_path, target_lang)

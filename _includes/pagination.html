@@ -10,30 +10,30 @@
     {% if page_num < total_pages %}
         {% assign next_page = page_num | plus: 1 %}
         {% if current_lang == site.default_lang %}
-            <a class="pagination-item older" href="/page/{{ next_page }}/">{{ lang_meta.pagination.older }}</a>
+            <a class="pagination-item older" href="/page/{{ next_page }}/" rel="next">{{ lang_meta.pagination.older }}</a>
         {% else %}
-            <a class="pagination-item older" href="/{{ current_lang }}/page/{{ next_page }}/">{{ lang_meta.pagination.older }}</a>
+            <a class="pagination-item older" href="/{{ current_lang }}/page/{{ next_page }}/" rel="next">{{ lang_meta.pagination.older }}</a>
         {% endif %}
     {% else %}
-        <span class="pagination-item older">{{ lang_meta.pagination.older }}</span>
+        <span class="pagination-item older" aria-disabled="true">{{ lang_meta.pagination.older }}</span>
     {% endif %}
 
     {% if page_num > 1 %}
         {% assign prev_page = page_num | minus: 1 %}
         {% if current_lang == site.default_lang %}
             {% if prev_page == 1 %}
-                <a class="pagination-item newer" href="/">{{ lang_meta.pagination.newer }}</a>
+                <a class="pagination-item newer" href="/" rel="prev">{{ lang_meta.pagination.newer }}</a>
             {% else %}
-                <a class="pagination-item newer" href="/page/{{ prev_page }}/">{{ lang_meta.pagination.newer }}</a>
+                <a class="pagination-item newer" href="/page/{{ prev_page }}/" rel="prev">{{ lang_meta.pagination.newer }}</a>
             {% endif %}
         {% else %}
             {% if prev_page == 1 %}
-                <a class="pagination-item newer" href="/{{ current_lang }}/">{{ lang_meta.pagination.newer }}</a>
+                <a class="pagination-item newer" href="/{{ current_lang }}/" rel="prev">{{ lang_meta.pagination.newer }}</a>
             {% else %}
-                <a class="pagination-item newer" href="/{{ current_lang }}/page/{{ prev_page }}/">{{ lang_meta.pagination.newer }}</a>
+                <a class="pagination-item newer" href="/{{ current_lang }}/page/{{ prev_page }}/" rel="prev">{{ lang_meta.pagination.newer }}</a>
             {% endif %}
         {% endif %}
     {% else %}
-        <span class="pagination-item newer">{{ lang_meta.pagination.newer }}</span>
+        <span class="pagination-item newer" aria-disabled="true">{{ lang_meta.pagination.newer }}</span>
     {% endif %}
 </div>

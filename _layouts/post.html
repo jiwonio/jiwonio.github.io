@@ -5,9 +5,18 @@ layout: default
 {% assign article_parts = content | split: "<!--more-->" %}
 
 {% assign lang_meta = site.data.languages[current_lang] %}
-<article class="post">
+{% assign show_ai_news_series = false %}
+{% if page.post_type == 'ai-news' and lang_meta.ai_news_series %}
+    {% for entry in site.tag_archives_by_lang[current_lang] %}
+        {% if entry.slug == 'ai-news' %}
+            {% assign show_ai_news_series = true %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<article class="post" data-pagefind-body>
     <h1 class="post-title">{{ page.title }}</h1>
-    <time datetime="{{ page.date | date_to_xmlschema }}" class="post-date">{{ page.date | date_to_string }}</time>
+    {% include localized-date.html date=page.date lang=current_lang %}
 
     {% if page.ai_generated and lang_meta.ai_disclosure %}
     <p class="post-disclosure" role="note">{{ lang_meta.ai_disclosure }}</p>
@@ -22,7 +31,7 @@ layout: default
             {% endif %}
         {% endfor %}
         {% if has_other_langs %}
-        <nav class="post-translations" aria-label="Translations">
+        <nav class="post-translations" aria-label="{{ lang_meta.post.translations_aria }}">
             {% for lang in site.lang_codes %}
                 {% if lang != current_lang %}
                     {% assign sibling = siblings[lang] %}
@@ -49,7 +58,7 @@ layout: default
 
     {% include ad-unit.html unit="autorelaxed" %}
 
-    {% if page.post_type == 'ai-news' and lang_meta.ai_news_series %}
+    {% if show_ai_news_series %}
     <p class="post-series post-series--footer">
         <a href="{{ lang_meta.ai_news_series.path }}">← {{ lang_meta.ai_news_series.label }}</a>
     </p>
@@ -58,9 +67,11 @@ layout: default
 
 {% if page.post_type and site.analytics.google_analytics_id != "" %}
 <script>
-  gtag('event', 'page_view_typed', {
-    post_type: '{{ page.post_type }}',
-    post_slug: '{{ page.slug }}'
-  });
+  if (typeof gtag === 'function') {
+    gtag('event', 'page_view_typed', {
+      post_type: '{{ page.post_type }}',
+      post_slug: '{{ page.slug }}'
+    });
+  }
 </script>
 {% endif %}

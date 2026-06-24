@@ -22,6 +22,21 @@ class ApiMonitorTests(unittest.TestCase):
         mock_urlopen.assert_called_once()
 
     @patch("api_monitor.urlopen")
+    def test_notify_llm_usage_sanitizes_error_for_slack(self, mock_urlopen):
+        with patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/x/y/z"}):
+            notify_llm_usage(
+                provider="gemini",
+                model="gemini-2.5-pro",
+                attempt=1,
+                operation="generate_post",
+                success=False,
+                error='api_key: "super-secret-token-value-12345"',
+            )
+        body = mock_urlopen.call_args[0][0].data.decode("utf-8")
+        self.assertNotIn("super-secret-token-value-12345", body)
+        self.assertIn("REDACTED", body)
+
+    @patch("api_monitor.urlopen")
     def test_notify_llm_usage_skips_slack_without_webhook(self, mock_urlopen):
         with patch.dict("os.environ", {}, clear=True):
             notify_llm_usage(

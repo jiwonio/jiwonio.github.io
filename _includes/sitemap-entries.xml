@@ -3,10 +3,12 @@
 {%- if sitemap_lang == site.default_lang -%}
 <url><loc>{{ site.url }}/</loc></url>
 <url><loc>{{ site.url }}/archive/</loc></url>
+<url><loc>{{ site.url }}/search/</loc></url>
 <url><loc>{{ site.url }}/privacy-policy/</loc></url>
 {%- else -%}
 <url><loc>{{ site.url }}/{{ sitemap_lang }}/</loc></url>
 <url><loc>{{ site.url }}/{{ sitemap_lang }}/archive/</loc></url>
+<url><loc>{{ site.url }}/{{ sitemap_lang }}/search/</loc></url>
 <url><loc>{{ site.url }}/{{ sitemap_lang }}/privacy-policy/</loc></url>
 {%- endif -%}
 {%- for post in sitemap_posts -%}

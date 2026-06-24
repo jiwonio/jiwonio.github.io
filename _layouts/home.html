@@ -10,13 +10,13 @@ layout: default
 <div class="posts">
     {% for post in lang_posts limit: per_page offset: offset %}
         <article class="post">
-            <h1 class="post-title">
+            <h2 class="post-title">
                 <a href="{% if post.link %}{{ post.link }}{% else %}{{ post.url }}{% endif %}">
                     {{ post.title }}
                 </a>
-            </h1>
+            </h2>
 
-            <time datetime="{{ post.date | date_to_xmlschema }}" class="post-date">{{ post.date | date_to_string }}</time>
+            {% include localized-date.html date=post.date lang=current_lang %}
 
             {{ post.excerpt }}
         </article>

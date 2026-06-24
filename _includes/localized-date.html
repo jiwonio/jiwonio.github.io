@@ -1,0 +1,7 @@
+{%- assign date_lang = include.lang | default: page.lang | default: site.default_lang | default: 'ko' -%}
+{%- assign date_meta = site.data.languages[date_lang] -%}
+{%- assign month_num = include.date | date: "%m" | plus: 0 -%}
+{%- assign day = include.date | date: "%d" | plus: 0 -%}
+{%- assign year = include.date | date: "%Y" -%}
+{%- assign month_name = date_meta.date.months[month_num] -%}
+<time datetime="{{ include.date | date_to_xmlschema }}" class="{{ include.class | default: 'post-date' }}">{%- if date_lang == 'ko' -%}{{ year }}년 {{ month_name }} {{ day }}일{%- elsif date_lang == 'ja' or date_lang == 'zh' -%}{{ year }}年{{ month_name }}{{ day }}日{%- else -%}{{ month_name }} {{ day }}, {{ year }}{%- endif -%}</time>

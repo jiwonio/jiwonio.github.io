@@ -18,7 +18,7 @@
         </li>
         <li>
             <a class="post-share__btn"
-               href="https://twitter.com/intent/tweet?url={{ share_url | cgi_escape }}&amp;text={{ share_text }}&amp;via={{ site.author.twitter }}"
+               href="https://x.com/intent/tweet?url={{ share_url | cgi_escape }}&amp;text={{ share_text }}&amp;via={{ site.author.twitter }}"
                target="_blank"
                rel="noopener noreferrer"
                aria-label="{{ share.twitter }}">
@@ -43,9 +43,10 @@
                     data-share-copied="{{ share.copied }}"
                     data-share-toast="{{ share.copy_toast }}"
                     data-share-toast-copied="{{ share.copied_toast }}"
+                    data-share-copy-error="{{ share.copy_error }}"
                     aria-label="{{ share.copy }}">
                 <i class="fa fa-link" aria-hidden="true"></i>
-                <span class="post-share__toast" aria-hidden="true"></span>
+                <span class="post-share__toast" aria-live="polite" aria-atomic="true"></span>
             </button>
         </li>
     </ul>

@@ -117,7 +117,7 @@ def backfill(
     dry_run: bool,
     sleep_seconds: float,
     translation_provider: str | None = None,
-) -> tuple[int, int]:
+) -> tuple[int, int, int]:
     created = 0
     skipped = 0
     failures = 0

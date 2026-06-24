@@ -7,6 +7,8 @@ import os
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
+from post_schema import sanitize_error_for_slack
+
 SLACK_TIMEOUT = 8
 
 
@@ -52,7 +54,7 @@ def notify_llm_usage(
     if slug:
         lines.append(f"- slug: `{slug}`")
     if error:
-        lines.append(f"- error: {error}")
+        lines.append(f"- error: {sanitize_error_for_slack(error)}")
 
     body = json.dumps({"text": "\n".join(lines)}).encode("utf-8")
     request = Request(

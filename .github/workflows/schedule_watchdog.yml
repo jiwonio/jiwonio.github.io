@@ -1,0 +1,62 @@
+name: Scheduled AI Post Watchdog
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check last successful AI post generation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LAST_RUN=$(gh api \
+            "/repos/${{ github.repository }}/actions/workflows/scheduled_ai_post.yml/runs?status=success&per_page=1" \
+            --jq '.workflow_runs[0].created_at // empty')
+
+          if [ -z "$LAST_RUN" ]; then
+            echo "::error::No successful scheduled_ai_post run found."
+            exit 1
+          fi
+
+          echo "Last successful run: $LAST_RUN"
+          LAST_EPOCH=$(date -d "$LAST_RUN" +%s)
+          NOW_EPOCH=$(date -u +%s)
+          AGE_DAYS=$(( (NOW_EPOCH - LAST_EPOCH) / 86400 ))
+          echo "Age: ${AGE_DAYS} day(s)"
+
+          if [ "$AGE_DAYS" -gt 8 ]; then
+            echo "::error::Last successful scheduled_ai_post run is older than 8 days."
+            exit 1
+          fi
+
+          echo "Scheduled AI post generation is within the expected window."
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: watchdog
+    if: failure()
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not configured, skipping Slack notification."
+            exit 0
+          fi
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"⚠️ Scheduled AI post watchdog: no successful run within 8 days\n${RUN_URL}\"}" \
+            "$SLACK_WEBHOOK_URL"
+
+      - name: Print failure summary
+        run: |
+          echo "::error::Scheduled AI post watchdog failed."
+          echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

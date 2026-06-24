@@ -1,5 +1,6 @@
 {%- assign current_lang = page.lang | default: site.default_lang | default: 'ko' -%}
 {%- assign lang_meta = site.data.languages[current_lang] -%}
+{%- assign search_ui = lang_meta.search_ui -%}
 <link href="/assets/vendor/pagefind/pagefind-ui.css" rel="stylesheet">
 <div id="pagefind-search"></div>
 <script src="/assets/vendor/pagefind/pagefind-ui.js"></script>
@@ -10,11 +11,20 @@
         "<p>{{ lang_meta.search_index_error }}</p>";
       return;
     }
-    new PagefindUI({
+    var ui = new PagefindUI({
       element: "#pagefind-search",
       bundlePath: "/pagefind/",
       showSubResults: true,
       resetStyles: false,
+      translations: {
+        placeholder: {{ search_ui.placeholder | jsonify }},
+        clear_search: {{ search_ui.clear_search | jsonify }},
+        zero_results: {{ search_ui.no_results | jsonify }},
+        search_label: {{ search_ui.search_label | jsonify }},
+        one_result: {{ search_ui.one_result | jsonify }},
+        many_results: {{ search_ui.many_results | jsonify }}
+      }
     });
+    ui.triggerFilters({ lang: ["{{ current_lang }}"] });
   });
 </script>

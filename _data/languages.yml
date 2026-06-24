@@ -5,21 +5,34 @@ ko:
   description: >
     웹 개발과 AI 코딩 도구를 다루는 기술 블로그입니다.
     실무에서 바로 쓸 수 있는 설정, 아키텍처, 트러블슈팅을 기록합니다.
+  home_title: "Jiwon Min · Developer"
   archive_title: "아카이브"
   search_title: "검색"
   search_index_error: "검색 인덱스를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
   privacy_title: "개인정보 처리방침"
   year_heading: "연도"
   tag_heading: "태그"
+  skip_to_content: "본문으로 건너뛰기"
+  nav:
+    search: "검색"
+    x: "X"
+    github: "GitHub"
+    email: "이메일"
+  lang_switcher:
+    aria_label: "언어 선택"
+    coming_soon: "준비 중"
   footer:
     made_with: "Made with ❤ using"
     location: "대한민국에 사는 웹 개발자입니다"
     archive_link: "모든 글은 아카이브에서 볼 수 있습니다"
     privacy_link: "개인정보 처리방침"
+    cookie_settings: "쿠키 설정"
+    rss: "RSS 피드"
   theme:
     system: "시스템 설정"
     light: "라이트 모드"
     dark: "다크 모드"
+    click_to_change: "클릭하여 변경"
   ai_news_series:
     label: "AI News 시리즈"
     path: "/archive/tag/ai-news/"
@@ -43,6 +56,22 @@ ko:
     copied: "링크가 복사되었습니다"
     copy_toast: "복사"
     copied_toast: "복사됨!"
+    copy_error: "링크 복사에 실패했습니다"
+  search_ui:
+    placeholder: "검색"
+    clear_search: "지우기"
+    no_results: "[SEARCH_TERM]에 대한 결과 없음"
+    search_label: "사이트 검색"
+    one_result: "[COUNT]개의 결과"
+    many_results: "[COUNT]개의 결과"
+  page_404:
+    title: "404: 페이지를 찾을 수 없습니다"
+    message: "요청하신 주소가 잘못되었거나 페이지가 삭제되었을 수 있습니다."
+    home: "홈으로 돌아가기"
+  post:
+    translations_aria: "다른 언어 버전"
+  date:
+    months: ["", "1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"]
 
 en:
   label: "English"
@@ -50,21 +79,34 @@ en:
   description: >
     A technical blog on web development and AI coding tools.
     Practical setups, architecture notes, and troubleshooting for production work.
+  home_title: "Jiwon Min · Developer"
   archive_title: "Archive"
   search_title: "Search"
   search_index_error: "Could not load the search index. Please try again later."
   privacy_title: "Privacy Policy"
   year_heading: "Year"
   tag_heading: "Tag"
+  skip_to_content: "Skip to content"
+  nav:
+    search: "Search"
+    x: "X"
+    github: "GitHub"
+    email: "Email"
+  lang_switcher:
+    aria_label: "Choose language"
+    coming_soon: "Coming soon"
   footer:
     made_with: "Made with ❤ using"
     location: "A web developer living in South Korea"
     archive_link: "All posts are available in the Archive"
     privacy_link: "Privacy Policy"
+    cookie_settings: "Cookie settings"
+    rss: "RSS feed"
   theme:
     system: "System theme"
     light: "Light mode"
     dark: "Dark mode"
+    click_to_change: "Click to change"
   ai_news_series:
     label: "AI News series"
     path: "/en/archive/tag/ai-news/"
@@ -88,6 +130,22 @@ en:
     copied: "Link copied"
     copy_toast: "Copy"
     copied_toast: "Copied!"
+    copy_error: "Failed to copy link"
+  search_ui:
+    placeholder: "Search"
+    clear_search: "Clear"
+    no_results: "No results for [SEARCH_TERM]"
+    search_label: "Search this site"
+    one_result: "[COUNT] result for [SEARCH_TERM]"
+    many_results: "[COUNT] results for [SEARCH_TERM]"
+  page_404:
+    title: "404: Page not found"
+    message: "The URL may be incorrect or the page may have been removed."
+    home: "Back to home"
+  post:
+    translations_aria: "Other language versions"
+  date:
+    months: ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 ja:
   label: "日本語"
@@ -95,21 +153,34 @@ ja:
   description: >
     Web開発とAIコーディングツールを扱う技術ブログです。
     実務ですぐ使える設定、アーキテクチャ、トラブルシューティングを記録します。
+  home_title: "Jiwon Min · Developer"
   archive_title: "アーカイブ"
   search_title: "検索"
   search_index_error: "検索インデックスを読み込めませんでした。しばらくしてから再度お試しください。"
   privacy_title: "プライバシーポリシー"
   year_heading: "年"
   tag_heading: "タグ"
+  skip_to_content: "本文へスキップ"
+  nav:
+    search: "検索"
+    x: "X"
+    github: "GitHub"
+    email: "メール"
+  lang_switcher:
+    aria_label: "言語を選択"
+    coming_soon: "準備中"
   footer:
     made_with: "Made with ❤ using"
     location: "韓国に住むWeb開発者です"
     archive_link: "すべての記事はアーカイブで閲覧できます"
     privacy_link: "プライバシーポリシー"
+    cookie_settings: "Cookie設定"
+    rss: "RSSフィード"
   theme:
     system: "システム設定"
     light: "ライトモード"
     dark: "ダークモード"
+    click_to_change: "クリックして変更"
   ai_news_series:
     label: "AI News シリーズ"
     path: "/ja/archive/tag/ai-news/"
@@ -133,6 +204,22 @@ ja:
     copied: "リンクをコピーしました"
     copy_toast: "コピー"
     copied_toast: "コピー完了!"
+    copy_error: "リンクのコピーに失敗しました"
+  search_ui:
+    placeholder: "検索"
+    clear_search: "クリア"
+    no_results: "[SEARCH_TERM]の結果はありません"
+    search_label: "サイト内検索"
+    one_result: "[SEARCH_TERM]の結果 [COUNT]件"
+    many_results: "[SEARCH_TERM]の結果 [COUNT]件"
+  page_404:
+    title: "404: ページが見つかりません"
+    message: "URLが間違っているか、ページが削除された可能性があります。"
+    home: "ホームに戻る"
+  post:
+    translations_aria: "他言語版"
+  date:
+    months: ["", "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
 
 zh:
   label: "中文"
@@ -140,21 +227,34 @@ zh:
   description: >
     分享 Web 开发与 AI 编程工具的技术博客。
     记录可直接用于生产的配置、架构与排错经验。
+  home_title: "Jiwon Min · Developer"
   archive_title: "归档"
   search_title: "搜索"
   search_index_error: "无法加载搜索索引，请稍后再试。"
   privacy_title: "隐私政策"
   year_heading: "年份"
   tag_heading: "标签"
+  skip_to_content: "跳转到正文"
+  nav:
+    search: "搜索"
+    x: "X"
+    github: "GitHub"
+    email: "电子邮件"
+  lang_switcher:
+    aria_label: "选择语言"
+    coming_soon: "即将推出"
   footer:
     made_with: "Made with ❤ using"
     location: "居住在韩国的 Web 开发者"
     archive_link: "所有文章可在归档中浏览"
     privacy_link: "隐私政策"
+    cookie_settings: "Cookie 设置"
+    rss: "RSS 订阅"
   theme:
     system: "跟随系统"
     light: "浅色模式"
     dark: "深色模式"
+    click_to_change: "点击切换"
   ai_news_series:
     label: "AI News 系列"
     path: "/zh/archive/tag/ai-news/"
@@ -178,3 +278,19 @@ zh:
     copied: "链接已复制"
     copy_toast: "复制"
     copied_toast: "已复制!"
+    copy_error: "复制链接失败"
+  search_ui:
+    placeholder: "搜索"
+    clear_search: "清除"
+    no_results: "未找到与 [SEARCH_TERM] 相关的结果"
+    search_label: "站内搜索"
+    one_result: "[SEARCH_TERM] 共 [COUNT] 条结果"
+    many_results: "[SEARCH_TERM] 共 [COUNT] 条结果"
+  page_404:
+    title: "404: 页面未找到"
+    message: "链接可能不正确，或页面已被删除。"
+    home: "返回首页"
+  post:
+    translations_aria: "其他语言版本"
+  date:
+    months: ["", "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]

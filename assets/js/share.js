@@ -27,6 +27,13 @@
     toast.classList.remove("post-share__toast--visible");
   }
 
+  function copyErrorMessage(button) {
+    if (window.SITE_I18N && window.SITE_I18N.share && window.SITE_I18N.share.copy_error) {
+      return window.SITE_I18N.share.copy_error;
+    }
+    return button.getAttribute("data-share-copy-error") || "Failed to copy link";
+  }
+
   function showHoverToast(button) {
     if (isCopied(button)) {
       return;
@@ -57,6 +64,16 @@
     }, resetMs);
   }
 
+  function showCopyError(button) {
+    showToast(button, copyErrorMessage(button));
+    window.clearTimeout(button._shareErrorTimer);
+    button._shareErrorTimer = window.setTimeout(function () {
+      if (!isCopied(button)) {
+        hideToast(button);
+      }
+    }, 2500);
+  }
+
   function copyUrl(button) {
     var url = button.getAttribute("data-share-url");
     if (!url) {
@@ -70,6 +87,8 @@
     if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
       navigator.clipboard.writeText(url).then(function () {
         showCopied(button);
+      }).catch(function () {
+        showCopyError(button);
       });
       return;
     }
@@ -85,7 +104,11 @@
     try {
       if (document.execCommand("copy")) {
         showCopied(button);
+      } else {
+        showCopyError(button);
       }
+    } catch (error) {
+      showCopyError(button);
     } finally {
       document.body.removeChild(input);
     }
