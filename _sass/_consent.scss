@@ -12,10 +12,12 @@
   max-width: 42rem;
   margin: 0 auto;
   padding: 1rem 1.25rem;
-  border: 1px solid var(--border-color, #d8dee4);
+  border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  background: var(--surface-color, #fff);
-  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12);
+  background: var(--color-message-bg);
+  color: var(--color-message-text);
+  box-shadow: var(--color-consent-shadow);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .cookie-consent[hidden] {
@@ -27,6 +29,7 @@
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
+  color: var(--color-message-text);
 }
 
 .cookie-consent__actions {
@@ -38,20 +41,57 @@
 
 .cookie-consent__button {
   padding: 0.45rem 0.9rem;
-  border: 1px solid var(--border-color, #d8dee4);
+  border: 1px solid var(--color-border);
   border-radius: 0.4rem;
   background: transparent;
-  color: inherit;
+  color: var(--color-masthead);
   cursor: pointer;
   font: inherit;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-link);
+    border-color: var(--color-link);
+    background: var(--color-pagination-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+  }
 }
 
 .cookie-consent__button--primary {
-  border-color: var(--link-color, #268bd2);
-  background: var(--link-color, #268bd2);
-  color: #fff;
+  border-color: var(--color-link);
+  background: var(--color-link);
+  color: var(--color-consent-primary-text);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--color-link);
+    background: var(--color-link);
+    color: var(--color-consent-primary-text);
+    opacity: 0.9;
+  }
 }
 
 .cookie-consent__link {
   font-size: 0.85rem;
+  color: var(--color-link);
+  text-decoration: none;
+  transition: color 0.15s ease, opacity 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-link);
+    text-decoration: underline;
+    opacity: 0.85;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
