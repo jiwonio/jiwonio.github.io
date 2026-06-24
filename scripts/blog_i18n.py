@@ -440,9 +440,10 @@ def generate_translation(
             content = strip_preamble(strip_code_fence(response.text))
             content = ensure_translation_metadata(content, source_content, target_lang, slug)
             validate_translation_content(content, target_lang, slug)
-            from api_monitor import notify_gemini_usage
+            from api_monitor import notify_llm_usage
 
-            notify_gemini_usage(
+            notify_llm_usage(
+                provider="gemini",
                 model=model,
                 attempt=attempt,
                 operation=f"translate_{target_lang}",
@@ -451,9 +452,10 @@ def generate_translation(
             )
             return save_translation(content, source_path, target_lang)
         except Exception as exc:
-            from api_monitor import notify_gemini_usage
+            from api_monitor import notify_llm_usage
 
-            notify_gemini_usage(
+            notify_llm_usage(
+                provider="gemini",
                 model=model,
                 attempt=attempt,
                 operation=f"translate_{target_lang}",

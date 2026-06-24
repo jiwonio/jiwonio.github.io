@@ -434,9 +434,10 @@ def generate_with_retry(
             print(f"🔄 AI 글쓰기 API 요청 중... (시도 {attempt}/{max_retries})")
             content = sanitize_generated_content(generate_text(client, prompt))
             metadata, slug = validate_fn(content)
-            from api_monitor import notify_gemini_usage
+            from api_monitor import notify_llm_usage
 
-            notify_gemini_usage(
+            notify_llm_usage(
+                provider="gemini",
                 model=TEXT_MODEL,
                 attempt=attempt,
                 operation="generate_post",
@@ -445,9 +446,10 @@ def generate_with_retry(
             )
             return content, metadata, slug
         except Exception as exc:
-            from api_monitor import notify_gemini_usage
+            from api_monitor import notify_llm_usage
 
-            notify_gemini_usage(
+            notify_llm_usage(
+                provider="gemini",
                 model=TEXT_MODEL,
                 attempt=attempt,
                 operation="generate_post",

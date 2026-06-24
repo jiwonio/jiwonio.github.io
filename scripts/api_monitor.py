@@ -1,4 +1,4 @@
-"""Gemini API 호출 모니터링 (GitHub Actions notice + 선택적 Slack 알림)."""
+"""LLM API 호출 모니터링 (GitHub Actions notice + 선택적 Slack 알림)."""
 
 from __future__ import annotations
 
@@ -10,8 +10,9 @@ from urllib.request import Request, urlopen
 SLACK_TIMEOUT = 8
 
 
-def notify_gemini_usage(
+def notify_llm_usage(
     *,
+    provider: str = "gemini",
     model: str,
     attempt: int,
     operation: str,
@@ -20,6 +21,7 @@ def notify_gemini_usage(
     error: str | None = None,
 ) -> None:
     payload = {
+        "provider": provider,
         "model": model,
         "attempt": attempt,
         "operation": operation,
@@ -36,13 +38,13 @@ def notify_gemini_usage(
         )
     )
 
-    webhook = os.environ.get("GEMINI_SLACK_WEBHOOK_URL", "").strip()
+    webhook = os.environ.get("SLACK_WEBHOOK_URL", "").strip()
     if not webhook:
         return
 
     status = "성공" if success else "실패"
     lines = [
-        f"*Gemini API {status}*",
+        f"*AI API {status}* ({provider})",
         f"- operation: `{operation}`",
         f"- model: `{model}`",
         f"- attempt: {attempt}",
@@ -64,3 +66,7 @@ def notify_gemini_usage(
             pass
     except URLError as exc:
         print(f"::warning::slack_notification_failed={exc}")
+
+
+# 하위 호환 alias
+notify_gemini_usage = notify_llm_usage

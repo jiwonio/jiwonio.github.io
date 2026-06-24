@@ -62,7 +62,7 @@ jobs:
         id: generate
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_SLACK_WEBHOOK_URL: ${{ secrets.GEMINI_SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           POST_TYPE="${{ github.event.inputs.post_type || 'auto' }}"
           DOW=$(date -u +%u)

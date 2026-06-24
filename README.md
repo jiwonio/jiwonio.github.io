@@ -58,7 +58,7 @@ _posts/
 |--------|------|
 | `GEMINI_API_KEY` | Gemini API (글·이미지·번역 생성) |
 | `MY_PAT` | Actions에서 커밋·PR 생성·푸시용 PAT |
-| `SLACK_WEBHOOK_URL` | (선택) 워크플로 실패 시 Slack 알림 |
+| `SLACK_WEBHOOK_URL` | (선택) 워크플로 실패·LLM API 호출 Slack 알림 |
 
 ## 로컬 개발
 
