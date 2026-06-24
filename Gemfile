@@ -19,7 +19,7 @@ gem 'tzinfo-data'
 gem 'wdm', '>= 0.1.0' if Gem.win_platform?
 
 group :jekyll_plugins do
-  gem 'jekyll-archives', '~> 2.2.1'
+  gem 'jekyll-archives', '~> 2.3.0'
 end
 
 group :test do
