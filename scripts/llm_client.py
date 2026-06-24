@@ -1,0 +1,235 @@
+"""Multi-provider LLM client (Gemini, Anthropic, OpenAI, xAI)."""
+
+from __future__ import annotations
+
+import base64
+import os
+from typing import Literal
+from urllib.request import urlopen
+
+from models_config import (
+    IMAGE_PROVIDER_CHAIN,
+    POST_TYPE_TEXT_PROVIDERS,
+    PROVIDER_API_KEY_ENV,
+    PROVIDER_MODELS,
+    TRANSLATION_PROVIDER_CHAIN,
+)
+
+Provider = Literal["gemini", "anthropic", "openai", "xai"]
+XAI_BASE_URL = "https://api.x.ai/v1"
+MAX_OUTPUT_TOKENS = 16384
+
+
+def get_api_key(provider: str) -> str:
+    env_name = PROVIDER_API_KEY_ENV.get(provider, "")
+    return os.environ.get(env_name, "").strip()
+
+
+def is_provider_available(provider: str) -> bool:
+    return provider in PROVIDER_MODELS and bool(get_api_key(provider))
+
+
+def list_available_providers() -> list[str]:
+    return [provider for provider in PROVIDER_MODELS if is_provider_available(provider)]
+
+
+def filter_available_providers(providers: tuple[str, ...] | list[str]) -> list[str]:
+    return [provider for provider in providers if is_provider_available(provider)]
+
+
+def get_text_model(provider: str) -> str:
+    return PROVIDER_MODELS[provider]["text"]
+
+
+def get_translation_models(provider: str) -> tuple[str, ...]:
+    models = PROVIDER_MODELS[provider]["translation"]
+    if isinstance(models, str):
+        return (models,)
+    return tuple(models)
+
+
+def get_image_model(provider: str) -> str | None:
+    return PROVIDER_MODELS[provider].get("image")
+
+
+def resolve_text_providers(post_type: str, override: str | None = None) -> list[str]:
+    if override and override.strip():
+        primary = override.strip().lower()
+        if primary not in PROVIDER_MODELS:
+            raise ValueError(f"Unknown provider: {override}")
+        chain = [primary]
+        for provider in POST_TYPE_TEXT_PROVIDERS.get(post_type, ("gemini",)):
+            if provider not in chain:
+                chain.append(provider)
+    else:
+        env_override = os.environ.get("LLM_TEXT_PROVIDER", "").strip().lower()
+        if env_override:
+            return resolve_text_providers(post_type, env_override)
+        chain = list(POST_TYPE_TEXT_PROVIDERS.get(post_type, ("gemini", "anthropic", "openai", "xai")))
+
+    available = filter_available_providers(chain)
+    if available:
+        return available
+    return list_available_providers()
+
+
+def resolve_translation_providers(override: str | None = None) -> list[str]:
+    if override and override.strip():
+        primary = override.strip().lower()
+        if primary not in PROVIDER_MODELS:
+            raise ValueError(f"Unknown provider: {override}")
+        chain = [primary]
+        for provider in TRANSLATION_PROVIDER_CHAIN:
+            if provider not in chain:
+                chain.append(provider)
+    else:
+        env_override = os.environ.get("LLM_TRANSLATION_PROVIDER", "").strip().lower()
+        if env_override:
+            return resolve_translation_providers(env_override)
+        chain = list(TRANSLATION_PROVIDER_CHAIN)
+
+    available = filter_available_providers(chain)
+    if available:
+        return available
+    return list_available_providers()
+
+
+def resolve_image_providers() -> list[str]:
+    available = filter_available_providers(IMAGE_PROVIDER_CHAIN)
+    if available:
+        return available
+    if is_provider_available("gemini"):
+        return ["gemini"]
+    return []
+
+
+def pick_provider_for_attempt(providers: list[str], attempt: int) -> str:
+    if not providers:
+        raise RuntimeError(
+            "사용 가능한 LLM provider가 없습니다. "
+            "GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, XAI_API_KEY 중 하나 이상을 설정하세요."
+        )
+    return providers[(attempt - 1) % len(providers)]
+
+
+def pick_translation_target(providers: list[str], attempt: int) -> tuple[str, str]:
+    provider = pick_provider_for_attempt(providers, attempt)
+    models = get_translation_models(provider)
+    model_round = (attempt - 1) // max(len(providers), 1)
+    model = models[min(model_round, len(models) - 1)]
+    return provider, model
+
+
+def _generate_gemini_text(prompt: str, model: str) -> str:
+    from google import genai
+
+    client = genai.Client(api_key=get_api_key("gemini"))
+    response = client.models.generate_content(model=model, contents=prompt)
+    return response.text or ""
+
+
+def _generate_anthropic_text(prompt: str, model: str) -> str:
+    from anthropic import Anthropic
+
+    client = Anthropic(api_key=get_api_key("anthropic"))
+    message = client.messages.create(
+        model=model,
+        max_tokens=MAX_OUTPUT_TOKENS,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    parts = [block.text for block in message.content if hasattr(block, "text")]
+    return "\n".join(parts).strip()
+
+
+def _generate_openai_compatible_text(prompt: str, model: str, *, provider: str) -> str:
+    from openai import OpenAI
+
+    kwargs = {"api_key": get_api_key(provider)}
+    if provider == "xai":
+        kwargs["base_url"] = XAI_BASE_URL
+    client = OpenAI(**kwargs)
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return (response.choices[0].message.content or "").strip()
+
+
+def generate_text(*, prompt: str, provider: str, model: str | None = None) -> str:
+    if not is_provider_available(provider):
+        raise RuntimeError(f"{provider} API key가 설정되지 않았습니다.")
+
+    model = model or get_text_model(provider)
+    if provider == "gemini":
+        return _generate_gemini_text(prompt, model)
+    if provider == "anthropic":
+        return _generate_anthropic_text(prompt, model)
+    if provider in {"openai", "xai"}:
+        return _generate_openai_compatible_text(prompt, model, provider=provider)
+    raise ValueError(f"Unsupported provider: {provider}")
+
+
+def _generate_gemini_image(prompt: str, model: str) -> bytes:
+    from google import genai
+    from google.genai import types
+
+    client = genai.Client(api_key=get_api_key("gemini"))
+    response = client.models.generate_content(
+        model=model,
+        contents=[prompt],
+        config=types.GenerateContentConfig(
+            response_modalities=["IMAGE"],
+            image_config=types.ImageConfig(aspect_ratio="16:9"),
+        ),
+    )
+    for part in response.parts:
+        if part.inline_data is not None:
+            return part.inline_data.data
+    raise ValueError("Gemini 이미지 응답이 없습니다.")
+
+
+def _generate_xai_image(prompt: str, model: str) -> bytes:
+    from openai import OpenAI
+
+    client = OpenAI(api_key=get_api_key("xai"), base_url=XAI_BASE_URL)
+    response = client.images.generate(
+        model=model,
+        prompt=prompt,
+        response_format="b64_json",
+        extra_body={"aspect_ratio": "16:9"},
+    )
+    item = response.data[0]
+    if getattr(item, "b64_json", None):
+        return base64.b64decode(item.b64_json)
+    if getattr(item, "url", None):
+        with urlopen(item.url, timeout=60) as remote:
+            return remote.read()
+    raise ValueError("xAI 이미지 응답이 없습니다.")
+
+
+def generate_image(*, prompt: str, provider: str, model: str | None = None) -> bytes:
+    if not is_provider_available(provider):
+        raise RuntimeError(f"{provider} API key가 설정되지 않았습니다.")
+
+    model = model or get_image_model(provider)
+    if not model:
+        raise ValueError(f"{provider}는 이미지 생성을 지원하지 않습니다.")
+
+    if provider == "gemini":
+        return _generate_gemini_image(prompt, model)
+    if provider == "xai":
+        return _generate_xai_image(prompt, model)
+    raise ValueError(f"Unsupported image provider: {provider}")
+
+
+def generate_image_with_fallback(prompt: str) -> tuple[bytes, str, str]:
+    last_error: Exception | None = None
+    for provider in resolve_image_providers():
+        model = get_image_model(provider)
+        if not model:
+            continue
+        try:
+            return generate_image(prompt=prompt, provider=provider, model=model), provider, model
+        except Exception as exc:
+            last_error = exc
+    raise RuntimeError(f"이미지 생성에 실패했습니다: {last_error}")

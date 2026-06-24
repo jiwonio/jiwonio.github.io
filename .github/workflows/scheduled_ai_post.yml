@@ -25,6 +25,28 @@ on:
         required: false
         default: true
         type: boolean
+      text_provider:
+        description: '글 생성 LLM provider (auto=post_type 라우팅)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - gemini
+          - anthropic
+          - openai
+          - xai
+      translation_provider:
+        description: '번역 LLM provider (auto=폴백 체인)'
+        required: false
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - gemini
+          - anthropic
+          - openai
+          - xai
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -62,6 +84,9 @@ jobs:
         id: generate
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           POST_TYPE="${{ github.event.inputs.post_type || 'auto' }}"
@@ -106,7 +131,17 @@ jobs:
             exit 0
           fi
 
-          python "$SCRIPT"
+          TEXT_PROVIDER="${{ github.event.inputs.text_provider || 'auto' }}"
+          TRANSLATION_PROVIDER="${{ github.event.inputs.translation_provider || 'auto' }}"
+          EXTRA_ARGS=()
+          if [ "$TEXT_PROVIDER" != "auto" ]; then
+            EXTRA_ARGS+=(--text-provider "$TEXT_PROVIDER")
+          fi
+          if [ "$TRANSLATION_PROVIDER" != "auto" ]; then
+            EXTRA_ARGS+=(--translation-provider "$TRANSLATION_PROVIDER")
+          fi
+
+          python "$SCRIPT" "${EXTRA_ARGS[@]}"
 
       - name: Run Python unit tests
         if: env.RUN_GENERATION == 'true'
@@ -155,7 +190,7 @@ jobs:
 
             PR_URL=$(gh pr create \
               --title "$PR_TITLE" \
-              --body "Gemini AI가 작성하고 썸네일 이미지를 생성한 포스트입니다. 게시물 검증과 Jekyll 빌드를 통과했습니다." \
+              --body "Multi-LLM 파이프라인으로 작성·번역·썸네일을 생성한 포스트입니다. 게시물 검증과 Jekyll 빌드를 통과했습니다." \
               --base gh-pages \
               --head $BRANCH_NAME)
 

@@ -27,7 +27,6 @@ from blog_i18n import (
     dump_front_matter,
     ensure_updated_field,
     generate_translation,
-    get_gemini_client,
     infer_ai_generated,
     infer_categories,
     parse_front_matter,
@@ -117,8 +116,8 @@ def backfill(
     *,
     dry_run: bool,
     sleep_seconds: float,
+    translation_provider: str | None = None,
 ) -> tuple[int, int]:
-    client = None if dry_run else get_gemini_client()
     created = 0
     skipped = 0
     failures = 0
@@ -145,7 +144,12 @@ def backfill(
         for lang in pending_langs:
             print(f"  🌐 {LANG_LABELS[lang]} ({lang})...")
             try:
-                output = generate_translation(client, source_content, source_path, lang)
+                output = generate_translation(
+                    source_content,
+                    source_path,
+                    lang,
+                    translation_provider=translation_provider,
+                )
                 print(f"  ✅ {output.as_posix()}")
                 created += 1
                 if sleep_seconds > 0:
@@ -165,6 +169,11 @@ def main() -> int:
     parser.add_argument("--slug", type=str, default="", help="Process a single slug.")
     parser.add_argument("--langs", type=str, default=",".join(TRANSLATION_LANGS))
     parser.add_argument("--sleep", type=float, default=5.0, help="Seconds between API calls.")
+    parser.add_argument(
+        "--translation-provider",
+        choices=["gemini", "anthropic", "openai", "xai"],
+        help="번역에 사용할 LLM provider (기본: 번역 폴백 체인)",
+    )
     args = parser.parse_args()
 
     langs = tuple(lang.strip() for lang in args.langs.split(",") if lang.strip())
@@ -192,7 +201,11 @@ def main() -> int:
         return 0
 
     created, skipped, failures = backfill(
-        posts, langs, dry_run=args.dry_run, sleep_seconds=args.sleep
+        posts,
+        langs,
+        dry_run=args.dry_run,
+        sleep_seconds=args.sleep,
+        translation_provider=args.translation_provider,
     )
     print(f"Done. created={created}, skipped_complete={skipped}, failures={failures}")
 

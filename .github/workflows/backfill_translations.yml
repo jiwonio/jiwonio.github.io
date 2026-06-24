@@ -60,18 +60,24 @@ jobs:
 
       - name: Verify secrets
         run: |
-          if [ -z "${{ secrets.GEMINI_API_KEY }}" ]; then
-            echo "GEMINI_API_KEY secret is missing."
-            exit 1
-          fi
           if [ -z "${{ secrets.MY_PAT }}" ]; then
             echo "MY_PAT secret is missing (needed for commit/push)."
+            exit 1
+          fi
+          if [ -z "${{ secrets.GEMINI_API_KEY }}" ] \
+            && [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ] \
+            && [ -z "${{ secrets.OPENAI_API_KEY }}" ] \
+            && [ -z "${{ secrets.XAI_API_KEY }}" ]; then
+            echo "At least one LLM API key secret is required."
             exit 1
           fi
 
       - name: Run backfill script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         run: |
           ARGS=()
           if [ "${{ inputs.prepare_only }}" = "true" ]; then

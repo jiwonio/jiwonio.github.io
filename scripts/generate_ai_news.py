@@ -14,7 +14,7 @@ import feedparser
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from blog_i18n import FRONT_MATTER_PATTERN, get_gemini_client
+from blog_i18n import FRONT_MATTER_PATTERN
 from feeds_config import (
     AI_FILTER_FEEDS,
     ALL_FEEDS,
@@ -394,7 +394,7 @@ image: "/uploads/{today_slug}/thumbnail.webp"
 """
 
 
-def generate_ai_news_post() -> str:
+def generate_ai_news_post(*, text_provider: str | None = None, translation_provider: str | None = None) -> str:
     today = get_kst_now()
     today_slug = f"ai-news-{today.strftime('%Y-%m-%d')}"
     current_time = today.strftime("%Y-%m-%d %H:%M:%S +0900")
@@ -421,8 +421,6 @@ def generate_ai_news_post() -> str:
         today_slug,
     )
 
-    client = get_gemini_client()
-
     def validate(content: str) -> tuple[dict, str]:
         try:
             return validate_ai_news_content(content, past_urls)
@@ -430,7 +428,12 @@ def generate_ai_news_post() -> str:
             preview = content[:300].replace("\n", " ")
             raise ValueError(f"{exc} | 응답 미리보기: {preview}") from exc
 
-    content, metadata, slug = generate_with_retry(client, prompt, validate)
+    content, metadata, slug = generate_with_retry(
+        prompt,
+        validate,
+        post_type="ai-news",
+        text_provider=text_provider,
+    )
 
     image_prompt = (
         "Weekly AI developer news digest thumbnail. Calendar, code editor, "
@@ -438,7 +441,6 @@ def generate_ai_news_post() -> str:
     )
 
     return publish_post(
-        client,
         content,
         metadata,
         slug,
@@ -446,6 +448,7 @@ def generate_ai_news_post() -> str:
         post_type="ai-news",
         today=today,
         require_translations=True,
+        translation_provider=translation_provider,
     )
 
 
@@ -513,8 +516,21 @@ if __name__ == "__main__":
         action="store_true",
         help="dry-run 시 RSS 후보·내부 링크 부족하면 exit code 1 반환 (slug 중복은 제외)",
     )
+    parser.add_argument(
+        "--text-provider",
+        choices=["gemini", "anthropic", "openai", "xai"],
+        help="글 생성에 사용할 LLM provider (기본: ai-news 라우팅)",
+    )
+    parser.add_argument(
+        "--translation-provider",
+        choices=["gemini", "anthropic", "openai", "xai"],
+        help="번역에 사용할 LLM provider (기본: 번역 폴백 체인)",
+    )
     args = parser.parse_args()
 
     if args.dry_run:
         raise SystemExit(dry_run(strict=args.strict))
-    generate_ai_news_post()
+    generate_ai_news_post(
+        text_provider=args.text_provider,
+        translation_provider=args.translation_provider,
+    )

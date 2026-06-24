@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from blog_i18n import get_gemini_client
+from llm_client import list_available_providers
 from post_common import (
     FORBIDDEN_REPEAT_COUNT,
     count_token_frequency,
@@ -160,15 +160,13 @@ image: "/uploads/english-slug-for-this-topic/thumbnail.webp"
 """
 
 
-def generate_blog_post() -> str:
+def generate_blog_post(*, text_provider: str | None = None, translation_provider: str | None = None) -> str:
     today = get_kst_now()
     current_time = today.strftime("%Y-%m-%d %H:%M:%S +0900")
 
     recent_titles = get_recent_titles(50)
     recent_slugs = get_recent_slugs(50)
     prompt = build_generation_prompt(recent_titles, recent_slugs, current_time)
-
-    client = get_gemini_client()
 
     def validate(content: str) -> tuple[dict, str]:
         try:
@@ -177,7 +175,12 @@ def generate_blog_post() -> str:
             preview = content[:300].replace("\n", " ")
             raise ValueError(f"{exc} | 응답 미리보기: {preview}") from exc
 
-    content, metadata, slug = generate_with_retry(client, prompt, validate)
+    content, metadata, slug = generate_with_retry(
+        prompt,
+        validate,
+        post_type="deep-dive",
+        text_provider=text_provider,
+    )
 
     clean_english_topic = slug.replace("-", " ")
     image_prompt = (
@@ -186,7 +189,6 @@ def generate_blog_post() -> str:
     )
 
     return publish_post(
-        client,
         content,
         metadata,
         slug,
@@ -194,6 +196,7 @@ def generate_blog_post() -> str:
         post_type="deep-dive",
         today=today,
         require_translations=True,
+        translation_provider=translation_provider,
     )
 
 
@@ -203,8 +206,8 @@ def dry_run() -> int:
 
     print("🔍 Deep-dive dry-run (API 호출 없음)")
 
-    if not os.environ.get("GEMINI_API_KEY", "").strip():
-        issues.append("GEMINI_API_KEY is not set")
+    if not list_available_providers():
+        issues.append("No LLM API keys configured (GEMINI/ANTHROPIC/OPENAI/XAI)")
 
     recent_titles = get_recent_titles(50)
     recent_slugs = get_recent_slugs(50)
@@ -230,8 +233,21 @@ if __name__ == "__main__":
         action="store_true",
         help="API 호출 없이 사전 조건만 확인하고 종료",
     )
+    parser.add_argument(
+        "--text-provider",
+        choices=["gemini", "anthropic", "openai", "xai"],
+        help="글 생성에 사용할 LLM provider (기본: deep-dive 라우팅)",
+    )
+    parser.add_argument(
+        "--translation-provider",
+        choices=["gemini", "anthropic", "openai", "xai"],
+        help="번역에 사용할 LLM provider (기본: 번역 폴백 체인)",
+    )
     args = parser.parse_args()
 
     if args.dry_run:
         raise SystemExit(dry_run())
-    generate_blog_post()
+    generate_blog_post(
+        text_provider=args.text_provider,
+        translation_provider=args.translation_provider,
+    )

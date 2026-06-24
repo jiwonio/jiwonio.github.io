@@ -16,6 +16,11 @@ LANG_PATH = re.compile(r"_posts/(en|ja|zh|ko)/")
 SITE_ROOT = Path(__file__).resolve().parent.parent
 POSTS_DIR = SITE_ROOT / "_posts"
 
+from llm_client import (
+    generate_text as llm_generate_text,
+    pick_translation_target,
+    resolve_translation_providers,
+)
 from models_config import TRANSLATION_MODELS as _TRANSLATION_MODELS
 
 DEFAULT_LANG = "ko"
@@ -403,6 +408,7 @@ def save_translation(content: str, source_path: Path, target_lang: str) -> Path:
 
 
 def get_gemini_client():
+    """하위 호환용 Gemini 클라이언트 (신규 코드는 llm_client 사용)."""
     from google import genai
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
@@ -415,11 +421,11 @@ TRANSLATION_MODELS = _TRANSLATION_MODELS
 
 
 def generate_translation(
-    client,
     source_content: str,
     source_path: Path,
     target_lang: str,
     *,
+    translation_provider: str | None = None,
     max_retries: int = 5,
 ) -> Path:
     slug = resolve_slug(source_path, parse_front_matter(source_content))
@@ -431,19 +437,21 @@ def generate_translation(
         return save_translation(content, source_path, target_lang)
 
     prompt = build_translation_prompt(source_content, target_lang, slug)
+    providers = resolve_translation_providers(translation_provider)
     last_error = None
 
     for attempt in range(1, max_retries + 1):
-        model = TRANSLATION_MODELS[min(attempt - 1, len(TRANSLATION_MODELS) - 1)]
+        provider, model = pick_translation_target(providers, attempt)
         try:
-            response = client.models.generate_content(model=model, contents=prompt)
-            content = strip_preamble(strip_code_fence(response.text))
+            print(f"  번역 API: {provider}/{model} (시도 {attempt}/{max_retries})")
+            raw = llm_generate_text(prompt=prompt, provider=provider, model=model)
+            content = strip_preamble(strip_code_fence(raw))
             content = ensure_translation_metadata(content, source_content, target_lang, slug)
             validate_translation_content(content, target_lang, slug)
             from api_monitor import notify_llm_usage
 
             notify_llm_usage(
-                provider="gemini",
+                provider=provider,
                 model=model,
                 attempt=attempt,
                 operation=f"translate_{target_lang}",
@@ -455,7 +463,7 @@ def generate_translation(
             from api_monitor import notify_llm_usage
 
             notify_llm_usage(
-                provider="gemini",
+                provider=provider,
                 model=model,
                 attempt=attempt,
                 operation=f"translate_{target_lang}",

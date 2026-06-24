@@ -1,6 +1,6 @@
 # blog.jiwon.io
 
-Jekyll 4 기반 다국어 기술 블로그입니다. 한국어(ko) 원문과 en/ja/zh 번역본을 `translation_key`로 묶어 운영하며, Gemini API로 심층 기술 글과 AI 뉴스 다이제스트를 자동 생성합니다.
+Jekyll 4 기반 다국어 기술 블로그입니다. 한국어(ko) 원문과 en/ja/zh 번역본을 `translation_key`로 묶어 운영하며, Gemini·Claude·ChatGPT·Grok API로 심층 기술 글과 AI 뉴스 다이제스트를 자동 생성합니다.
 
 - **사이트:** https://blog.jiwon.io
 - **배포 브랜치:** `gh-pages` (GitHub Pages)
@@ -23,7 +23,8 @@ _posts/
 | `scripts/generate_ai_news.py` | 목요일 AI 뉴스 다이제스트(ai-news) 자동 생성 |
 | `scripts/backfill_translations.py` | 기존 원문의 누락 번역 백필 |
 | `scripts/validate_posts.py` | 배포 전 front matter·이미지·번역 완전성·내부 링크·언어 품질 검증 |
-| `scripts/models_config.py` | Gemini 텍스트·이미지·번역 모델 설정 |
+| `scripts/models_config.py` | LLM provider·모델·라우팅 설정 |
+| `scripts/llm_client.py` | Gemini/Anthropic/OpenAI/xAI 통합 텍스트·이미지 클라이언트 |
 | `scripts/submit_indexnow.py` | 배포·변경 포스트 URL IndexNow 제출 (번역 그룹 포함) |
 | `scripts/sync_translation_dates.py` | 번역본 날짜를 ko 원문과 동기화 |
 | `scripts/tests/` | Python 단위 테스트 |
@@ -52,11 +53,26 @@ _posts/
 | `thumbnail_check.yml` | 화 07:00 | 누락 썸네일 `--dry-run` 점검 |
 | `backfill_translations.yml` | 수동 | 누락 번역 백필 (`workflow_dispatch`) |
 
+### LLM 라우팅
+
+| 작업 | 기본 provider 순서 |
+|------|-------------------|
+| `deep-dive` 글 생성 | gemini → anthropic → openai → xai |
+| `ai-news` 글 생성 | anthropic → openai → xai → gemini |
+| en/ja/zh 번역 | gemini → anthropic → openai → xai (재시도 시 저가 모델) |
+| 썸네일 이미지 | gemini → xai (실패 시 기본 썸네일) |
+
+`workflow_dispatch`에서 `text_provider`·`translation_provider`로 override 가능합니다.  
+로컬에서는 `LLM_TEXT_PROVIDER`, `LLM_TRANSLATION_PROVIDER` 환경 변수로도 지정할 수 있습니다.
+
 ### Repository Secrets
 
 | Secret | 용도 |
 |--------|------|
-| `GEMINI_API_KEY` | Gemini API (글·이미지·번역 생성) |
+| `GEMINI_API_KEY` | Gemini API (deep-dive·이미지·번역) |
+| `ANTHROPIC_API_KEY` | Claude API (ai-news·폴백·번역) |
+| `OPENAI_API_KEY` | OpenAI API (ai-news·폴백·번역) |
+| `XAI_API_KEY` | Grok/xAI API (ai-news·폴백·번역·이미지) |
 | `MY_PAT` | Actions에서 커밋·PR 생성·푸시용 PAT |
 | `SLACK_WEBHOOK_URL` | (선택) 워크플로 실패·LLM API 호출 Slack 알림 |
 
@@ -76,6 +92,7 @@ _posts/
 ```bash
 pip install -r scripts/requirements.txt
 export GEMINI_API_KEY=...   # Windows: $env:GEMINI_API_KEY="..."
+# 선택: ANTHROPIC_API_KEY, OPENAI_API_KEY, XAI_API_KEY
 
 # 포스트 검증 (배포와 동일)
 python scripts/validate_posts.py

@@ -11,21 +11,24 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse, urlunparse
 
-from google.genai import types
-
 from blog_i18n import (
     DEFAULT_LANG,
     FRONT_MATTER_PATTERN,
     LANG_LABELS,
     detect_lang_from_path,
-    get_gemini_client,
     inject_front_matter_field,
     parse_front_matter,
     permalink_for_lang,
     translation_langs_for_metadata,
 )
 from blog_i18n import generate_translation as _generate_translation
-from models_config import IMAGE_MODEL, TEXT_MODEL
+from llm_client import (
+    generate_image_with_fallback,
+    generate_text as llm_generate_text,
+    get_text_model,
+    pick_provider_for_attempt,
+    resolve_text_providers,
+)
 
 try:
     from PIL import Image
@@ -348,19 +351,8 @@ def format_internal_links_for_prompt(candidates: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def generate_thumbnail(client, prompt: str) -> bytes:
-    response = client.models.generate_content(
-        model=IMAGE_MODEL,
-        contents=[prompt],
-        config=types.GenerateContentConfig(
-            response_modalities=["IMAGE"],
-            image_config=types.ImageConfig(aspect_ratio="16:9"),
-        ),
-    )
-    for part in response.parts:
-        if part.inline_data is not None:
-            return part.inline_data.data
-    raise ValueError("이미지 응답이 없습니다.")
+def generate_thumbnail(prompt: str) -> tuple[bytes, str, str]:
+    return generate_image_with_fallback(prompt)
 
 
 def save_thumbnail(slug: str, thumbnail: bytes, title: str) -> tuple[str, str]:
@@ -415,30 +407,35 @@ def inject_hero_image(content: str, image_md: str) -> str:
     return content.replace("<!--more-->", f"<!--more-->\n\n{image_md}\n\n-----")
 
 
-def generate_text(client, prompt: str) -> str:
-    response = client.models.generate_content(model=TEXT_MODEL, contents=prompt)
-    return strip_preamble(strip_code_fence(response.text))
-
-
 def generate_with_retry(
-    client,
     prompt: str,
     validate_fn,
     *,
+    post_type: str = "deep-dive",
+    text_provider: str | None = None,
     max_retries: int = 5,
     retry_backoff_seconds: int = 15,
 ) -> tuple[str, dict, str]:
+    providers = resolve_text_providers(post_type, text_provider)
     last_error = None
     for attempt in range(1, max_retries + 1):
+        provider = pick_provider_for_attempt(providers, attempt)
+        model = get_text_model(provider)
         try:
-            print(f"🔄 AI 글쓰기 API 요청 중... (시도 {attempt}/{max_retries})")
-            content = sanitize_generated_content(generate_text(client, prompt))
+            print(
+                f"🔄 AI 글쓰기 API 요청 중... "
+                f"({provider}/{model}, 시도 {attempt}/{max_retries})"
+            )
+            raw = llm_generate_text(prompt=prompt, provider=provider, model=model)
+            content = sanitize_generated_content(
+                strip_preamble(strip_code_fence(raw))
+            )
             metadata, slug = validate_fn(content)
             from api_monitor import notify_llm_usage
 
             notify_llm_usage(
-                provider="gemini",
-                model=TEXT_MODEL,
+                provider=provider,
+                model=model,
                 attempt=attempt,
                 operation="generate_post",
                 slug=slug,
@@ -449,8 +446,8 @@ def generate_with_retry(
             from api_monitor import notify_llm_usage
 
             notify_llm_usage(
-                provider="gemini",
-                model=TEXT_MODEL,
+                provider=provider,
+                model=model,
                 attempt=attempt,
                 operation="generate_post",
                 success=False,
@@ -464,7 +461,7 @@ def generate_with_retry(
                 if attempt < max_retries:
                     time.sleep(wait)
             else:
-                print(f"❌ 생성 중 에러 발생: {exc}")
+                print(f"❌ 생성 중 에러 발생 ({provider}): {exc}")
                 if attempt < max_retries:
                     time.sleep(5)
     raise RuntimeError(f"포스트 생성에 실패했습니다: {last_error}")
@@ -483,10 +480,10 @@ def save_ko_post(content: str, slug: str, today: datetime) -> str:
 
 
 def generate_translations(
-    client,
     source_content: str,
     source_path: Path,
     *,
+    translation_provider: str | None = None,
     fail_on_error: bool = False,
 ) -> None:
     metadata = parse_front_matter(source_content)
@@ -494,7 +491,12 @@ def generate_translations(
     for target_lang in langs:
         try:
             print(f"🌐 {LANG_LABELS[target_lang]} 번역 생성 중...")
-            output = _generate_translation(client, source_content, source_path, target_lang)
+            output = _generate_translation(
+                source_content,
+                source_path,
+                target_lang,
+                translation_provider=translation_provider,
+            )
             print(f"✅ 번역 포스트 저장 완료 ({target_lang}): {output}")
         except Exception as exc:
             if fail_on_error:
@@ -503,7 +505,6 @@ def generate_translations(
 
 
 def publish_post(
-    client,
     content: str,
     metadata: dict,
     slug: str,
@@ -512,6 +513,7 @@ def publish_post(
     post_type: str,
     today: datetime | None = None,
     require_translations: bool = False,
+    translation_provider: str | None = None,
 ) -> str:
     today = today or get_kst_now()
     raw_title = str(metadata["title"])
@@ -526,7 +528,8 @@ def publish_post(
     image_md = ""
     try:
         print(f"🎨 '{raw_title}' 주제로 썸네일 생성 중...")
-        thumbnail = generate_thumbnail(client, image_prompt)
+        thumbnail, image_provider, image_model = generate_thumbnail(image_prompt)
+        print(f"  이미지 provider: {image_provider} ({image_model})")
         public_image_path, image_md = save_thumbnail(slug, thumbnail, raw_title)
     except Exception as exc:
         print(f"⚠️ 이미지 생성 실패, 기본 썸네일로 대체합니다: {exc}")
@@ -536,9 +539,9 @@ def publish_post(
     content = inject_hero_image(content, image_md)
     filename = save_ko_post(content, slug, today)
     generate_translations(
-        client,
         content,
         Path(filename),
+        translation_provider=translation_provider,
         fail_on_error=require_translations,
     )
     return filename
