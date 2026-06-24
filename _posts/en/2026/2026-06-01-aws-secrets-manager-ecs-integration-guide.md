@@ -23,6 +23,8 @@ lang: en
 translation_key: aws-secrets-manager-ecs-integration-guide
 post_type: deep-dive
 permalink: /en/posts/aws-secrets-manager-ecs-integration-guide/
+ai_generated: true
+updated: 2026-06-01 10:18:40 +0900
 ---
 One of the most challenging aspects of running containerized applications in production is **secret management**. Hardcoding sensitive information like database credentials, external API keys, or certificates into code, committing them to Git repositories, or even injecting them as plain environment variables can lead to severe security vulnerabilities. These practices increase the risk of secret exposure and necessitate application redeployments whenever secrets need to be changed, adding to management complexity.
 

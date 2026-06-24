@@ -17,6 +17,7 @@ permalink: /en/posts/ubuntu22-swap-memory/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-08-15 10:00:00 +0900
 ---
 When using the free tier of services like **Amazon Web Services EC2** or other self-hosted servers,
 you might occasionally run into issues with insufficient RAM when installing large external resources.

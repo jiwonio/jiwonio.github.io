@@ -20,6 +20,8 @@ lang: zh
 translation_key: python-grpc-production-guide-for-microservices
 post_type: deep-dive
 permalink: /zh/posts/python-grpc-production-guide-for-microservices/
+ai_generated: true
+updated: 2026-05-25 10:12:26 +0900
 ---
 在现代云原生环境中，无数的**微服务 (Microservices)** 相互通信以执行复杂的业务逻辑。此时，最普遍的通信方式无疑是 REST API。然而，在服务间内部通信 (East-West traffic) 呈爆炸式增长的环境中，基于 JSON 的文本协议 REST 有时会成为性能瓶颈。消息序列化/反序列化开销、缺乏明确的 API 契约、以及流式传输功能的局限性，都是要求高性能和低延迟的系统需要解决的挑战。
 

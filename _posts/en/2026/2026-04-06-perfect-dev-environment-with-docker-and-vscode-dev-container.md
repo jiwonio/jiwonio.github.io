@@ -25,6 +25,8 @@ permalink: /en/posts/perfect-dev-environment-with-docker-and-vscode-dev-containe
 categories:
 - AI
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:16:18 +0900
 ---
 "But it works on my machine!" This is one of the most common and frustrating problems in collaborative development. Subtle differences in operating systems, installed library versions, and various environment variable settings among developers can lead to unpredictable bugs and derail entire projects. This issue is known as "environment inconsistency."
 

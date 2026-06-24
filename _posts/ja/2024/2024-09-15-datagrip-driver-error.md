@@ -14,6 +14,7 @@ permalink: /ja/posts/datagrip-driver-error/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-09-15 10:00:00 +0900
 ---
 JetBrainsは、リレーショナルデータベースとNoSQLデータベースの両方を扱うためのクロスプラットフォームツールである**DataGrip**を提供しています。
 このツールは、MySQL、Oracle Database、PostgreSQL、SQLite、MongoDB、Redisなど、幅広いデータベースをサポートしています。

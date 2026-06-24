@@ -22,6 +22,8 @@ lang: ja
 translation_key: building-serverless-rest-api-with-aws-lambda-api-gateway
 permalink: /ja/posts/building-serverless-rest-api-with-aws-lambda-api-gateway/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:48:16 +0900
 ---
 従来のWebアプリケーション開発において、サーバーのプロビジョニング、スケーリング、パッチ適用、メンテナンスは開発者の生産性を阻害する主な要因の一つでした。トラフィックが急増するたびに手動でサーバーを増設したり、逆にアイドル状態のサーバーコストをそのまま支払い続けなければならない非効率性を受け入れる必要がありました。**AWS Lambda**と**API Gateway**を筆頭とするサーバーレス（Serverless）アーキテクチャは、このようなパラダイムを根本から変えました。
 

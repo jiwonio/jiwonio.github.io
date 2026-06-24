@@ -24,6 +24,8 @@ lang: en
 translation_key: building-production-level-rag-based-ai-agent-with-crewai-and-langchain
 permalink: /en/posts/building-production-level-rag-based-ai-agent-with-crewai-and-langchain/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-06-09 15:10:01 +0900
 ---
 The demand for AI systems that can autonomously perform complex, multi-step tasks is growing, moving beyond simple chatbots that just answer questions. For example, if you assign a research task on "the latest AI semiconductor market trends," the AI would independently search the web, summarize key information, analyze competitors, and generate a final report. This is the core concept of an **AI Agent**, and one of the most powerful technologies to implement it is a multi-agent system combined with **RAG (Retrieval-Augmented Generation)**.
 

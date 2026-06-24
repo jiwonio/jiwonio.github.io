@@ -21,6 +21,8 @@ image: /uploads/postgresql-streaming-replication-high-availability-guide/thumbna
 lang: ko
 translation_key: postgresql-streaming-replication-high-availability-guide
 post_type: deep-dive
+updated: 2026-05-11 10:07:00 +0900
+ai_generated: true
 ---
 모든 프로덕션 서비스의 심장에는 데이터베이스가 있습니다. 하지만 단일 데이터베이스 인스턴스에만 의존하는 아키텍처는 예기치 않은 하드웨어 장애, 네트워크 문제, 또는 유지보수 작업으로 인해 전체 서비스가 중단될 수 있는 치명적인 단일 장애점(Single Point of Failure)이 됩니다. 이러한 위험을 해결하고 서비스의 안정성을 극대화하기 위해 **데이터베이스 고가용성(High Availability, HA)** 확보는 선택이 아닌 필수입니다.
 

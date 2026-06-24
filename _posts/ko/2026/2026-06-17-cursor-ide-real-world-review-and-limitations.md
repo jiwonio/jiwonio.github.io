@@ -18,6 +18,7 @@ lang: ko
 translation_key: cursor-ide-real-world-review-and-limitations
 post_type: deep-dive
 ai_generated: true
+updated: 2026-06-17 01:40:15 +0900
 ---
 수많은 AI 코딩 보조 도구가 등장했습니다. GitHub Copilot이 기본적인 자동 완성을 넘어 개발 워크플로의 일부가 되었고, 각 IDE는 자체 AI 기능을 속속 내장하고 있습니다. 하지만 대부분 기존 편집기에 플러그인 형태로 추가되는 방식에 머무릅니다.
 

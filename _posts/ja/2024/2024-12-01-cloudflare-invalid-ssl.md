@@ -14,6 +14,7 @@ permalink: /ja/posts/cloudflare-invalid-ssl/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-12-01 10:00:00 +0900
 ---
 **Cloudflare**の**Full**モードでは動作するのに**Full (strict)** SSLモードが機能しない理由は、通常、オリジンサーバー（この場合は**GitHub Pages**）が提供するSSL証明書の問題に起因します。Full (strict)モードでは、オリジンサーバーのSSL証明書が有効であるだけでなく、信頼できる認証局（CA）によって信頼され、要求されたドメインと一致し、正しい証明書チェーンを含んでいる必要があります。しかし、GitHub PagesのSSL証明書がこれらの要件（中間CAの欠落、ドメインの不一致、設定の遅延など）を完全に満たしていない場合、CloudflareはFull (strict)モードでの接続を拒否します。対照的に、Fullモードは証明書の信頼性を検証しないため、証明書に問題があっても機能します。
 

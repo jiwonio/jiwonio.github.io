@@ -22,6 +22,7 @@ translation_key: llm-application-monitoring-observability-with-langsmith
 permalink: /zh/posts/llm-application-monitoring-observability-with-langsmith/
 post_type: deep-dive
 ai_generated: true
+updated: 2026-06-15 10:22:24 +0900
 ---
 基于 AI 的应用程序，特别是利用 LLM（大型语言模型）的系统，由于其复杂的内部运作，常常让人感觉像一个“黑匣子”。用户的提示被输入，看似合理的结果被输出，但在这个过程中发生了什么，成本是多少，瓶颈在哪里，都极难掌握。传统的服务器监控方法只能告诉我们 CPU、内存使用率等信息，无法追踪 LLM 应用的核心——“质量”、“成本”和“延迟”。
 

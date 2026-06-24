@@ -17,6 +17,7 @@ translation_key: gemini-1-5-pro-tool-use-connecting-llms
 permalink: /zh/posts/gemini-1-5-pro-tool-use-connecting-llms/
 post_type: deep-dive
 ai_generated: true
+updated: 2026-06-17 10:34:31 +0900
 ---
 大型语言模型（LLM）基于海量文本数据展现出惊人的语言能力。但 LLM 本身与外部世界是隔绝的。它们无法直接执行诸如获取实时股票信息、查询数据库或发送电子邮件等任务。克服这一限制的核心技术便是“工具使用（Tool Use）”，也称为“函数调用（Function Calling）”。
 

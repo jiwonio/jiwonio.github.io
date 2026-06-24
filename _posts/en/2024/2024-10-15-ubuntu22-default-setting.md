@@ -14,6 +14,7 @@ permalink: /en/posts/ubuntu22-default-setting/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-10-15 10:00:00 +0900
 ---
 When setting up a development or testing environment on AWS EC2, starting with the right configurations for your instance is essential. 
 This guide walks you through the initial setup steps for **Ubuntu 22.04 LTS**, ideal for those utilizing the free tier to keep costs down. 

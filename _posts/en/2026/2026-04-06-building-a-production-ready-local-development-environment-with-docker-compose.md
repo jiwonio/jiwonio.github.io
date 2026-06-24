@@ -24,6 +24,8 @@ permalink: /en/posts/building-a-production-ready-local-development-environment-w
 categories:
 - DevOps
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:10:17 +0900
 ---
 "It works on my machine." It's a phrase every developer has likely experienced or said at least once. Subtle differences between the development environment and the production environment where the actual service runs are a major cause of unexpected bugs and deployment failures. This is due to numerous variables like library versions, operating systems, and system configurations. The technology that emerged to solve these problems is **Docker**.
 

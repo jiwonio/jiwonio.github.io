@@ -13,6 +13,7 @@ permalink: /ja/posts/multiple-wsl2-instances/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-12-04 10:00:00 +0900
 ---
 今日のペースの速い開発の世界では、**複数の開発環境**を効率的に管理することが不可欠です。
 Windows Subsystem for Linux 2 (**WSL2**) は、**Windows 11** マシン上で直接、分離された環境を作成・管理するための強力で柔軟な方法を提供します。

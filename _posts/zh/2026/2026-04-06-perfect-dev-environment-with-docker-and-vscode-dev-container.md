@@ -20,6 +20,8 @@ permalink: /zh/posts/perfect-dev-environment-with-docker-and-vscode-dev-containe
 categories:
 - AI
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:16:18 +0900
 ---
 “在我电脑上运行正常啊？” 这句话是开发者协作时最常遇到的棘手问题之一。每个开发者的操作系统不同、安装的库版本有细微差异、各种环境变量设置不一，这些都可能导致无法预料的 bug，甚至拖累整个项目的进度。这类问题我们称之为“环境不一致”。
 

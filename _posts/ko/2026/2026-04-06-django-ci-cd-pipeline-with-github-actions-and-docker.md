@@ -22,6 +22,8 @@ translation_key: django-ci-cd-pipeline-with-github-actions-and-docker
 description: 숙련된 개발자를 위한 GitHub Actions 기반 Django CI/CD 파이프라인 구축 실전 가이드. 테스트 자동화,
   Docker 이미지 빌드, AWS ECR 푸시, EC2 배포까지의 모든 과정을 상세한 YAML 코드 예제와 함께 설명합니다.
 post_type: deep-dive
+updated: 2026-04-06 15:26:09 +0900
+ai_generated: true
 ---
 수동 배포의 시대는 저물고 있습니다. 코드를 수정한 후 FTP로 파일을 올리거나, SSH로 서버에 접속하여 `git pull`을 실행하고 서버를 재시작하는 과정은 실수를 유발하기 쉽고 전체 개발 사이클을 느리게 만드는 주범입니다. 특히 협업 환경에서는 누가, 언제, 어떤 코드를 배포했는지 추적하기 어려워 안정적인 서비스 운영에 큰 걸림돌이 됩니다. 이러한 문제를 해결하기 위해 **CI/CD(Continuous Integration/Continuous Deployment)**, 즉 지속적 통합 및 배포 파이프라인 구축은 이제 선택이 아닌 필수가 되었습니다.
 

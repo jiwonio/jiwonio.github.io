@@ -68,6 +68,8 @@
         {% if site.ads.adsense_client != "" %}
         <script src="/assets/js/ads.js" defer></script>
         {% endif %}
+        {% include consent-banner.html %}
+        <script src="/assets/js/consent.js" defer></script>
         {% if page.layout == "post" %}
         <script src="/assets/js/share.js" defer></script>
         {% endif %}

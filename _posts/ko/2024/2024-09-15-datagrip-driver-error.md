@@ -1,28 +1,19 @@
 ---
 layout: post
 title: DataGrip에서 Amazon RDS 연결 시 드라이버 오류 해결
-meta: Learn how to resolve driver errors when connecting Amazon RDS to JetBrains DataGrip.
-  This guide covers common issues and practical solutions for seamless database management.
 tags:
 - mysql
 image: /uploads/datagrip-driver-error/thumbnail.webp
 lang: ko
 translation_key: datagrip-driver-error
 slug: datagrip-driver-error
-description: Learn how to resolve driver errors when connecting Amazon RDS to JetBrains
-  DataGrip. This guide covers common issues and practical solutions for seamless database
-  management.
+description: JetBrains DataGrip에서 Amazon RDS에 연결할 때 발생하는 드라이버 오류의 원인과 해결 방법을 정리합니다.
 post_type: deep-dive
 categories:
 - DevOps
+updated: 2024-09-15 10:00:00 +0900
 ---
-JetBrains offers **DataGrip**, a cross-platform tool for working with both relational and NoSQL databases.
-This tool supports a wide range of databases, including MySQL, Oracle Database, PostgreSQL, SQLite, MongoDB, and Redis.
-It also provides options to easily connect to cloud-based databases like Amazon Redshift.
-Recently, an **AI Assistant** plugin has been added, making it even more convenient and efficient to write queries.
-This feature helps developers enhance their productivity when working with data.
-In this article, we will discuss **driver errors** that may occur when connecting to **Amazon RDS** using JetBrains DataGrip and explore solutions to resolve them.
-This translation was provided with the assistance of **ChatGPT**.
+JetBrains **DataGrip**은 MySQL, PostgreSQL, MongoDB 등 다양한 DB를 한 곳에서 다루는 크로스 플랫폼 도구입니다. 최근 **AI Assistant** 플러그인도 추가되어 쿼리 작성이 더 편해졌습니다. 이 글에서는 **Amazon RDS** 연결 시 발생하는 **드라이버 오류**의 원인과 해결 방법을 정리합니다.
 
 <!--more-->
 

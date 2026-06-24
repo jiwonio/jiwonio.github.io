@@ -18,6 +18,7 @@ translation_key: building-local-code-review-cli-with-ollama-python
 permalink: /zh/posts/building-local-code-review-cli-with-ollama-python/
 post_type: deep-dive
 ai_generated: true
+updated: 2026-06-17 11:15:25 +0900
 ---
 代码审查是维护软件质量的核心过程，但它也常常消耗同事大量的时间。虽然像 GitHub Copilot 或 ChatGPT 这样的 AI 工具已经成为出色的辅助手段，但将敏感代码发送到外部 API 的安全顾虑和成本问题依然存在。
 

@@ -20,6 +20,8 @@ lang: zh
 translation_key: building-production-ready-aws-vpc-with-terraform-modules
 permalink: /zh/posts/building-production-ready-aws-vpc-with-terraform-modules/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 16:44:10 +0900
 ---
 在运营云基础设施时，我们不可避免地要与“重复”作斗争。为开发、预发布、生产等多个环境构建相似但又略有不同的网络环境，是每个服务器工程师的宿命。通过 AWS 控制台手动点击配置 VPC、子网、路由表等方式，初期可能很直观，但随着规模的扩大，出错的可能性会呈指数级增长，追踪变更历史或重现相同环境几乎变得不可能。
 

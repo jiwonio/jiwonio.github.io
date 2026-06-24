@@ -93,6 +93,8 @@ def main() -> int:
             updated_count += 1
 
     print(f"완료: {updated_count}개 포스트 image 필드 갱신")
+    if args.dry_run and updated_count:
+        return 1
     return 0
 
 

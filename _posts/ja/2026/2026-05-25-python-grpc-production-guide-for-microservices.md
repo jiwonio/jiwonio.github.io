@@ -19,6 +19,8 @@ lang: ja
 translation_key: python-grpc-production-guide-for-microservices
 post_type: deep-dive
 permalink: /ja/posts/python-grpc-production-guide-for-microservices/
+ai_generated: true
+updated: 2026-05-25 10:12:26 +0900
 ---
 現代のクラウドネイティブ環境では、無数の**マイクロサービス(Microservices)**が互いに通信し合い、複雑なビジネスロジックを実行しています。このとき最も一般的に使用される通信方式は、間違いなくREST APIです。しかし、サービス間の内部通信（East-Westトラフィック）が爆発的に増加する環境において、JSONベースのテキストプロトコルであるRESTは、時にパフォーマンスのボトルネックとなることがあります。メッセージのシリアライズ/デシリアライズのオーバーヘッド、明確なAPI契約の不在、ストリーミング機能の限界などは、高性能と低レイテンシーが求められるシステムで解決すべき課題です。
 

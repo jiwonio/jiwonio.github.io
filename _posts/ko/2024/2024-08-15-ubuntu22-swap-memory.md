@@ -1,29 +1,20 @@
 ---
 layout: post
 title: Ubuntu 22.04 LTS 스왑 메모리 설정하기
-meta: Learn to configure swap memory on Ubuntu 22.04 LTS to address RAM shortages
-  on low-spec servers. Perfect for AWS EC2 and self-hosted servers running resource-heavy
-  applications.
 tags:
 - ubuntu
 image: /uploads/ubuntu22-swap-memory/thumbnail.webp
 lang: ko
 translation_key: ubuntu22-swap-memory
 slug: ubuntu22-swap-memory
-description: Learn to configure swap memory on Ubuntu 22.04 LTS to address RAM shortages
-  on low-spec servers. Perfect for AWS EC2 and self-hosted servers running resource-heavy
-  applications.
+description: Ubuntu 22.04 LTS에서 스왑 메모리를 설정해 저사양 EC2·자체 호스팅 서버의 RAM 부족 문제를 완화하는 방법을
+  설명합니다.
 post_type: deep-dive
 categories:
 - DevOps
+updated: 2024-08-15 10:00:00 +0900
 ---
-When using the free tier of services like **Amazon Web Services EC2** or other self-hosted servers,
-you might occasionally run into issues with insufficient RAM when installing large external resources.
-This can cause the server to freeze for extended periods and eventually crash.
-While this doesn't happen often, it can be quite critical if you're running a personal project
-for commercial use and implementing a **Micro Service Architecture** on a server with very limited specifications.
-In such situations, **swap memory** can be extremely helpful. In this post, I've written about how to create swap memory and what it is.
-This translation was provided by **Microsoft Copilot**.
+AWS EC2 프리티어나 저사양 자체 호스팅 서버에서 대용량 패키지를 설치하다 보면 RAM 부족으로 서버가 멈추거나 다운되는 경우가 있습니다. 마이크로서비스를 낮은 사양에서 운영할 때도 같은 문제가 생길 수 있는데, 이때 **스왑 메모리**로 디스크 일부를 RAM처럼 쓰면 도움이 됩니다. Ubuntu 22.04 LTS에서 스왑을 설정하는 방법을 정리합니다.
 
 <!--more-->
 

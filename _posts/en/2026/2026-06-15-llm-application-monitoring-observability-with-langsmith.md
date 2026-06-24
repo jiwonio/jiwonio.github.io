@@ -25,6 +25,7 @@ translation_key: llm-application-monitoring-observability-with-langsmith
 post_type: deep-dive
 permalink: /en/posts/llm-application-monitoring-observability-with-langsmith/
 ai_generated: true
+updated: 2026-06-15 10:22:24 +0900
 ---
 AI-powered applications, especially those leveraging LLMs (Large Language Models), often feel like 'black boxes' due to their complex internal workings. User prompts go in, plausible results come out, but understanding what happens in between—how much it costs, where bottlenecks occur—is incredibly difficult. Traditional server monitoring provides only CPU and memory usage, failing to track the core aspects of LLM applications: 'quality,' 'cost,' and 'latency.'
 

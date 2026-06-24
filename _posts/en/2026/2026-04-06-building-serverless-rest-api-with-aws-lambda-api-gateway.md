@@ -25,6 +25,8 @@ lang: en
 translation_key: building-serverless-rest-api-with-aws-lambda-api-gateway
 permalink: /en/posts/building-serverless-rest-api-with-aws-lambda-api-gateway/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:48:16 +0900
 ---
 In traditional web application development, server provisioning, scaling, patching, and maintenance have been major factors hindering developer productivity. Developers had to endure the inefficiency of manually adding servers whenever traffic surged or, conversely, paying for idle servers. The serverless architecture, led by **AWS Lambda** and **API Gateway**, has fundamentally changed this paradigm.
 

@@ -1,30 +1,20 @@
 ---
 layout: post
 title: Windows 11 Node.js 설치 오류 해결
-meta: Discover how to fix common package installation errors when setting up Node.js
-  on Windows 11. This guide provides clear solutions for handling compilation issues
-  with C/C++ and Python using Chocolaty.
 tags:
 - nodejs
 image: /uploads/nodejs-installation-failure/thumbnail.webp
 lang: ko
 translation_key: nodejs-installation-failure
 slug: nodejs-installation-failure
-description: Discover how to fix common package installation errors when setting up
-  Node.js on Windows 11. This guide provides clear solutions for handling compilation
-  issues with C/C++ and Python using Chocolaty.
+description: Windows 11에서 Node.js 설치 시 Chocolatey·Visual Studio Build Tools 관련 오류를
+  해결하는 방법을 설명합니다.
 post_type: deep-dive
 categories:
 - DevOps
+updated: 2024-11-15 10:00:00 +0900
 ---
-When installing [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} on Windows 11, you may encounter errors related to additional package installations. 
-These errors often occur due to the necessity to compile some Node.js packages using **C/C++** and **Python**. 
-This guide provides detailed solutions to efficiently resolve these issues and ensure a smooth installation process.
-One common error arises from the use of `chocolaty` for installing additional tools. 
-If `visualstudio2019-workload-vctools` cannot be installed in the existing chocolaty path, it may result in installation failures. 
-The installation process involves displaying a CMD screen where the installation proceeds using PowerShell. 
-Despite several attempts, you might find that a clean installation cannot be achieved.
-This translation was provided with the assistance of **Microsoft Copilot**.
+Windows 11에서 **Node.js**를 설치할 때 C/C++, Python 컴파일이 필요한 네이티브 패키지 때문에 오류가 나는 경우가 많습니다. **Chocolatey**로 추가 도구를 설치하는 과정에서 `visualstudio2019-workload-vctools` 설치 실패로 깨끗한 설치가 안 되는 문제를 해결하는 방법을 정리합니다.
 
 <!--more-->
 
@@ -74,11 +64,11 @@ Node.js 사용에 필요한 추가 도구를 설치하기 위한 CMD 화면이 �
 
 ### 2. Visual Studio Build Tools 설치
 
- - 최신 버전의 [Visual Studio 2019 - Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=visual%20studio%202019 "Build Tools for Visual Studio 2019"){:target="_blank"}를 다운로드하고 설치합니다.
+ - 최신 버전의 [Visual Studio 2019 - Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/downloads/ "Build Tools for Visual Studio 2019"){:target="_blank"}를 다운로드하고 설치합니다.
    ![Download build tools](/uploads/nodejs-installation-failure/download-build-tools.png)
    ![MSBuild tools download](/uploads/nodejs-installation-failure/msbuild-tools.png)
    ![Install msbuild tools](/uploads/nodejs-installation-failure/install-msbuild-tools.png)
- - 설치가 완료되면 다음 명령어를 실행하여 visualstudio2019-workload-vctools를 [업그레이드](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools#upgrade "Choco upgrade"){:target="_blank"}합니다:
+ - 설치가 완료되면 다음 명령어를 실행하여 visualstudio2019-workload-vctools를 [업그레이드](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools "Choco upgrade"){:target="_blank"}합니다:
    ```shell
    choco upgrade visualstudio2019-workload-vctools -y
    ```

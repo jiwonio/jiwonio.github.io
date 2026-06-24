@@ -15,6 +15,7 @@ permalink: /en/posts/style-guide/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-07-15 10:00:00 +0900
 ---
 This is the **first** post on my **GitHub Pages powered by Jekyll**. You can consider it a note-taking post.
 When I write after a long time, I tend to forget my previous styles, leading to a mishmash of different styles.

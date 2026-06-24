@@ -16,6 +16,7 @@ permalink: /en/posts/datagrip-driver-error/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-09-15 10:00:00 +0900
 ---
 JetBrains offers **DataGrip**, a cross-platform tool for working with both relational and NoSQL databases.
 This tool supports a wide range of databases, including MySQL, Oracle Database, PostgreSQL, SQLite, MongoDB, and Redis.

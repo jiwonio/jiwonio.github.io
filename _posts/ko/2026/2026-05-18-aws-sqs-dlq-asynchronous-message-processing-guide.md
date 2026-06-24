@@ -22,6 +22,8 @@ image: /uploads/aws-sqs-dlq-asynchronous-message-processing-guide/thumbnail.webp
 lang: ko
 translation_key: aws-sqs-dlq-asynchronous-message-processing-guide
 post_type: deep-dive
+updated: 2026-05-18 10:09:30 +0900
+ai_generated: true
 ---
 현대의 웹 애플리케이션은 사용자에게 빠른 응답 속도를 제공하면서도, 백그라운드에서는 이메일 발송, 데이터 집계, 이미지 처리 등 시간이 오래 걸리는 작업을 안정적으로 처리해야 하는 과제를 안고 있습니다. 사용자의 요청을 동기적으로 모두 처리하려 한다면, 응답 시간이 길어져 사용자 경험을 해치고 시스템 전체의 성능 저하로 이어질 수 있습니다. 이러한 문제를 해결하기 위한 핵심 아키텍처 패턴이 바로 **비동기 메시지 처리**입니다.
 

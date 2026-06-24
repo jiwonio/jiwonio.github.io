@@ -19,6 +19,7 @@ translation_key: gemini-1-5-pro-tool-use-connecting-llms
 permalink: /en/posts/gemini-1-5-pro-tool-use-connecting-llms/
 post_type: deep-dive
 ai_generated: true
+updated: 2026-06-17 10:34:31 +0900
 ---
 Large Language Models (LLMs) demonstrate incredible linguistic abilities based on vast amounts of text data. However, LLMs are inherently disconnected from the external world. They cannot directly perform tasks like fetching real-time stock information, querying a database, or sending an email. The key technology to overcome this limitation is 'Tool Use', also known as Function Calling.
 

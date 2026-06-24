@@ -432,11 +432,28 @@ def generate_with_retry(
     for attempt in range(1, max_retries + 1):
         try:
             print(f"🔄 AI 글쓰기 API 요청 중... (시도 {attempt}/{max_retries})")
-            print(f"::notice::gemini_text_generation_attempt={attempt}")
             content = sanitize_generated_content(generate_text(client, prompt))
             metadata, slug = validate_fn(content)
+            from api_monitor import notify_gemini_usage
+
+            notify_gemini_usage(
+                model=TEXT_MODEL,
+                attempt=attempt,
+                operation="generate_post",
+                slug=slug,
+                success=True,
+            )
             return content, metadata, slug
         except Exception as exc:
+            from api_monitor import notify_gemini_usage
+
+            notify_gemini_usage(
+                model=TEXT_MODEL,
+                attempt=attempt,
+                operation="generate_post",
+                success=False,
+                error=str(exc),
+            )
             last_error = exc
             error_msg = str(exc)
             if "503" in error_msg or "UNAVAILABLE" in error_msg:

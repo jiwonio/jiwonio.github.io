@@ -25,6 +25,7 @@ from blog_i18n import (
     LANG_LABELS,
     detect_lang_from_path,
     dump_front_matter,
+    ensure_updated_field,
     generate_translation,
     get_gemini_client,
     infer_ai_generated,
@@ -75,6 +76,7 @@ def prepare_translation_post_content(path: Path, source_metadata: dict, source_p
         metadata["ai_generated"] = True
     elif "ai_generated" in source_metadata:
         metadata["ai_generated"] = source_metadata["ai_generated"]
+    ensure_updated_field(metadata, path)
     return dump_front_matter(metadata) + content[FRONT_MATTER_PATTERN.match(content).end() :]
 
 

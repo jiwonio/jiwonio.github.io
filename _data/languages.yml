@@ -26,6 +26,12 @@ ko:
     older: "이전 글"
     newer: "최신 글"
   ai_disclosure: "이 글은 Google Gemini API로 생성·편집되었으며, 운영자가 검토 후 게시합니다. 썸네일 이미지도 AI로 생성될 수 있습니다."
+  consent:
+    title: "쿠키 동의"
+    message: "이 사이트는 방문 통계와 광고 제공을 위해 쿠키를 사용합니다. 동의 여부를 선택해 주세요."
+    accept: "동의"
+    reject: "거부"
+    learn_more: "자세히 보기"
   share:
     aria_label: "공유하기"
     label: "공유"
@@ -64,6 +70,12 @@ en:
     older: "Older"
     newer: "Newer"
   ai_disclosure: "This post was generated and edited with the Google Gemini API, then published after operator review. Thumbnails may also be AI-generated."
+  consent:
+    title: "Cookie consent"
+    message: "This site uses cookies for analytics and advertising. Please choose whether to accept."
+    accept: "Accept"
+    reject: "Reject"
+    learn_more: "Learn more"
   share:
     aria_label: "Share"
     label: "Share"
@@ -102,6 +114,12 @@ ja:
     older: "古い記事"
     newer: "新しい記事"
   ai_disclosure: "この記事は Google Gemini API で生成・編集され、運営者の確認後に公開されています。サムネイル画像も AI 生成の場合があります。"
+  consent:
+    title: "Cookie 同意"
+    message: "このサイトはアクセス解析と広告のために Cookie を使用します。同意するか選択してください。"
+    accept: "同意する"
+    reject: "拒否する"
+    learn_more: "詳細"
   share:
     aria_label: "共有"
     label: "共有"
@@ -140,6 +158,12 @@ zh:
     older: "较早文章"
     newer: "较新文章"
   ai_disclosure: "本文由 Google Gemini API 生成并编辑，经运营者审核后发布。缩略图也可能由 AI 生成。"
+  consent:
+    title: "Cookie 同意"
+    message: "本网站使用 Cookie 进行访问统计和广告投放。请选择是否同意。"
+    accept: "同意"
+    reject: "拒绝"
+    learn_more: "了解更多"
   share:
     aria_label: "分享"
     label: "分享"

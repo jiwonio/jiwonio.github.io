@@ -20,6 +20,8 @@ permalink: /ja/posts/perfect-dev-environment-with-docker-and-vscode-dev-containe
 categories:
 - AI
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:16:18 +0900
 ---
 「私のPCではちゃんと動くのですが…」この言葉は、開発者が協力する際によく発生する悩ましい問題の一つです。開発者ごとに異なるオペレーティングシステム、インストールされたライブラリのバージョンの微妙な違い、各種環境変数の設定などは、予測不可能なバグを生み出し、プロジェクト全体の足を引っ張ることさえあります。このような問題を「環境の非一貫性」と呼びます。
 

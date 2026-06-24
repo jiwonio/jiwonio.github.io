@@ -14,6 +14,7 @@ permalink: /zh/posts/ubuntu22-swap-memory/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-08-15 10:00:00 +0900
 ---
 在使用 **Amazon Web Services EC2** 等服务的免费套餐或其他自托管服务器时，安装大型外部资源时偶尔会遇到内存不足的问题。
 这可能导致服务器长时间卡顿，并最终崩溃。

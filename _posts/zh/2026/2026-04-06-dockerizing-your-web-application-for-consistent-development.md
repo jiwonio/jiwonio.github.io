@@ -18,6 +18,8 @@ permalink: /zh/posts/dockerizing-your-web-application-for-consistent-development
 categories:
 - DevOps
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 10:00:00 +0900
 ---
 很多开发者在协作过程中，都可能说过或听过“但在我电脑上是好的啊...”这句话。每个开发者不同的操作系统、库版本以及配置上的微小差异，都可能成为意想不到的 bug 的根源。每当有新成员加入项目时，复杂的开发环境配置过程又会消耗大量时间。这是一个长期以来降低生产效率的顽疾。
 

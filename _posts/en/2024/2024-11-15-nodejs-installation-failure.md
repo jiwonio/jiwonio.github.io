@@ -14,6 +14,7 @@ categories:
 - dev
 permalink: /en/posts/nodejs-installation-failure/
 post_type: deep-dive
+updated: 2024-11-15 10:00:00 +0900
 ---
 When installing [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} on Windows 11, you may encounter errors related to additional package installations. 
 These errors often occur due to the necessity to compile some Node.js packages using **C/C++** and **Python**. 
@@ -69,11 +70,11 @@ During the installation, an error like the one above is displayed, and a clean i
 
 ### 2. Install Visual Studio Build Tools
 
- - Download and install the latest version of [Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=visual%20studio%202019 "Build Tools for Visual Studio 2019"){:target="_blank"}.
+ - Download and install the latest version of [Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/downloads/ "Build Tools for Visual Studio 2019"){:target="_blank"}.
    ![Download build tools](/uploads/nodejs-installation-failure/download-build-tools.png)
    ![MSBuild tools download](/uploads/nodejs-installation-failure/msbuild-tools.png)
    ![Install msbuild tools](/uploads/nodejs-installation-failure/install-msbuild-tools.png)
- - Once the installation is complete, run the following command to [upgrade](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools#upgrade "Choco upgrade"){:target="_blank"} `visualstudio2019-workload-vctools`:
+ - Once the installation is complete, run the following command to [upgrade](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools "Choco upgrade"){:target="_blank"} `visualstudio2019-workload-vctools`:
    ```shell
    choco upgrade visualstudio2019-workload-vctools -y
    ```

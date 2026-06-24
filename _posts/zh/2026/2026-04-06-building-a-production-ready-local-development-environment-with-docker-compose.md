@@ -20,6 +20,8 @@ permalink: /zh/posts/building-a-production-ready-local-development-environment-w
 categories:
 - DevOps
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:10:17 +0900
 ---
 “在我电脑上可以正常运行啊？” 这句话，作为开发者，您可能都说过或者听过。开发环境与实际服务运行的生产环境之间的细微差异，是导致意外错误和部署失败的主要原因。因为存在库版本、操作系统、系统配置等众多变量。为解决这些问题而出现的技术就是 **Docker**。
 

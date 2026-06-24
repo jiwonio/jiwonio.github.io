@@ -13,6 +13,7 @@ permalink: /zh/posts/datagrip-driver-error/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-09-15 10:00:00 +0900
 ---
 JetBrains 提供了 **DataGrip**，这是一款用于处理关系型和 NoSQL 数据库的跨平台工具。
 该工具支持多种数据库，包括 MySQL、Oracle Database、PostgreSQL、SQLite、MongoDB 和 Redis。

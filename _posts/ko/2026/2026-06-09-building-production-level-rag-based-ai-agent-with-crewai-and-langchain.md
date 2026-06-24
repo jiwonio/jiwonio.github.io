@@ -21,6 +21,8 @@ image: /uploads/building-production-level-rag-based-ai-agent-with-crewai-and-lan
 lang: ko
 translation_key: building-production-level-rag-based-ai-agent-with-crewai-and-langchain
 post_type: deep-dive
+updated: 2026-06-09 15:10:01 +0900
+ai_generated: true
 ---
 단순한 질문에 답변하는 챗봇을 넘어, 여러 단계의 복잡한 작업을 자율적으로 수행하는 AI 시스템에 대한 요구가 커지고 있습니다. 예를 들어, '최신 AI 반도체 시장 동향'에 대한 리서치를 맡기면, AI가 스스로 웹을 검색하고, 핵심 정보를 요약하며, 경쟁사를 분석하여 최종 보고서를 작성하는 식입니다. 이것이 바로 **AI 에이전트(AI Agent)**의 핵심 개념이며, 이를 구현하는 가장 강력한 기술 중 하나가 바로 **RAG(Retrieval-Augmented Generation)**와 결합된 멀티 에이전트 시스템입니다.
 

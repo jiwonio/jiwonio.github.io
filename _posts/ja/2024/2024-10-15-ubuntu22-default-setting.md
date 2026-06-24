@@ -13,6 +13,7 @@ permalink: /ja/posts/ubuntu22-default-setting/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-10-15 10:00:00 +0900
 ---
 AWS EC2で開発またはテスト環境をセットアップする際、インスタンスに適切な初期設定を行うことは不可欠です。
 このガイドでは、**Ubuntu 22.04 LTS**の初期セットアップ手順を解説します。コストを抑えるために無料利用枠を活用している方に最適です。

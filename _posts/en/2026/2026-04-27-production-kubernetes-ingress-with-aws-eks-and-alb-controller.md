@@ -25,6 +25,8 @@ lang: en
 translation_key: production-kubernetes-ingress-with-aws-eks-and-alb-controller
 permalink: /en/posts/production-kubernetes-ingress-with-aws-eks-and-alb-controller/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-27 09:59:32 +0900
 ---
 When operating a Kubernetes cluster using Amazon EKS (Elastic Kubernetes Service), one of the most critical challenges is routing external traffic to services inside the cluster reliably and efficiently. While Kubernetes provides `NodePort` or `LoadBalancer` type services, they have clear limitations in meeting the complex demands of a production environment. For example, every time a `LoadBalancer` service is deployed, a new ELB (Elastic Load Balancer) is created, increasing costs. It's also difficult to apply fine-grained L7 routing rules (path-based, host-based routing).
 

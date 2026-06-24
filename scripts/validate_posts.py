@@ -18,6 +18,7 @@ REQUIRED_FIELDS = ("layout", "title", "tags", "image", "categories", "post_type"
 LANG_PATH = re.compile(r"(?:^|/)_posts/(en|ja|zh|ko)(?:/|$)")
 INTERNAL_LINK_PATTERN = re.compile(r"\]\(/posts/([^)/\s]+)")
 REFERENCE_URL_PATTERN = re.compile(r"\[[^\]]+\]\((https?://[^)\s\"]+)")
+BODY_EXTERNAL_LINK_PATTERN = re.compile(r"(?<!!)\[[^\]]+\]\((https?://[^)\s\"]+)")
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ]")
 CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
@@ -31,7 +32,19 @@ MIN_ZH_CHARS = 20
 MAX_EN_KO_CHARS = 120
 REF_CHECK_TIMEOUT = 8
 # Hosts that block automated HEAD/GET checks but serve valid pages in browsers.
-REF_URL_SKIP_HOSTS = frozenset({"marketplace.visualstudio.com"})
+REF_URL_SKIP_HOSTS = frozenset({
+    "marketplace.visualstudio.com",
+    "medium.com",
+    "www.gravatar.com",
+    "gravatar.com",
+    "unsplash.com",
+    "twitter.com",
+    "x.com",
+    "linkedin.com",
+    "news.ycombinator.com",
+    "community.chocolatey.org",
+    "visualstudio.microsoft.com",
+})
 
 
 def detect_lang(path: Path, metadata: dict) -> str:
@@ -55,6 +68,11 @@ def prose_body(content: str) -> str:
     match = FRONT_MATTER_PATTERN.match(content)
     body = content[match.end() :] if match else content
     return CODE_BLOCK_PATTERN.sub("", body)
+
+
+def extract_body_external_urls(content: str) -> list[str]:
+    prose = prose_body(content)
+    return BODY_EXTERNAL_LINK_PATTERN.findall(prose)
 
 
 def extract_reference_urls(content: str) -> list[str]:
@@ -176,7 +194,13 @@ def validate_image_file(image_path, site_root):
         raise ValueError(f"image file not found: {image_path}")
 
 
-def validate_posts(posts_dir, site_root=None, *, check_ref_urls: bool = False):
+def validate_posts(
+    posts_dir,
+    site_root=None,
+    *,
+    check_ref_urls: bool = False,
+    check_external_urls: bool = False,
+):
     errors = []
     tag_spellings = defaultdict(set)
     output_paths = defaultdict(list)
@@ -227,11 +251,15 @@ def validate_posts(posts_dir, site_root=None, *, check_ref_urls: bool = False):
         if language_error:
             errors.append(f"{path}: {language_error}")
 
-        for ref_url in extract_reference_urls(content):
+        urls_to_check: list[str] = []
+        if check_ref_urls:
+            urls_to_check.extend(extract_reference_urls(content))
+        if check_external_urls:
+            urls_to_check.extend(extract_body_external_urls(content))
+
+        for ref_url in urls_to_check:
             if not ref_url.startswith(("http://", "https://")):
-                errors.append(f"{path}: invalid reference URL format: {ref_url}")
-                continue
-            if not check_ref_urls:
+                errors.append(f"{path}: invalid external URL format: {ref_url}")
                 continue
             if ref_url not in checked_reference_urls:
                 checked_reference_urls[ref_url] = check_reference_url(ref_url)
@@ -312,9 +340,18 @@ def main():
         action="store_true",
         help="HEAD-check reference URLs in posts (slower, needs network)",
     )
+    parser.add_argument(
+        "--check-external-urls",
+        action="store_true",
+        help="HEAD-check all external markdown links in post bodies (slower, needs network)",
+    )
     args = parser.parse_args()
 
-    errors = validate_posts(args.posts_dir, check_ref_urls=args.check_ref_urls)
+    errors = validate_posts(
+        args.posts_dir,
+        check_ref_urls=args.check_ref_urls,
+        check_external_urls=args.check_external_urls,
+    )
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

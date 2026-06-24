@@ -17,6 +17,7 @@ translation_key: gemini-1-5-pro-tool-use-connecting-llms
 permalink: /ja/posts/gemini-1-5-pro-tool-use-connecting-llms/
 post_type: deep-dive
 ai_generated: true
+updated: 2026-06-17 10:34:31 +0900
 ---
 大規模言語モデル（LLM）は、膨大なテキストデータに基づいて驚くべき言語能力を発揮します。しかし、LLMはそれ自体では外部世界から切り離されています。リアルタイムの株価情報を取得したり、データベースにクエリを実行したり、メールを送信したりといったタスクを直接実行することはできません。この限界を克服する核心技術が、まさに「Tool Use」、すなわち関数呼び出し（Function Calling）です。
 

@@ -20,6 +20,8 @@ lang: ja
 translation_key: aws-secrets-manager-ecs-integration-guide
 post_type: deep-dive
 permalink: /ja/posts/aws-secrets-manager-ecs-integration-guide/
+ai_generated: true
+updated: 2026-06-01 10:18:40 +0900
 ---
 本番環境でコンテナベースのアプリケーションを運用する際、最も厄介な問題の一つが**シークレット（Secret）の管理**です。データベースの認証情報、外部APIキー、証明書などの機密情報をコードにハードコーディングしたり、Gitリポジトリにコミットしたり、さらには通常の環境変数として注入したりすることは、深刻なセキュリティ脆弱性につながる可能性があります。これらの方法は、機密情報が漏洩するリスクを高め、シークレット値を変更するたびにアプリケーションの再デプロイが必要になるため、管理の複雑性を増大させます。
 

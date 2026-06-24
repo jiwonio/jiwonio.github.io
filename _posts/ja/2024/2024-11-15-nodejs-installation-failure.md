@@ -13,6 +13,7 @@ permalink: /ja/posts/nodejs-installation-failure/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-11-15 10:00:00 +0900
 ---
 Windows 11に[Node.js](https://nodejs.org/ "nodejs"){:target="_blank"}をインストールする際、追加のパッケージインストールに関連するエラーに遭遇することがあります。
 これらのエラーは、一部のNode.jsパッケージを**C/C++**や**Python**でコンパイルする必要があるために頻繁に発生します。
@@ -70,11 +71,11 @@ Node.jsの使用に必要な追加ツールをインストールするためのC
 
 ### 2. Visual Studio Build Toolsのインストール
 
- - 最新バージョンの[Visual Studio 2019 - Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=visual%20studio%202019 "Build Tools for Visual Studio 2019"){:target="_blank"}をダウンロードしてインストールします。
+ - 最新バージョンの[Visual Studio 2019 - Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/downloads/ "Build Tools for Visual Studio 2019"){:target="_blank"}をダウンロードしてインストールします。
    ![Download build tools](/uploads/nodejs-installation-failure/download-build-tools.png)
    ![MSBuild tools download](/uploads/nodejs-installation-failure/msbuild-tools.png)
    ![Install msbuild tools](/uploads/nodejs-installation-failure/install-msbuild-tools.png)
- - インストールが完了したら、次のコマンドを実行してvisualstudio2019-workload-vctoolsを[アップグレード](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools#upgrade "Choco upgrade"){:target="_blank"}します:
+ - インストールが完了したら、次のコマンドを実行してvisualstudio2019-workload-vctoolsを[アップグレード](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools "Choco upgrade"){:target="_blank"}します:
    ```shell
    choco upgrade visualstudio2019-workload-vctools -y
    ```

@@ -22,6 +22,8 @@ lang: zh
 translation_key: building-serverless-rest-api-with-aws-lambda-api-gateway
 permalink: /zh/posts/building-serverless-rest-api-with-aws-lambda-api-gateway/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:48:16 +0900
 ---
 在传统的 Web 应用程序开发中，服务器的预置、扩展、补丁和维护是影响开发者生产力的主要障碍之一。每当流量激增时，开发者不得不手动增加服务器，反之，在服务器空闲时，又不得不为空置资源支付成本，效率极低。以 **AWS Lambda** 和 **API Gateway** 为代表的无服务器（Serverless）架构从根本上改变了这一模式。
 

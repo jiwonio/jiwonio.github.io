@@ -15,6 +15,7 @@ permalink: /ja/posts/ubuntu22-swap-memory/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-08-15 10:00:00 +0900
 ---
 **Amazon Web Services EC2**のような無料利用枠のサービスや、その他の自己ホスト型サーバーを使用していると、大規模な外部リソースをインストールする際にRAM不足の問題に直面することがあります。
 これにより、サーバーが長時間フリーズし、最終的にクラッシュする可能性があります。

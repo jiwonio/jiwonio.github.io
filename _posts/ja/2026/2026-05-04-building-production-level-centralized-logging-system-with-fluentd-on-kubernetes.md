@@ -21,6 +21,8 @@ lang: ja
 translation_key: building-production-level-centralized-logging-system-with-fluentd-on-kubernetes
 permalink: /ja/posts/building-production-level-centralized-logging-system-with-fluentd-on-kubernetes/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-05-04 10:03:05 +0900
 ---
 マイクロサービスアーキテクチャ（MSA）が一般化するにつれて、Kubernetesはコンテナオーケストレーションの標準としての地位を確立しました。数多くのコンテナが動的に生成・消滅するKubernetes環境において、分散したアプリケーションログを追跡し、問題を解決することは、従来の方法ではほとんど不可能です。各Podに接続して`kubectl logs`コマンドでログを確認するのは一時しのぎに過ぎず、リアルタイムの障害対応や根本原因の分析には明らかな限界があります。
 

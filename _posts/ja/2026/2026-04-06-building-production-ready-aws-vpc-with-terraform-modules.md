@@ -19,6 +19,8 @@ lang: ja
 translation_key: building-production-ready-aws-vpc-with-terraform-modules
 post_type: deep-dive
 permalink: /ja/posts/building-production-ready-aws-vpc-with-terraform-modules/
+ai_generated: true
+updated: 2026-04-06 16:44:10 +0900
 ---
 クラウドインフラを運用していると、「繰り返し」との戦いは避けられません。開発、ステージング、本番など、複数の環境にまたがって、似ているようで微妙に異なるネットワーク環境を構築しなければならない状況は、すべてのサーバーエンジニアの宿命とも言えます。AWSコンソールで手作業でVPC、サブネット、ルートテーブルをクリックして構成するやり方は、最初は直感的かもしれませんが、規模が大きくなるほどミスの可能性が指数関数的に増加し、変更履歴の追跡や同じ環境の再現はほぼ不可能に近くなります。
 

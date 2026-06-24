@@ -13,6 +13,7 @@ permalink: /zh/posts/ubuntu22-default-setting/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-10-15 10:00:00 +0900
 ---
 在 AWS EC2 上设置开发或测试环境时，为您的实例选择正确的配置至关重要。
 本指南将引导您完成 **Ubuntu 22.04 LTS** 的初始设置步骤，非常适合希望通过免费套餐来降低成本的用户。

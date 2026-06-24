@@ -1,27 +1,19 @@
 ---
 layout: post
 title: Windows 11 WSL2로 여러 개발 환경 만들기
-meta: Learn how to set up and manage multiple development environments using WSL2
-  on Windows 11. This guide covers installation, configuration, and tips for optimizing
-  your workflow.
 tags:
 - wsl2
 image: /uploads/multiple-wsl2-instances/thumbnail.webp
 lang: ko
 translation_key: multiple-wsl2-instances
 slug: multiple-wsl2-instances
-description: Learn how to set up and manage multiple development environments using
-  WSL2 on Windows 11. This guide covers installation, configuration, and tips for
-  optimizing your workflow.
+description: Windows 11 WSL2로 프로젝트별 분리된 개발 환경을 만들고 관리하는 방법을 단계별로 설명합니다.
 post_type: deep-dive
 categories:
 - DevOps
+updated: 2024-12-04 10:00:00 +0900
 ---
-In today's fast-paced development world, efficiently managing **multiple development environments** is essential. 
-Windows Subsystem for Linux 2 (**WSL2**) provides a powerful and flexible way to create and manage isolated environments directly on your **Windows 11** machine.
-Whether you're a software developer or a hobbyist, having separate environments for different projects can streamline your workflow and minimize conflicts. 
-This guide will walk you through setting up and configuring **multiple WSL2 instances** on Windows 11, ensuring you can optimize your development productivity.
-This translation was provided with the assistance of **Microsoft Copilot**.
+프로젝트마다 분리된 개발 환경이 필요할 때 **Windows 11**의 **WSL2**로 여러 리눅스 인스턴스를 운영하면 충돌을 줄일 수 있습니다. 설정·테스트·레거시 환경을 각각 격리해 두면 워크플로가 훨씬 수월해집니다. WSL2 다중 환경 설치와 설정 방법을 정리합니다.
 
 <!--more-->
 

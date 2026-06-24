@@ -19,6 +19,8 @@ lang: ja
 translation_key: nginx-reverse-proxy-caching-load-balancing-blue-green
 permalink: /ja/posts/nginx-reverse-proxy-caching-load-balancing-blue-green/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-13 09:55:58 +0900
 ---
 熟練した開発者であれば、誰でも**Nginx**をWebサーバーや簡単なリバースプロキシとして使った経験があるでしょう。しかし、単に`proxy_pass`ディレクティブ一つだけでNginxのポテンシャルをすべて活用しているとは言えません。トラフィックが増加し、サービスの安定性が重要になる本番環境では、Nginxをより精巧に活用し、**パフォーマンス、可用性、そしてデプロイの効率性**を最大化する必要があります。
 

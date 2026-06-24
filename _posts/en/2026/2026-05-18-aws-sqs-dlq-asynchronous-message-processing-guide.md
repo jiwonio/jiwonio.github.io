@@ -25,6 +25,8 @@ lang: en
 translation_key: aws-sqs-dlq-asynchronous-message-processing-guide
 post_type: deep-dive
 permalink: /en/posts/aws-sqs-dlq-asynchronous-message-processing-guide/
+ai_generated: true
+updated: 2026-05-18 10:09:30 +0900
 ---
 Modern web applications face the challenge of providing fast response times to users while reliably handling time-consuming background tasks like email sending, data aggregation, and image processing. If we try to process all user requests synchronously, response times will increase, harming user experience and leading to overall system performance degradation. The key architectural pattern to solve this problem is **asynchronous message processing**.
 

@@ -17,6 +17,7 @@ image: /uploads/ollama-self-hosted-language-model-runner/thumbnail.webp
 permalink: /zh/posts/ollama-self-hosted-language-model-runner/
 post_type: deep-dive
 ai_generated: true
+updated: 2026-06-22 10:21:40 +0900
 ---
 基于云的 AI 服务虽然功能强大，但也存在一些缺点，例如成本、数据隐私和网络依赖性。当需要处理敏感数据、在离线环境中使用 AI 功能，或者只是想控制实验成本时，自托管方案便成了一个可行的选择。然而，自行配置语言模型的过程通常复杂且耗时。
 

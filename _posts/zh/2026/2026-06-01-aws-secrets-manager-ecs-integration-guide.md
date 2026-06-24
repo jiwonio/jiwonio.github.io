@@ -21,6 +21,8 @@ lang: zh
 translation_key: aws-secrets-manager-ecs-integration-guide
 post_type: deep-dive
 permalink: /zh/posts/aws-secrets-manager-ecs-integration-guide/
+ai_generated: true
+updated: 2026-06-01 10:18:40 +0900
 ---
 在生产环境运行容器化应用时，最棘手的挑战之一就是 **秘密(Secret)管理**。将数据库凭证、外部 API 密钥、证书等敏感信息硬编码到代码中、提交到 Git 仓库，甚至只是以普通环境变量的形式注入，都可能导致严重的安全漏洞。这些做法会增加秘密信息泄露的风险，并且在更改秘密值时需要重新部署应用程序，从而增加了管理复杂性。
 

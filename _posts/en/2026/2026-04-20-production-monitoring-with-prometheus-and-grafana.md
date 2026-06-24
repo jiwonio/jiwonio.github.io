@@ -22,6 +22,8 @@ lang: en
 translation_key: production-monitoring-with-prometheus-and-grafana
 permalink: /en/posts/production-monitoring-with-prometheus-and-grafana/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-20 15:00:01 +0900
 ---
 The core of successful web service operation goes beyond simply implementing features; it lies in continuously observing the service's state while it's 'alive' and predicting potential issues. Identifying potential bottlenecks before users experience outages and analyzing resource usage trends to scale infrastructure efficiently are essential skills for any experienced engineer. However, managing the state of numerous servers and applications fragmentally in a distributed microservices architecture is nearly impossible.
 

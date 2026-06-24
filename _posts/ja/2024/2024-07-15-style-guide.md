@@ -13,6 +13,7 @@ permalink: /ja/posts/style-guide/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-07-15 10:00:00 +0900
 ---
 これは**Jekyll**で作成した私の**GitHub Pages**ブログの**最初の**投稿です。備忘録のようなものだとお考えください。
 久しぶりに文章を書くと、以前のスタイルを忘れてしまい、様々なスタイルが混在してしまうことがあります。

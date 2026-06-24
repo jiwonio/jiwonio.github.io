@@ -210,7 +210,7 @@ def main() -> int:
                 print(f"  - {slug}")
         else:
             print("All post thumbnails are present.")
-        return 0
+        return 1 if missing else 0
 
     default_path = create_default_og_image()
     print(f"✅ 기본 OG 이미지: {default_path.relative_to(ROOT)}")

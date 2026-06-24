@@ -23,6 +23,8 @@ description: 面向经验丰富的开发者，一份基于 GitHub Actions 的 Dj
   Docker 镜像、推送到 AWS ECR，直至部署到 EC2 的完整流程。
 permalink: /zh/posts/django-ci-cd-pipeline-with-github-actions-and-docker/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:26:09 +0900
 ---
 手动部署的时代已经一去不复返。修改代码后通过 FTP 上传文件，或者 SSH 登录服务器执行 `git pull` 并重启服务的流程，不仅容易引发失误，还是拖慢整个开发周期的罪魁祸首。尤其是在协作环境中，追踪谁在何时部署了哪个版本的代码变得异常困难，这给服务的稳定运营带来了巨大障碍。为了解决这些问题，构建 **CI/CD（持续集成/持续部署）** 流水线如今已不再是可选项，而是必需品。
 

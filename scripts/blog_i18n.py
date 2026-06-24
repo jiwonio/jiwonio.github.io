@@ -20,7 +20,7 @@ from models_config import TRANSLATION_MODELS as _TRANSLATION_MODELS
 
 DEFAULT_LANG = "ko"
 TRANSLATION_LANGS = ("en", "ja", "zh")
-AI_GENERATION_START_DATE = "2026-06-01"
+AI_GENERATION_START_DATE = "2026-04-01"
 
 LEGACY_KO_TITLES = {
     "style-guide": "스타일 가이드",
@@ -31,6 +31,58 @@ LEGACY_KO_TITLES = {
     "cloudflare-invalid-ssl": "Cloudflare Full (strict) SSL 오류 원인과 해결",
     "multiple-wsl2-instances": "Windows 11 WSL2로 여러 개발 환경 만들기",
 }
+
+LEGACY_KO_DESCRIPTIONS = {
+    "style-guide": "Jekyll 기반 GitHub Pages 블로그의 제목·본문·코드·인용문 등 기본 스타일 가이드를 정리합니다.",
+    "ubuntu22-swap-memory": "Ubuntu 22.04 LTS에서 스왑 메모리를 설정해 저사양 EC2·자체 호스팅 서버의 RAM 부족 문제를 완화하는 방법을 설명합니다.",
+    "datagrip-driver-error": "JetBrains DataGrip에서 Amazon RDS에 연결할 때 발생하는 드라이버 오류의 원인과 해결 방법을 정리합니다.",
+    "ubuntu22-default-setting": "AWS EC2 프리티어 Ubuntu 22.04 LTS 인스턴스의 키 페어, 방화벽, 스토리지 등 초기 설정 절차를 안내합니다.",
+    "nodejs-installation-failure": "Windows 11에서 Node.js 설치 시 Chocolatey·Visual Studio Build Tools 관련 오류를 해결하는 방법을 설명합니다.",
+    "cloudflare-invalid-ssl": "Cloudflare Full (strict) SSL 모드가 실패하고 Full 모드만 동작하는 원인과 GitHub Pages 연동 시 해결 방법을 정리합니다.",
+    "multiple-wsl2-instances": "Windows 11 WSL2로 프로젝트별 분리된 개발 환경을 만들고 관리하는 방법을 단계별로 설명합니다.",
+}
+
+LEGACY_KO_INTROS = {
+    "style-guide": (
+        "이 글은 Jekyll로 운영하는 GitHub Pages 블로그의 **스타일 가이드**입니다. "
+        "오랜만에 글을 쓸 때마다 서식이 뒤섞이는 걸 막기 위해, 제목·본문·코드·인용문 등 기본 규칙을 한곳에 기록해 두었습니다. "
+        "아래 예시는 영어 UI 기준으로 작성했지만, 한국어 글에도 같은 구조를 그대로 적용할 수 있습니다."
+    ),
+    "ubuntu22-swap-memory": (
+        "AWS EC2 프리티어나 저사양 자체 호스팅 서버에서 대용량 패키지를 설치하다 보면 RAM 부족으로 서버가 멈추거나 다운되는 경우가 있습니다. "
+        "마이크로서비스를 낮은 사양에서 운영할 때도 같은 문제가 생길 수 있는데, 이때 **스왑 메모리**로 디스크 일부를 RAM처럼 쓰면 도움이 됩니다. "
+        "Ubuntu 22.04 LTS에서 스왑을 설정하는 방법을 정리합니다."
+    ),
+    "datagrip-driver-error": (
+        "JetBrains **DataGrip**은 MySQL, PostgreSQL, MongoDB 등 다양한 DB를 한 곳에서 다루는 크로스 플랫폼 도구입니다. "
+        "최근 **AI Assistant** 플러그인도 추가되어 쿼리 작성이 더 편해졌습니다. "
+        "이 글에서는 **Amazon RDS** 연결 시 발생하는 **드라이버 오류**의 원인과 해결 방법을 정리합니다."
+    ),
+    "ubuntu22-default-setting": (
+        "AWS EC2 프리티어로 개발·테스트 환경을 만들 때 **Ubuntu 22.04 LTS** 인스턴스의 초기 설정이 중요합니다. "
+        "Route 53, ELB, RDS 같은 서비스는 다루지 않고, 키 페어, 방화벽, 스토리지 등 필수 구성만 단계별로 설명합니다. "
+        "초기에 올바르게 설정해 두면 이후 트러블슈팅 시간을 크게 줄일 수 있습니다."
+    ),
+    "nodejs-installation-failure": (
+        "Windows 11에서 **Node.js**를 설치할 때 C/C++, Python 컴파일이 필요한 네이티브 패키지 때문에 오류가 나는 경우가 많습니다. "
+        "**Chocolatey**로 추가 도구를 설치하는 과정에서 `visualstudio2019-workload-vctools` 설치 실패로 깨끗한 설치가 안 되는 문제를 해결하는 방법을 정리합니다."
+    ),
+    "cloudflare-invalid-ssl": (
+        "**Cloudflare**의 **Full (strict)** SSL 모드는 동작하는데 **Full**만 되는 경우, 원본 서버(**GitHub Pages**) 인증서가 "
+        "CA 신뢰·도메인 일치·체인 구성을 완전히 만족하지 못할 때 발생합니다. "
+        "Full (strict)과 Full의 차이와 GitHub Pages 연동 시 해결 방법을 설명합니다."
+    ),
+    "multiple-wsl2-instances": (
+        "프로젝트마다 분리된 개발 환경이 필요할 때 **Windows 11**의 **WSL2**로 여러 리눅스 인스턴스를 운영하면 충돌을 줄일 수 있습니다. "
+        "설정·테스트·레거시 환경을 각각 격리해 두면 워크플로가 훨씬 수월해집니다. "
+        "WSL2 다중 환경 설치와 설정 방법을 정리합니다."
+    ),
+}
+
+TRANSLATION_ATTRIBUTION_PATTERN = re.compile(
+    r"^This translation was provided.*\n",
+    flags=re.MULTILINE | re.IGNORECASE,
+)
 TRANSLATION_LANGS_BY_TYPE = {
     "deep-dive": ("en", "ja", "zh"),
     "ai-news": ("en",),
@@ -192,15 +244,42 @@ def infer_ai_generated(metadata: dict, path: Path) -> bool:
     if post_type == "ai-news":
         return True
 
-    categories = infer_categories(metadata)
-    if "AI" not in categories:
-        return False
-
     try:
         date_prefix = resolve_date_prefix(path)
     except ValueError:
         return False
     return date_prefix >= AI_GENERATION_START_DATE
+
+
+def ensure_updated_field(metadata: dict, path: Path) -> None:
+    if metadata.get("updated"):
+        return
+    if metadata.get("date"):
+        metadata["updated"] = metadata["date"]
+        return
+    try:
+        metadata["updated"] = f"{resolve_date_prefix(path)} 10:00:00 +0900"
+    except ValueError:
+        pass
+
+
+def normalize_legacy_ko_body(content: str, slug: str) -> str:
+    if slug not in LEGACY_KO_INTROS:
+        return content
+
+    match = FRONT_MATTER_PATTERN.match(content)
+    if not match:
+        return content
+
+    body = content[match.end() :]
+    body = TRANSLATION_ATTRIBUTION_PATTERN.sub("", body)
+    more_index = body.find("<!--more-->")
+    if more_index < 0:
+        return dump_front_matter(parse_front_matter(content)) + body
+
+    tail = body[more_index:]
+    intro = LEGACY_KO_INTROS[slug].strip()
+    return dump_front_matter(parse_front_matter(content)) + f"{intro}\n\n{tail}"
 
 
 def infer_categories(metadata: dict) -> list[str]:
@@ -239,10 +318,15 @@ def prepare_ko_post_content(path: Path) -> str:
     slug = metadata["slug"]
     if slug in LEGACY_KO_TITLES:
         metadata["title"] = LEGACY_KO_TITLES[slug]
+    if slug in LEGACY_KO_DESCRIPTIONS:
+        metadata["description"] = LEGACY_KO_DESCRIPTIONS[slug]
+        metadata.pop("meta", None)
+    ensure_updated_field(metadata, path)
     if infer_ai_generated(metadata, path):
         metadata["ai_generated"] = True
 
-    return dump_front_matter(metadata) + content[FRONT_MATTER_PATTERN.match(content).end() :]
+    normalized = dump_front_matter(metadata) + content[FRONT_MATTER_PATTERN.match(content).end() :]
+    return normalize_legacy_ko_body(normalized, slug)
 
 
 def build_translation_prompt(source_content: str, target_lang: str, slug: str) -> str:
@@ -356,8 +440,27 @@ def generate_translation(
             content = strip_preamble(strip_code_fence(response.text))
             content = ensure_translation_metadata(content, source_content, target_lang, slug)
             validate_translation_content(content, target_lang, slug)
+            from api_monitor import notify_gemini_usage
+
+            notify_gemini_usage(
+                model=model,
+                attempt=attempt,
+                operation=f"translate_{target_lang}",
+                slug=slug,
+                success=True,
+            )
             return save_translation(content, source_path, target_lang)
         except Exception as exc:
+            from api_monitor import notify_gemini_usage
+
+            notify_gemini_usage(
+                model=model,
+                attempt=attempt,
+                operation=f"translate_{target_lang}",
+                slug=slug,
+                success=False,
+                error=str(exc),
+            )
             last_error = exc
             if attempt < max_retries:
                 import time

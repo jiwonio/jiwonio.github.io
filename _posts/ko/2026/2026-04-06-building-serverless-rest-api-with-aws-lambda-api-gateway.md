@@ -21,6 +21,8 @@ image: /uploads/building-serverless-rest-api-with-aws-lambda-api-gateway/thumbna
 lang: ko
 translation_key: building-serverless-rest-api-with-aws-lambda-api-gateway
 post_type: deep-dive
+updated: 2026-04-06 15:48:16 +0900
+ai_generated: true
 ---
 전통적인 웹 애플리케이션 개발에서 서버 프로비저닝, 스케일링, 패치 및 유지보수는 개발자의 생산성을 저해하는 주요 요인 중 하나였습니다. 트래픽이 급증할 때마다 수동으로 서버를 증설하거나, 반대로 유휴 상태의 서버 비용을 그대로 지불해야 하는 비효율을 감수해야만 했죠. **AWS Lambda**와 **API Gateway**를 필두로 한 서버리스(Serverless) 아키텍처는 이러한 패러다임을 근본적으로 바꾸었습니다.
 

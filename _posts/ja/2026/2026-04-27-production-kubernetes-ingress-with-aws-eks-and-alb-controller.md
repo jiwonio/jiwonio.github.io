@@ -21,6 +21,8 @@ lang: ja
 translation_key: production-kubernetes-ingress-with-aws-eks-and-alb-controller
 permalink: /ja/posts/production-kubernetes-ingress-with-aws-eks-and-alb-controller/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-27 09:59:32 +0900
 ---
 Amazon EKS (Elastic Kubernetes Service) を使用してKubernetesクラスターを運用する際、最も重要な課題の一つは、外部トラフィックをクラスター内部のサービスへ安定的かつ効率的にルーティングすることです。Kubernetesは`NodePort`や`LoadBalancer`タイプのサービスを提供しますが、これらは本番環境の複雑な要件をすべて満たすには限界が明確です。例えば、`LoadBalancer`タイプのサービスをデプロイするたびに新しいELB (Elastic Load Balancer) が作成されてコスト負担が大きくなり、詳細なL7ルーティングルール（パスベース、ホストベースのルーティング）を適用することも困難です。
 

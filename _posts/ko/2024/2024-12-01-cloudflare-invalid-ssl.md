@@ -1,29 +1,20 @@
 ---
 layout: post
 title: Cloudflare Full (strict) SSL 오류 원인과 해결
-meta: Learn why the Cloudflare Full (strict) SSL mode fails while Full mode works,
-  especially when using GitHub Pages as the origin server. Understand common SSL issues
-  and how to fix them for a secure and seamless connection.
 tags:
 - cloudflare
 image: /uploads/cloudflare-invalid-ssl/thumbnail.webp
 lang: ko
 translation_key: cloudflare-invalid-ssl
 slug: cloudflare-invalid-ssl
-description: Learn why the Cloudflare Full (strict) SSL mode fails while Full mode
-  works, especially when using GitHub Pages as the origin server. Understand common
-  SSL issues and how to fix them for a secure and seamless connection.
+description: Cloudflare Full (strict) SSL 모드가 실패하고 Full 모드만 동작하는 원인과 GitHub Pages
+  연동 시 해결 방법을 정리합니다.
 post_type: deep-dive
 categories:
 - DevOps
+updated: 2024-12-01 10:00:00 +0900
 ---
-The reason why the **Full (strict)** SSL mode in **Cloudflare** doesn't work while the Full mode does is typically due to issues with the SSL certificate provided by the origin server, 
-in this case, **GitHub Pages**. The Full (strict) mode requires that the SSL certificate on the origin server is not only valid but also trusted by a recognized Certificate Authority (CA), 
-matches the requested domain, and includes a correct certificate chain. 
-However, if the GitHub Pages SSL certificate is not fully compliant with these requirements—such as a missing intermediate CA, 
-domain mismatch, or setup delay—Cloudflare will reject the connection in Full (strict) mode. Conversely, the Full mode does not validate the certificate's trustworthiness, 
-which allows it to function even if there are issues with the certificate.
-This translation was provided with the assistance of **ChatGPT**.
+**Cloudflare**의 **Full (strict)** SSL 모드는 동작하는데 **Full**만 되는 경우, 원본 서버(**GitHub Pages**) 인증서가 CA 신뢰·도메인 일치·체인 구성을 완전히 만족하지 못할 때 발생합니다. Full (strict)과 Full의 차이와 GitHub Pages 연동 시 해결 방법을 설명합니다.
 
 <!--more-->
 

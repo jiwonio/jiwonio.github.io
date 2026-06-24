@@ -23,6 +23,8 @@ description: A practical guide for experienced developers on building a Django C
   to AWS ECR, and deploying to EC2 with detailed YAML code examples.
 permalink: /en/posts/django-ci-cd-pipeline-with-github-actions-and-docker/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-06 15:26:09 +0900
 ---
 The era of manual deployment is coming to an end. Processes like uploading files via FTP after code changes, or SSHing into a server to run `git pull` and restart it, are prone to errors and slow down the entire development cycle. Especially in collaborative environments, it becomes a major obstacle to stable service operation, making it difficult to track who deployed what code and when. To solve these problems, building a **CI/CD (Continuous Integration/Continuous Deployment)** pipeline is no longer an option, but a necessity.
 

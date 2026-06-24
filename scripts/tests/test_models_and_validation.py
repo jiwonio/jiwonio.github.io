@@ -18,6 +18,11 @@ class ModelsAndValidationTests(unittest.TestCase):
         path = Path("_posts/ko/2026/2026-06-22-ollama-self-hosted-language-model-runner.md")
         self.assertTrue(infer_ai_generated(metadata, path))
 
+    def test_infer_ai_generated_for_april_devops_post(self):
+        metadata = {"post_type": "deep-dive", "categories": ["DevOps"]}
+        path = Path("_posts/ko/2026/2026-04-06-dockerizing-your-web-application-for-consistent-development.md")
+        self.assertTrue(infer_ai_generated(metadata, path))
+
     def test_infer_ai_generated_false_for_legacy_devops(self):
         metadata = {"post_type": "deep-dive", "categories": ["DevOps"]}
         path = Path("_posts/ko/2024/2024-08-15-ubuntu22-swap-memory.md")

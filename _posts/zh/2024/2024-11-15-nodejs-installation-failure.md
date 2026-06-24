@@ -15,6 +15,7 @@ permalink: /zh/posts/nodejs-installation-failure/
 categories:
 - DevOps
 post_type: deep-dive
+updated: 2024-11-15 10:00:00 +0900
 ---
 在 Windows 11 上安装 [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} 时，你可能会遇到与附加软件包安装相关的错误。
 这些错误通常是由于某些 Node.js 包需要使用 **C/C++** 和 **Python** 进行编译而引起的。
@@ -70,11 +71,11 @@ post_type: deep-dive
 
 ### 2. 安装 Visual Studio Build Tools
 
- - 下载并安装最新版本的 [Visual Studio 2019 - Build Tools for Visual Studio 2019](https://my.visualstudio.com/Downloads?q=visual%20studio%202019 "Build Tools for Visual Studio 2019"){:target="_blank"}。
+ - 下载并安装最新版本的 [Visual Studio 2019 - Build Tools for Visual Studio 2019](https://visualstudio.microsoft.com/downloads/ "Build Tools for Visual Studio 2019"){:target="_blank"}。
    ![Download build tools](/uploads/nodejs-installation-failure/download-build-tools.png)
    ![MSBuild tools download](/uploads/nodejs-installation-failure/msbuild-tools.png)
    ![Install msbuild tools](/uploads/nodejs-installation-failure/install-msbuild-tools.png)
- - 安装完成后，运行以下命令[升级](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools#upgrade "Choco upgrade"){:target="_blank"} visualstudio2019-workload-vctools：
+ - 安装完成后，运行以下命令[升级](https://community.chocolatey.org/packages/visualstudio2019-workload-vctools "Choco upgrade"){:target="_blank"} visualstudio2019-workload-vctools：
    ```shell
    choco upgrade visualstudio2019-workload-vctools -y
    ```

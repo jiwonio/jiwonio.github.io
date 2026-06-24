@@ -18,6 +18,7 @@ lang: ko
 translation_key: jetbrains-ai-assistant-practical-deep-dive
 post_type: deep-dive
 ai_generated: true
+updated: 2026-06-17 01:25:10 +0900
 ---
 개발자는 코드 작성 외에도 수많은 인지적 노동을 합니다. 레거시 코드를 분석하고, 더 나은 구조를 고민하며 리팩토링하고, 변경 사항을 명확히 설명하는 커밋 메시지를 작성하는 일들입니다. GitHub Copilot이 코드 자동 완성의 시대를 열었다면, 이제 AI 도구들은 개발 워크플로 전체에 더 깊이 관여하고 있습니다.
 

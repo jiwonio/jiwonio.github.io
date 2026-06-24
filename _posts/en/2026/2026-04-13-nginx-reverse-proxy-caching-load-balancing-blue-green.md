@@ -23,6 +23,8 @@ lang: en
 translation_key: nginx-reverse-proxy-caching-load-balancing-blue-green
 permalink: /en/posts/nginx-reverse-proxy-caching-load-balancing-blue-green/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-04-13 09:55:58 +0900
 ---
 Any experienced developer has likely used **Nginx** as a web server or a simple reverse proxy. However, it's hard to say you're fully leveraging Nginx's potential with just a single `proxy_pass` directive. In a production environment where traffic is growing and service stability is crucial, you need to use Nginx more sophisticatedly to maximize **performance, availability, and deployment efficiency**.
 

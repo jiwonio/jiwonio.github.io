@@ -1,30 +1,19 @@
 ---
 layout: post
 title: AWS EC2 Ubuntu 초기 설정 가이드
-meta: Discover the key initial setup steps for Ubuntu 22.04 LTS on AWS EC2. This guide
-  focuses on configuring low-spec instances for development and testing environments,
-  perfect for free tier usage.
 tags:
 - AWS
 image: /uploads/ubuntu22-default-setting/thumbnail.webp
 lang: ko
 translation_key: ubuntu22-default-setting
 slug: ubuntu22-default-setting
-description: Discover the key initial setup steps for Ubuntu 22.04 LTS on AWS EC2.
-  This guide focuses on configuring low-spec instances for development and testing
-  environments, perfect for free tier usage.
+description: AWS EC2 프리티어 Ubuntu 22.04 LTS 인스턴스의 키 페어, 방화벽, 스토리지 등 초기 설정 절차를 안내합니다.
 post_type: deep-dive
 categories:
 - DevOps
+updated: 2024-10-15 10:00:00 +0900
 ---
-When setting up a development or testing environment on AWS EC2, starting with the right configurations for your instance is essential. 
-This guide walks you through the initial setup steps for **Ubuntu 22.04 LTS**, ideal for those utilizing the free tier to keep costs down. 
-We'll cover the basic configurations without going into services like Route 53, ELB, or RDS, making this guide perfect for straightforward, essential setups.
-Whether you're a beginner or an experienced developer, having a well-configured instance can save you time and prevent common issues. 
-This guide ensures your Ubuntu server is set up correctly, allowing you to focus on your projects rather than troubleshooting. 
-From setting up key pairs for secure access to configuring the firewall and storage, we've got you covered. 
-Follow these steps to create a stable and efficient environment for your development or testing needs.
-This translation was provided with the assistance of **Microsoft Copilot**.
+AWS EC2 프리티어로 개발·테스트 환경을 만들 때 **Ubuntu 22.04 LTS** 인스턴스의 초기 설정이 중요합니다. Route 53, ELB, RDS 같은 서비스는 다루지 않고, 키 페어, 방화벽, 스토리지 등 필수 구성만 단계별로 설명합니다. 초기에 올바르게 설정해 두면 이후 트러블슈팅 시간을 크게 줄일 수 있습니다.
 
 <!--more-->
 

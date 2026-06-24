@@ -20,6 +20,8 @@ lang: ja
 translation_key: building-production-level-rag-based-ai-agent-with-crewai-and-langchain
 post_type: deep-dive
 permalink: /ja/posts/building-production-level-rag-based-ai-agent-with-crewai-and-langchain/
+ai_generated: true
+updated: 2026-06-09 15:10:01 +0900
 ---
 単純な質問に答えるチャットボットを超え、複数段階の複雑なタスクを自律的に実行するAIシステムへの要求が高まっています。例えば、「最新のAI半導体市場の動向」に関するリサーチを任せると、AIが自らWebを検索し、重要な情報を要約し、競合他社を分析して最終的なレポートを作成する、といった具合です。これこそが**AIエージェント（AI Agent）**の核心的な概念であり、これを実現する最も強力な技術の一つが、**RAG（Retrieval-Augmented Generation）**と組み合わせたマルチエージェントシステムです。
 

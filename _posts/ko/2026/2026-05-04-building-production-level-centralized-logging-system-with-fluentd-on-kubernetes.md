@@ -20,6 +20,8 @@ image: /uploads/building-production-level-centralized-logging-system-with-fluent
 lang: ko
 translation_key: building-production-level-centralized-logging-system-with-fluentd-on-kubernetes
 post_type: deep-dive
+updated: 2026-05-04 10:03:05 +0900
+ai_generated: true
 ---
 마이크로서비스 아키텍처(MSA)가 보편화되면서 쿠버네티스는 컨테이너 오케스트레이션의 표준으로 자리 잡았습니다. 수많은 컨테이너가 동적으로 생성되고 사라지는 쿠버네티스 환경에서, 분산된 애플리케이션 로그를 추적하고 문제를 해결하는 것은 기존의 방식으로는 거의 불가능에 가깝습니다. 각 파드(Pod)에 접속하여 `kubectl logs` 명령어로 로그를 확인하는 것은 임시방편일 뿐, 실시간 장애 대응과 근본 원인 분석에는 한계가 명확합니다.
 

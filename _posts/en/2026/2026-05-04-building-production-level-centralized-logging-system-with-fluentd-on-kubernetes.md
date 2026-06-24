@@ -24,6 +24,8 @@ lang: en
 translation_key: building-production-level-centralized-logging-system-with-fluentd-on-kubernetes
 permalink: /en/posts/building-production-level-centralized-logging-system-with-fluentd-on-kubernetes/
 post_type: deep-dive
+ai_generated: true
+updated: 2026-05-04 10:03:05 +0900
 ---
 As Microservices Architecture (MSA) has become commonplace, Kubernetes has established itself as the standard for container orchestration. In a Kubernetes environment where numerous containers are dynamically created and destroyed, tracking distributed application logs and troubleshooting issues is nearly impossible with traditional methods. Accessing each pod and checking logs with the `kubectl logs` command is merely a temporary fix, with clear limitations for real-time incident response and root cause analysis.
 
