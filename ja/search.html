@@ -1,27 +1,11 @@
 ---
 layout: page
 lang: ja
-title: 検索
+title: Search
 page_key: search
 permalink: /ja/search/
-seo_description: blog.jiwon.io の記事検索
+seo_description: blog.jiwon.io の技術記事を検索
 image: /assets/og-default.webp
 ---
 
-<link href="/pagefind/pagefind-ui.css" rel="stylesheet">
-<div id="pagefind-search"></div>
-<script src="/pagefind/pagefind-ui.js"></script>
-<script>
-  window.addEventListener("DOMContentLoaded", function () {
-    if (typeof PagefindUI === "undefined") {
-      document.getElementById("pagefind-search").innerHTML =
-        "<p>検索インデックスを読み込めませんでした。しばらくしてから再度お試しください。</p>";
-      return;
-    }
-    new PagefindUI({
-      element: "#pagefind-search",
-      showSubResults: true,
-      resetStyles: false,
-    });
-  });
-</script>
+{% include pagefind-search.html %}

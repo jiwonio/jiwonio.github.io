@@ -8,20 +8,4 @@ seo_description: Search posts on blog.jiwon.io
 image: /assets/og-default.webp
 ---
 
-<link href="/pagefind/pagefind-ui.css" rel="stylesheet">
-<div id="pagefind-search"></div>
-<script src="/pagefind/pagefind-ui.js"></script>
-<script>
-  window.addEventListener("DOMContentLoaded", function () {
-    if (typeof PagefindUI === "undefined") {
-      document.getElementById("pagefind-search").innerHTML =
-        "<p>Could not load the search index. Please try again later.</p>";
-      return;
-    }
-    new PagefindUI({
-      element: "#pagefind-search",
-      showSubResults: true,
-      resetStyles: false,
-    });
-  });
-</script>
+{% include pagefind-search.html %}

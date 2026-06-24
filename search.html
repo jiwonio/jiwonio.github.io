@@ -8,20 +8,4 @@ seo_description: blog.jiwon.io 기술 글 검색
 image: /assets/og-default.webp
 ---
 
-<link href="/pagefind/pagefind-ui.css" rel="stylesheet">
-<div id="pagefind-search"></div>
-<script src="/pagefind/pagefind-ui.js"></script>
-<script>
-  window.addEventListener("DOMContentLoaded", function () {
-    if (typeof PagefindUI === "undefined") {
-      document.getElementById("pagefind-search").innerHTML =
-        "<p>검색 인덱스를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</p>";
-      return;
-    }
-    new PagefindUI({
-      element: "#pagefind-search",
-      showSubResults: true,
-      resetStyles: false,
-    });
-  });
-</script>
+{% include pagefind-search.html %}

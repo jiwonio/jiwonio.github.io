@@ -122,6 +122,10 @@ jobs:
           JEKYLL_ENV: production
         run: bundle exec jekyll build
 
+      - name: Build Pagefind search index
+        if: env.RUN_GENERATION == 'true'
+        run: npx --yes pagefind@1.3.0 --site _site
+
       - name: Proof HTML (internal links)
         if: env.RUN_GENERATION == 'true'
         run: bundle exec htmlproofer ./_site --disable-external --allow-hash-href --ignore-empty-alt

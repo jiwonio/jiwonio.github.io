@@ -7,6 +7,7 @@ ko:
     실무에서 바로 쓸 수 있는 설정, 아키텍처, 트러블슈팅을 기록합니다.
   archive_title: "아카이브"
   search_title: "검색"
+  search_index_error: "검색 인덱스를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
   privacy_title: "개인정보 처리방침"
   year_heading: "연도"
   tag_heading: "태그"
@@ -51,6 +52,7 @@ en:
     Practical setups, architecture notes, and troubleshooting for production work.
   archive_title: "Archive"
   search_title: "Search"
+  search_index_error: "Could not load the search index. Please try again later."
   privacy_title: "Privacy Policy"
   year_heading: "Year"
   tag_heading: "Tag"
@@ -95,6 +97,7 @@ ja:
     実務ですぐ使える設定、アーキテクチャ、トラブルシューティングを記録します。
   archive_title: "アーカイブ"
   search_title: "検索"
+  search_index_error: "検索インデックスを読み込めませんでした。しばらくしてから再度お試しください。"
   privacy_title: "プライバシーポリシー"
   year_heading: "年"
   tag_heading: "タグ"
@@ -139,6 +142,7 @@ zh:
     记录可直接用于生产的配置、架构与排错经验。
   archive_title: "归档"
   search_title: "搜索"
+  search_index_error: "无法加载搜索索引，请稍后再试。"
   privacy_title: "隐私政策"
   year_heading: "年份"
   tag_heading: "标签"
