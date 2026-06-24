@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-gem 'jekyll', '~> 4.3.0'
+gem 'jekyll', '~> 4.4.1'
 
 # Ruby 3.4+ 에서 필요한 젬들
 gem 'csv'
