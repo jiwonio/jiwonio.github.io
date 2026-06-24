@@ -98,10 +98,64 @@ module Jekyll
 
       grouped.values.sort_by { |entry| entry["title"].to_s.downcase }
     end
+
+    def build_tag_slug_translations(translations)
+      result = {}
+
+      translations.each do |_key, lang_posts|
+        next if lang_posts.size < 2
+
+        slugs_by_lang = {}
+        lang_posts.each do |lang, post|
+          slugs_by_lang[lang] = Array(post.data["tags"]).filter_map do |tag_name|
+            slug = tag_slug(tag_name)
+            slug ? [tag_name, slug] : nil
+          end.uniq(&:last)
+        end
+
+        all_langs = slugs_by_lang.keys.sort
+        slug_langs = Hash.new { |hash, key| hash[key] = [] }
+        slugs_by_lang.each do |lang, pairs|
+          pairs.each do |_, slug|
+            slug_langs[slug] << lang unless slug_langs[slug].include?(lang)
+          end
+        end
+
+        all_slugs = slug_langs.keys
+        universal_slugs = all_slugs.select { |slug| slug_langs[slug].sort == all_langs }
+        non_universal_slugs = all_slugs - universal_slugs
+        next if non_universal_slugs.empty?
+
+        lang_sets = non_universal_slugs.to_h { |slug| [slug, slug_langs[slug].sort] }
+        disjoint = lang_sets.values.combination(2).all? { |left, right| (left & right).empty? }
+        covered_langs = lang_sets.values.flatten.uniq.sort
+        next unless disjoint && covered_langs == all_langs
+
+        lang_sets.each do |from_slug, from_langs|
+          from_langs.each do |from_lang|
+            lang_sets.each do |to_slug, _to_langs|
+              next if from_slug == to_slug
+
+              to_slug_langs = slug_langs[to_slug]
+              to_slug_langs.each do |to_lang|
+                next if from_lang == to_lang
+
+                key = "#{from_lang}|#{from_slug}"
+                result[key] ||= {}
+                result[key][to_lang] = to_slug
+              end
+            end
+          end
+        end
+      end
+
+      result
+    end
   end
 
   class Site
-    attr_accessor :posts_by_lang, :translations, :tags_by_lang, :tag_archives_by_lang
+    attr_accessor :posts_by_lang, :translations, :tags_by_lang, :tag_archives_by_lang,
+                  :tag_slug_translations
   end
 
   # post_init 이후 Jekyll 기본 permalink가 덮어쓰므로, post_convert에서 최종 URL을 확정합니다.
@@ -141,10 +195,12 @@ module Jekyll
     end
 
     tag_archives_by_lang = tags_by_lang.transform_values { |tags| I18n.build_tag_archives(tags) }
+    tag_slug_translations = I18n.build_tag_slug_translations(translations)
 
     site.posts_by_lang = by_lang
     site.tags_by_lang = tags_by_lang
     site.tag_archives_by_lang = tag_archives_by_lang
+    site.tag_slug_translations = tag_slug_translations
     site.translations = translations
   end
 
@@ -154,6 +210,7 @@ module Jekyll
     payload["site"]["posts_by_lang"] = site.posts_by_lang || {}
     payload["site"]["tags_by_lang"] = site.tags_by_lang || {}
     payload["site"]["tag_archives_by_lang"] = site.tag_archives_by_lang || {}
+    payload["site"]["tag_slug_translations"] = site.tag_slug_translations || {}
     payload["site"]["translations"] = site.translations || {}
   end
 
@@ -179,6 +236,7 @@ module Jekyll
           page.data["lang"] = lang
           page.data["archives"] = true
           page.data["title"] = entry["title"]
+          page.data["tag_slug"] = slug
           page.data["tag_names"] = entry["names"]
           page.data["image"] = site.config.dig("seo", "default_image")
           lang_meta = site.data.dig("languages", lang) || {}

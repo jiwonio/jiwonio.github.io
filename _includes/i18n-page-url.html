@@ -36,22 +36,28 @@
         {%- assign i18n_page_url = '/' | append: target_lang | append: '/archive/' | append: archive_year | append: '/' -%}
     {%- endif -%}
 {%- elsif layout.archives -%}
-    {%- assign tag_slug = nil -%}
-    {%- assign after_tag = false -%}
-    {%- assign url_parts = page.url | split: '/' -%}
-    {%- for part in url_parts -%}
-        {%- if part == 'tag' -%}
-            {%- assign after_tag = true -%}
-        {%- elsif after_tag and part != '' -%}
-            {%- assign tag_slug = part -%}
-            {%- break -%}
-        {%- endif -%}
-    {%- endfor -%}
+    {%- assign tag_slug = page.tag_slug -%}
     {%- if tag_slug -%}
-        {%- if target_lang == site.default_lang -%}
-            {%- assign i18n_page_url = '/archive/tag/' | append: tag_slug | append: '/' -%}
-        {%- else -%}
-            {%- assign i18n_page_url = '/' | append: target_lang | append: '/archive/tag/' | append: tag_slug | append: '/' -%}
+        {%- assign source_lang = page.lang | default: site.default_lang -%}
+        {%- assign tag_map_key = source_lang | append: '|' | append: tag_slug -%}
+        {%- assign tag_translation_map = site.tag_slug_translations[tag_map_key] -%}
+        {%- assign resolved_tag_slug = tag_slug -%}
+        {%- if tag_translation_map and tag_translation_map[target_lang] -%}
+            {%- assign resolved_tag_slug = tag_translation_map[target_lang] -%}
+        {%- endif -%}
+        {%- assign tag_archive_exists = false -%}
+        {%- for entry in site.tag_archives_by_lang[target_lang] -%}
+            {%- if entry.slug == resolved_tag_slug -%}
+                {%- assign tag_archive_exists = true -%}
+                {%- break -%}
+            {%- endif -%}
+        {%- endfor -%}
+        {%- if tag_archive_exists -%}
+            {%- if target_lang == site.default_lang -%}
+                {%- assign i18n_page_url = '/archive/tag/' | append: resolved_tag_slug | append: '/' -%}
+            {%- else -%}
+                {%- assign i18n_page_url = '/' | append: target_lang | append: '/archive/tag/' | append: resolved_tag_slug | append: '/' -%}
+            {%- endif -%}
         {%- endif -%}
     {%- endif -%}
 {%- elsif page.layout == 'home' -%}
