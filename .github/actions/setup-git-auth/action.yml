@@ -1,0 +1,51 @@
+name: Setup Git Auth
+description: GitHub App installation token (preferred) or MY_PAT fallback for git/gh CLI
+
+inputs:
+  app-id:
+    description: GitHub App ID (secret GH_APP_ID)
+    required: false
+    default: ""
+  private-key:
+    description: GitHub App private key PEM (secret GH_APP_PRIVATE_KEY)
+    required: false
+    default: ""
+  pat:
+    description: Personal access token fallback (secret MY_PAT)
+    required: false
+    default: ""
+
+outputs:
+  token-source:
+    description: "app or pat"
+    value: ${{ steps.select.outputs.token-source }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create GitHub App token
+      if: inputs.app-id != '' && inputs.private-key != ''
+      id: app-token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ inputs.app-id }}
+        private-key: ${{ inputs.private-key }}
+        owner: ${{ github.repository_owner }}
+
+    - name: Select credentials
+      id: select
+      shell: bash
+      run: |
+        if [ -n "${{ steps.app-token.outputs.token }}" ]; then
+          echo "GH_TOKEN=${{ steps.app-token.outputs.token }}" >> "$GITHUB_ENV"
+          echo "token-source=app" >> "$GITHUB_OUTPUT"
+          echo "Using GitHub App installation token."
+        elif [ -n "${{ inputs.pat }}" ]; then
+          echo "GH_TOKEN=${{ inputs.pat }}" >> "$GITHUB_ENV"
+          echo "token-source=pat" >> "$GITHUB_OUTPUT"
+          echo "Using MY_PAT fallback."
+        else
+          echo "Configure GH_APP_ID + GH_APP_PRIVATE_KEY (recommended) or MY_PAT."
+          exit 1
+        fi
+        gh auth setup-git

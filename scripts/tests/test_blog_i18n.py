@@ -24,7 +24,11 @@ class BlogI18nTests(unittest.TestCase):
             ("en", "ja", "zh"),
         )
         self.assertEqual(
-            translation_langs_for_metadata({"post_type": "ai-news"}),
+            translation_langs_for_metadata({"post_type": "ai-news", "date": "2026-06-24"}),
+            ("en", "ja", "zh"),
+        )
+        self.assertEqual(
+            translation_langs_for_metadata({"post_type": "ai-news", "date": "2026-06-23"}),
             ("en",),
         )
 

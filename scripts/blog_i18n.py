@@ -100,8 +100,10 @@ TRANSLATION_ATTRIBUTION_PATTERN = re.compile(
 )
 TRANSLATION_LANGS_BY_TYPE = {
     "deep-dive": ("en", "ja", "zh"),
-    "ai-news": ("en",),
+    "ai-news": ("en", "ja", "zh"),
 }
+# 이 날짜 이전 ai-news는 en만 요구 (기존 글 호환). 이후 생성분은 en/ja/zh.
+AI_NEWS_FULL_I18N_START = "2026-06-24"
 LANG_LABELS = {
     "en": "English",
     "ja": "Japanese",
@@ -110,7 +112,13 @@ LANG_LABELS = {
 
 def translation_langs_for_metadata(metadata: dict) -> tuple[str, ...]:
     post_type = str(metadata.get("post_type", "deep-dive")).strip()
-    return TRANSLATION_LANGS_BY_TYPE.get(post_type, TRANSLATION_LANGS)
+    langs = TRANSLATION_LANGS_BY_TYPE.get(post_type, TRANSLATION_LANGS)
+    if post_type == "ai-news":
+        date_raw = metadata.get("date")
+        date_str = str(date_raw)[:10] if date_raw else ""
+        if date_str and date_str < AI_NEWS_FULL_I18N_START:
+            return ("en",)
+    return langs
 
 
 def detect_lang_from_path(path: str | Path) -> str:

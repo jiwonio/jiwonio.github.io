@@ -335,8 +335,8 @@ def validate_posts(
     return errors
 
 
-def audit_deep_dive_translations(posts_dir) -> list[str]:
-    """Report missing en/ja/zh translations for Korean deep-dive posts only."""
+def audit_translation_completeness(posts_dir) -> list[str]:
+    """Report missing translations per post_type policy (deep-dive, ai-news, etc.)."""
     errors = []
     translation_groups: dict[str, dict] = defaultdict(dict)
 
@@ -358,18 +358,25 @@ def audit_deep_dive_translations(posts_dir) -> list[str]:
             continue
 
         source_path, source_meta = source
-        if str(source_meta.get("post_type", "")).strip() != "deep-dive":
-            continue
-
         expected_langs = set(translation_langs_for_metadata(source_meta))
         missing_langs = sorted(expected_langs - set(langs))
         if missing_langs:
+            post_type = str(source_meta.get("post_type", "deep-dive")).strip()
             errors.append(
-                f"missing translations for '{key}' ({source_path.name}): "
+                f"missing translations for '{key}' ({post_type}, {source_path.name}): "
                 + ", ".join(missing_langs)
             )
 
     return errors
+
+
+def audit_deep_dive_translations(posts_dir) -> list[str]:
+    """Backward-compatible alias: deep-dive posts only."""
+    return [
+        error
+        for error in audit_translation_completeness(posts_dir)
+        if "deep-dive" in error
+    ]
 
 
 def main():
@@ -386,19 +393,32 @@ def main():
         help="HEAD-check all external markdown links in post bodies (slower, needs network)",
     )
     parser.add_argument(
+        "--audit-translations",
+        action="store_true",
+        help="Audit translation completeness for all post types",
+    )
+    parser.add_argument(
         "--audit-deep-dive",
         action="store_true",
-        help="Audit en/ja/zh translation completeness for deep-dive posts only",
+        help="Audit deep-dive translation completeness only (legacy alias)",
     )
     args = parser.parse_args()
 
-    if args.audit_deep_dive:
+    if args.audit_translations:
+        errors = audit_translation_completeness(args.posts_dir)
+        label = "Translation audit"
+    elif args.audit_deep_dive:
         errors = audit_deep_dive_translations(args.posts_dir)
+        label = "Deep-dive translation audit"
+    else:
+        errors = None
+
+    if errors is not None:
         if errors:
             for error in errors:
                 print(f"ERROR: {error}", file=sys.stderr)
             return 1
-        print("Deep-dive translation audit passed.")
+        print(f"{label} passed.")
         return 0
 
     errors = validate_posts(

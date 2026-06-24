@@ -174,7 +174,13 @@
   }
 }
 
-.masthead-title {
+  .icon--inline {
+    display: inline-block;
+    vertical-align: -0.125em;
+    margin-right: 0.15em;
+  }
+
+  .masthead-title {
   margin-top: 1rem;
   margin-bottom: 0;
   color: var(--color-masthead);

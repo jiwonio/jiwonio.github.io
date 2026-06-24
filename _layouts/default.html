@@ -14,7 +14,7 @@
                     {% else %}
                         <a href="/{{ current_lang }}/" title="Home">{{ site.title }}</a>
                     {% endif %}
-                    <small><i class="fa fa-code"></i> {{ site.tagline }}</small>
+                    <small><span class="icon icon--inline" aria-hidden="true">{{ icon_code }}</span> {{ site.tagline }}</small>
                 </h3>
                 <nav class="masthead-nav" aria-label="Site">
                     {% include lang-switcher.html %}

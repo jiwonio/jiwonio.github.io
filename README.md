@@ -35,12 +35,12 @@ _posts/
 
 | `post_type` | 설명 | 자동 번역 대상 |
 |-------------|------|----------------|
-| `deep-dive` | 심층 기술 글 (기본값) | en, ja, zh (3개) |
-| `ai-news` | 개발자 관점 AI 뉴스 다이제스트 | en만 (1개) |
+| `deep-dive` | 심층 기술 글 (기본값) | en, ja, zh |
+| `ai-news` | 개발자 관점 AI 뉴스 다이제스트 | en, ja, zh |
 
-`deep-dive`는 en·ja·zh 3개 언어로 번역되며, `ai-news`는 빠른 발행을 위해 en만 생성합니다.  
-ja/zh는 deep-dive 전용이므로 ai-news 포스트에는 ja/zh 번역이 없는 것이 정상입니다.  
-`validate_posts.py --audit-deep-dive`는 deep-dive 그룹의 en/ja/zh 누락만 주간 점검합니다.
+`deep-dive`와 `2026-06-24` 이후 `ai-news`는 en·ja·zh로 자동 번역됩니다.  
+그 이전 ai-news는 en만 유지되며, `backfill_translations`로 ja/zh를 추가할 수 있습니다.  
+`validate_posts.py --audit-translations`로 post_type별 번역 누락을 주간 점검합니다.
 
 ### URL 규칙
 
@@ -78,17 +78,16 @@ ja/zh는 deep-dive 전용이므로 ai-news 포스트에는 ja/zh 번역이 없�
 `workflow_dispatch`에서 `text_provider`·`translation_provider`로 override 가능합니다.  
 로컬에서는 `LLM_TEXT_PROVIDER`, `LLM_TRANSLATION_PROVIDER` 환경 변수로도 지정할 수 있습니다.
 
-### PR 검토 정책
+### 자동 머지 정책
 
-| 워크플로 | 자동 머지 | 검토 항목 |
-|----------|-----------|-----------|
-| `scheduled_ai_post` (월 deep-dive) | ✅ | 사실·링크·썸네일·번역·AI 표기 |
-| `scheduled_ai_post` (목 ai-news) | ❌ | 동일 + 뉴스 정확성·내부 링크 |
-| `scheduled_ai_post` (수동) | 기본 `false` | PR 체크리스트 확인 후 머지 |
-| `backfill_translations` | ❌ | 번역 품질·front matter·참고 URL |
-| `sync_maintenance` | ❌ | image/date front matter 변경 |
+수동 검수 없이 **검증 통과 시 자동 머지**합니다. 머지 전 `.github/actions/pre-merge-validate`가 실행됩니다.
 
-AI 생성 PR 본문에 검토 체크리스트가 포함됩니다. `ai-news`와 수동 실행은 반드시 검토 후 머지하세요.
+| 워크플로 | 자동 머지 | 머지 전 자동 검증 |
+|----------|-----------|-------------------|
+| `scheduled_ai_post` (스케줄) | ✅ 항상 | unittest, validate, translation audit, Jekyll, htmlproofer |
+| `scheduled_ai_post` (수동) | 기본 `true` | 동일 |
+| `backfill_translations` | ✅ | 동일 |
+| `sync_maintenance` | ✅ | 동일 |
 
 ### LLM 사용량 모니터링
 
@@ -106,12 +105,30 @@ AI 생성 PR 본문에 검토 체크리스트가 포함됩니다. `ai-news`와 �
 | `ANTHROPIC_API_KEY` | Claude API (ai-news·폴백·번역) |
 | `OPENAI_API_KEY` | OpenAI API (ai-news·폴백·번역) |
 | `XAI_API_KEY` | Grok/xAI API (ai-news·폴백·번역·이미지) |
-| `MY_PAT` | Actions에서 커밋·PR 생성·푸시용 PAT (`repo` 권한, 만료 전 주기적 교체 권장) |
-| `SLACK_WEBHOOK_URL` | 워크플로 실패·LLM API 호출 Slack 알림 (**운영 모니터링에 권장**) |
+| `GH_APP_ID` | **권장** GitHub App ID (커밋·PR·머지용, 만료 없음) |
+| `GH_APP_PRIVATE_KEY` | **권장** GitHub App private key PEM 전체 |
+| `MY_PAT` | (폴백) PAT — App 미설정 시 사용 |
+| `SLACK_WEBHOOK_URL` | 워크플로 실패·LLM 비용 Slack 알림 (**권장**) |
 
-`MY_PAT`는 GitHub PAT 만료·권한 변경 시 `scheduled_ai_post`, `backfill_translations` 등이 커밋·푸시에 실패합니다.  
-만료 30일 전 교체하고, 교체 후 Actions에서 수동 `workflow_dispatch`로 한 번 실행해 검증하세요.  
-`SLACK_WEBHOOK_URL`을 설정하면 배포 실패, 헬스체크 실패, AI 글 생성 실패, 번역 감사 실패, 스케줄 워치독 알림을 Slack으로 받을 수 있습니다.
+#### GitHub App으로 MY_PAT 대체하기
+
+PAT는 만료일이 있어 자동 포스팅이 갑자기 멈출 수 있습니다. GitHub App은 **설치 토큰을 실행마다 발급**하므로 장기 운영에 적합합니다.
+
+1. **GitHub App 생성** — [github.com/settings/apps/new](https://github.com/settings/apps/new)
+   - 이름: 예) `blog-jwjp-automation`
+   - Homepage URL: `https://blog.jiwon.io`
+   - **Webhook**: 비활성(체크 해제) 가능
+   - **Repository permissions**
+     - Contents: Read and write
+     - Pull requests: Read and write
+   - **Where can this app be installed?** — Only on this account
+2. **앱 생성 후** — App ID 복사 → Secret `GH_APP_ID`
+3. **Private key** — Generate a private key → 다운로드한 `.pem` 파일 내용 전체를 Secret `GH_APP_PRIVATE_KEY`에 저장
+4. **저장소에 설치** — Install App → `jwjp/jwjp.github.io` 선택
+5. **검증** — Actions → Bi-weekly AI Post Generation → `workflow_dispatch` 실행  
+   로그에 `Using GitHub App installation token.`이 보이면 성공
+
+`MY_PAT`는 App Secret이 없을 때만 폴백으로 사용됩니다. App 설정 후에도 `MY_PAT`를 남겨 두면 마이그레이션 기간에 안전합니다.
 
 ## 로컬 개발
 
@@ -134,8 +151,8 @@ export GEMINI_API_KEY=...   # Windows: $env:GEMINI_API_KEY="..."
 # 포스트 검증 (배포와 동일)
 python scripts/validate_posts.py
 
-# deep-dive en/ja/zh 번역 완전성만 점검
-python scripts/validate_posts.py --audit-deep-dive
+# post_type별 번역 완전성 점검
+python scripts/validate_posts.py --audit-translations
 
 # 참고문헌 URL HEAD 검증 (네트워크 필요, 주간 url_check.yml과 동일)
 python scripts/validate_posts.py --check-ref-urls --check-external-urls
@@ -183,7 +200,7 @@ Actions 탭 → **Bi-weekly AI Post Generation** → Run workflow
 |------|--------|
 | `post_type` | `ai-news` 또는 `deep-dive` |
 | `dry_run` | ai-news RSS 점검 시 `true` |
-| `auto_merge` | 기본 `false` (검토 후 머지 권장) |
+| `auto_merge` | 기본 `true` (검증 통과 시 자동 머지) |
 
 ## 참고
 

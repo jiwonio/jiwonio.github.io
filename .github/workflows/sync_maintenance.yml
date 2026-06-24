@@ -26,30 +26,43 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
 
-      - name: Verify secrets
-        run: |
-          if [ -z "${{ secrets.MY_PAT }}" ]; then
-            echo "MY_PAT secret is missing (needed for PR creation)."
-            exit 1
-          fi
+      - name: Verify git auth
+        uses: ./.github/actions/verify-git-auth
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          pat: ${{ secrets.MY_PAT }}
 
       - name: Run sync scripts
         run: |
           python scripts/sync_post_images.py
           python scripts/sync_translation_dates.py
 
-      - name: Create PR if changes
-        env:
-          GH_TOKEN: ${{ secrets.MY_PAT }}
+      - name: Pre-merge validation
+        uses: ./.github/actions/pre-merge-validate
+
+      - name: Setup git auth
+        uses: ./.github/actions/setup-git-auth
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          pat: ${{ secrets.MY_PAT }}
+
+      - name: Create PR and auto-merge
         run: |
           git config --local user.email "min@jiwon.io"
           git config --local user.name "jwjp"
-          gh auth setup-git
 
           git add _posts/
           if git diff --cached --quiet; then
@@ -65,11 +78,12 @@ jobs:
 
           PR_URL=$(gh pr create \
             --title "🔧 Weekly sync: images and translation dates" \
-            --body "Automated sync from \`sync_post_images.py\` and \`sync_translation_dates.py\`. Review front matter changes before merge." \
+            --body "Automated sync. All pre-merge validation checks passed." \
             --base gh-pages \
             --head "$BRANCH_NAME")
 
-          echo "PR Created: $PR_URL"
+          gh pr merge "$BRANCH_NAME" --merge --delete-branch
+          echo "✅ PR 자동 병합 완료: $PR_URL"
 
   notify-failure:
     runs-on: ubuntu-latest
@@ -81,15 +95,9 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           if [ -z "$SLACK_WEBHOOK_URL" ]; then
-            echo "SLACK_WEBHOOK_URL not configured, skipping Slack notification."
             exit 0
           fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -sS -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"❌ Weekly sync maintenance failed\n${RUN_URL}\"}" \
             "$SLACK_WEBHOOK_URL"
-
-      - name: Print failure summary
-        run: |
-          echo "::error::Weekly sync maintenance failed."
-          echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

@@ -2,6 +2,10 @@
 Inline SVG icons. Include once per template, then use {{ icon_search }}, etc.
 {%- endcomment -%}
 
+{%- capture icon_code -%}
+<svg class="icon" aria-hidden="true" width="1em" height="1em" viewBox="0 0 640 512" fill="currentColor"><path d="M278.9 511.5l-61-17.7c-6.4-1.8-10-8.5-8.2-14.9L346.5 8.5c1.8-6.4 8.5-10 14.9-8.2l61 17.7c6.4 1.8 10 8.5 8.2 14.9L293.8 503.3c-1.9 6.4-8.5 10.1-14.9 8.2zm-114-112.2l43.5-46.4L160 197.8l-43.5 46.4zm96.9-8.3l-43.5 46.4L160 256.2l43.5-46.4zM96 336.5l51.1-51.1 30.3 30.3-51.1 51.1-30.3-30.3zm141.7-66.8L208 320.8l30.3 30.3 29.7-29.7-30.3-30.3z"/></svg>
+{%- endcapture -%}
+
 {%- capture icon_search -%}
 <svg class="icon" aria-hidden="true" width="1em" height="1em" viewBox="0 0 512 512" fill="currentColor"><path d="M505 442.7L405.3 343c28.4-34.9 45.7-79.4 45.7-128.1C451 96.5 354.5 0 233 0S15 96.5 15 214.9s96.5 214.9 218 214.9c48.7 0 93.2-17.3 128.1-45.7l99.7 99.7c4.5 4.5 10.6 7 17 7s12.5-2.5 17-7c9.3-9.4 9.3-24.6 0-34zM233 370.9c-86.1 0-156-69.9-156-156S146.9 58.9 233 58.9 389 128.8 389 214.9 319.1 370.9 233 370.9z"/></svg>
 {%- endcapture -%}

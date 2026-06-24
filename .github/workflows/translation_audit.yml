@@ -1,4 +1,4 @@
-name: Deep-dive Translation Audit
+name: Translation Completeness Audit
 
 on:
   schedule:
@@ -22,8 +22,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
 
-      - name: Audit deep-dive translation completeness
-        run: python scripts/validate_posts.py --audit-deep-dive
+      - name: Audit translation completeness
+        run: python scripts/validate_posts.py --audit-translations
 
   notify-failure:
     runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
           fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -sS -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"⚠️ Deep-dive translation audit failed\n${RUN_URL}\"}" \
+            --data "{\"text\":\"⚠️ Translation audit failed\n${RUN_URL}\"}" \
             "$SLACK_WEBHOOK_URL"
 
       - name: Print failure summary
