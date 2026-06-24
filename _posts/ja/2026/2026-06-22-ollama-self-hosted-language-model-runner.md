@@ -15,6 +15,8 @@ tags:
 description: Ollamaを活用し、個人のマシンに言語モデルを直接インストールして運用する方法について解説します。設定プロセス、モデル選択の基準、実務適用時の性能トレードオフを探ります。
 image: /uploads/ollama-self-hosted-language-model-runner/thumbnail.webp
 permalink: /ja/posts/ollama-self-hosted-language-model-runner/
+post_type: deep-dive
+ai_generated: true
 ---
 クラウドベースのAIサービスは強力ですが、いくつかの欠点があります。コスト、データプライバシー、インターネットへの依存性がその代表です。機密データを扱ったり、オフライン環境でAI機能が必要だったり、あるいは単に実験コストを管理したい場合に、セルフホスティングが代替案となり得ます。しかし、言語モデルを自分で設定するプロセスは複雑で、多くの時間を要します。
 

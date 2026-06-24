@@ -16,6 +16,7 @@ description: Ollama를 활용해 개인 머신에 언어 모델을 직접 설치
   적용 시 성능 트레이드오프를 탐구합니다.
 image: /uploads/ollama-self-hosted-language-model-runner/thumbnail.webp
 post_type: deep-dive
+ai_generated: true
 ---
 클라우드 기반 AI 서비스는 강력하지만 몇 가지 단점을 가집니다. 비용, 데이터 프라이버시, 인터넷 의존성이 대표적입니다. 민감한 데이터를 다루거나, 오프라인 환경에서 AI 기능이 필요하거나, 단순히 실험 비용을 통제하고 싶을 때 자체 호스팅 방식이 대안이 될 수 있습니다. 하지만 언어 모델을 직접 설정하는 과정은 복잡하고 많은 시간을 요구합니다.
 

@@ -21,3 +21,7 @@ gem 'wdm', '>= 0.1.0' if Gem.win_platform?
 group :jekyll_plugins do
   gem 'jekyll-archives', '~> 2.2.1'
 end
+
+group :test do
+  gem 'html-proofer', '~> 5.0'
+end

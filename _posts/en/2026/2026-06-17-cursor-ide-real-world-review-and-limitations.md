@@ -19,6 +19,8 @@ image: /uploads/cursor-ide-real-world-review-and-limitations/thumbnail.webp
 lang: en
 translation_key: cursor-ide-real-world-review-and-limitations
 permalink: /en/posts/cursor-ide-real-world-review-and-limitations/
+post_type: deep-dive
+ai_generated: true
 ---
 Countless AI coding assistants have emerged. GitHub Copilot has evolved beyond basic autocompletion to become an integral part of the development workflow, and various IDEs are rapidly incorporating their own AI features. However, most of these remain as plugins added to existing editors.
 

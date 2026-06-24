@@ -1,0 +1,11 @@
+---
+layout: null
+permalink: /sitemap-index.xml
+---
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>{{ site.url }}/sitemap</loc></sitemap>
+  <sitemap><loc>{{ site.url }}/en/sitemap</loc></sitemap>
+  <sitemap><loc>{{ site.url }}/ja/sitemap</loc></sitemap>
+  <sitemap><loc>{{ site.url }}/zh/sitemap</loc></sitemap>
+</sitemapindex>

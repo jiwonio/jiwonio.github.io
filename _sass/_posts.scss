@@ -35,6 +35,16 @@
   color: var(--color-muted);
 }
 
+.post-disclosure {
+  margin: 0 0 1rem;
+  padding: .65rem .85rem;
+  border-left: 3px solid var(--color-link);
+  background: var(--color-bg-subtle, rgba(127, 127, 127, .08));
+  color: var(--color-muted);
+  font-size: .85rem;
+  line-height: 1.5;
+}
+
 .post-series {
   margin: 0 0 .75rem;
   font-size: .9rem;

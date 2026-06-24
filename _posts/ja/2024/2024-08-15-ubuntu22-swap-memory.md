@@ -12,6 +12,9 @@ slug: ubuntu22-swap-memory
 description: 低スペックサーバーのRAM不足を解消するために、Ubuntu 22.04 LTSでスワップメモリを設定する方法を学びます。リソースを大量に消費するアプリケーションを実行するAWS
   EC2や自己ホスト型サーバーに最適です。
 permalink: /ja/posts/ubuntu22-swap-memory/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 **Amazon Web Services EC2**のような無料利用枠のサービスや、その他の自己ホスト型サーバーを使用していると、大規模な外部リソースをインストールする際にRAM不足の問題に直面することがあります。
 これにより、サーバーが長時間フリーズし、最終的にクラッシュする可能性があります。

@@ -24,6 +24,7 @@ image: /uploads/building-serverless-rest-api-with-aws-lambda-api-gateway/thumbna
 lang: en
 translation_key: building-serverless-rest-api-with-aws-lambda-api-gateway
 permalink: /en/posts/building-serverless-rest-api-with-aws-lambda-api-gateway/
+post_type: deep-dive
 ---
 In traditional web application development, server provisioning, scaling, patching, and maintenance have been major factors hindering developer productivity. Developers had to endure the inefficiency of manually adding servers whenever traffic surged or, conversely, paying for idle servers. The serverless architecture, led by **AWS Lambda** and **API Gateway**, has fundamentally changed this paradigm.
 
@@ -268,4 +269,4 @@ Of course, it requires an effort to understand and overcome the unique character
 - [AWS Lambda Developer Guide](https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/welcome.html "Official AWS Lambda Documentation"){:target="_blank"}
 - [Amazon API Gateway Developer Guide](https://docs.aws.amazon.com/ko_kr/apigateway/latest/developerguide/welcome.html "Official Amazon API Gateway Documentation"){:target="_blank"}
 - [AWS SAM (Serverless Application Model) Developer Guide](https://docs.aws.amazon.com/ko_kr/serverless-application-model/latest/developerguide/what-is-sam.html "Official AWS SAM Documentation"){:target="_blank"}
-- [Database connection management for serverless applications](https://aws.amazon.com/ko/blogs/compute/database-connection-management-for-serverless-applications/ "Official AWS Blog"){:target="_blank"}
+- [Database connection management for serverless applications](https://docs.aws.amazon.com/lambda/latest/dg/services-rds.html "Official AWS Blog"){:target="_blank"}

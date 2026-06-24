@@ -10,6 +10,9 @@ translation_key: nodejs-installation-failure
 slug: nodejs-installation-failure
 description: Windows 11にNode.jsをセットアップする際に発生する一般的なパッケージインストールエラーの修正方法をご紹介します。このガイドでは、Chocolatyを使用したC/C++およびPythonのコンパイル問題に対処するための明確な解決策を提供します。
 permalink: /ja/posts/nodejs-installation-failure/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 Windows 11に[Node.js](https://nodejs.org/ "nodejs"){:target="_blank"}をインストールする際、追加のパッケージインストールに関連するエラーに遭遇することがあります。
 これらのエラーは、一部のNode.jsパッケージを**C/C++**や**Python**でコンパイルする必要があるために頻繁に発生します。

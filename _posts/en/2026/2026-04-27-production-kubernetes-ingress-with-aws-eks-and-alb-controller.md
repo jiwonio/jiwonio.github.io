@@ -24,6 +24,7 @@ image: /uploads/production-kubernetes-ingress-with-aws-eks-and-alb-controller/th
 lang: en
 translation_key: production-kubernetes-ingress-with-aws-eks-and-alb-controller
 permalink: /en/posts/production-kubernetes-ingress-with-aws-eks-and-alb-controller/
+post_type: deep-dive
 ---
 When operating a Kubernetes cluster using Amazon EKS (Elastic Kubernetes Service), one of the most critical challenges is routing external traffic to services inside the cluster reliably and efficiently. While Kubernetes provides `NodePort` or `LoadBalancer` type services, they have clear limitations in meeting the complex demands of a production environment. For example, every time a `LoadBalancer` service is deployed, a new ELB (Elastic Load Balancer) is created, increasing costs. It's also difficult to apply fine-grained L7 routing rules (path-based, host-based routing).
 
@@ -269,7 +270,7 @@ Beyond simply exposing services, it makes your microservice architecture more ro
 ### References
 
 *   [AWS Load Balancer Controller Official Documentation](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/ "AWS Load Balancer Controller Documentation"){:target="_blank"}
-*   [Amazon EKS Best Practices Guide - Networking](https://aws.github.io/aws-eks-best-practices/networking/ingress/ "Amazon EKS Best Practices Guide for Networking"){:target="_blank"}
+*   [Amazon EKS Best Practices Guide - Networking](https://docs.aws.amazon.com/eks/latest/best-practices/ingress.html "Amazon EKS Best Practices Guide for Networking"){:target="_blank"}
 *   [Introducing the AWS Load Balancer Controller for Kubernetes](https://aws.amazon.com/ko/blogs/containers/introducing-aws-load-balancer-controller/ "Introducing AWS Load Balancer Controller Blog Post"){:target="_blank"}
 *   [AWS Load Balancer Controller Annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/guide/ingress/annotations/ "Official Annotation Reference"){:target="_blank"}
 ---

@@ -3,21 +3,35 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlsplit, urlunsplit
+from urllib.request import Request, urlopen
 
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from blog_i18n import resolve_effective_date
+from blog_i18n import DEFAULT_LANG, resolve_effective_date, translation_langs_for_metadata
 
 
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
-REQUIRED_FIELDS = ("layout", "title", "tags", "image")
+REQUIRED_FIELDS = ("layout", "title", "tags", "image", "categories", "post_type")
 LANG_PATH = re.compile(r"(?:^|/)_posts/(en|ja|zh|ko)(?:/|$)")
-DEFAULT_LANG = "ko"
+INTERNAL_LINK_PATTERN = re.compile(r"\]\(/posts/([^)/\s]+)")
+REFERENCE_URL_PATTERN = re.compile(r"\[[^\]]+\]\((https?://[^)\s\"]+)")
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ]")
 CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
 EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
+KOREAN_PATTERN = re.compile(r"[가-힣]")
+JAPANESE_PATTERN = re.compile(r"[\u3040-\u30ff\u4e00-\u9fff]")
+CHINESE_PATTERN = re.compile(r"[\u4e00-\u9fff]")
+MIN_KO_CHARS = 40
+MIN_JA_CHARS = 20
+MIN_ZH_CHARS = 20
+MAX_EN_KO_CHARS = 120
+REF_CHECK_TIMEOUT = 8
+# Hosts that block automated HEAD/GET checks but serve valid pages in browsers.
+REF_URL_SKIP_HOSTS = frozenset({"marketplace.visualstudio.com"})
 
 
 def detect_lang(path: Path, metadata: dict) -> str:
@@ -37,6 +51,83 @@ def find_unexpected_scripts(content):
     return sorted(set(UNEXPECTED_SCRIPT_PATTERN.findall(prose)))
 
 
+def prose_body(content: str) -> str:
+    match = FRONT_MATTER_PATTERN.match(content)
+    body = content[match.end() :] if match else content
+    return CODE_BLOCK_PATTERN.sub("", body)
+
+
+def extract_reference_urls(content: str) -> list[str]:
+    refs_start = content.find("### 참고문헌")
+    if refs_start < 0:
+        for heading in ("### References", "### 参考", "### 参考文獻", "### 参考资料", "### 参考文献"):
+            refs_start = content.find(heading)
+            if refs_start >= 0:
+                break
+    if refs_start < 0:
+        return []
+    section = content[refs_start:]
+    return REFERENCE_URL_PATTERN.findall(section)
+
+
+def validate_language_content(lang: str, content: str) -> str | None:
+    prose = prose_body(content)
+    if lang == DEFAULT_LANG:
+        if len(KOREAN_PATTERN.findall(prose)) < MIN_KO_CHARS:
+            return f"ko post needs at least {MIN_KO_CHARS} Korean characters in prose"
+    elif lang == "en":
+        if len(KOREAN_PATTERN.findall(prose)) > MAX_EN_KO_CHARS:
+            return f"en translation contains too much Korean text (> {MAX_EN_KO_CHARS} chars)"
+    elif lang == "ja":
+        if len(JAPANESE_PATTERN.findall(prose)) < MIN_JA_CHARS:
+            return f"ja translation needs at least {MIN_JA_CHARS} Japanese characters in prose"
+    elif lang == "zh":
+        if len(CHINESE_PATTERN.findall(prose)) < MIN_ZH_CHARS:
+            return f"zh translation needs at least {MIN_ZH_CHARS} Chinese characters in prose"
+    return None
+
+
+def encode_url(url: str) -> str:
+    parts = urlsplit(url.strip())
+    path = quote(parts.path, safe="/%:@")
+    query = quote(parts.query, safe="=&%?") if parts.query else parts.query
+    return urlunsplit((parts.scheme, parts.netloc, path, query, parts.fragment))
+
+
+def fetch_reference_status(url: str) -> int | None:
+    headers = {"User-Agent": "blog.jiwon.io-validate/1.0"}
+    encoded = encode_url(url)
+    for method in ("HEAD", "GET"):
+        request = Request(encoded, method=method, headers=headers)
+        try:
+            with urlopen(request, timeout=REF_CHECK_TIMEOUT) as response:
+                return response.status
+        except HTTPError as exc:
+            if method == "HEAD" and exc.code in {403, 405, 429, 500, 502, 503}:
+                continue
+            return exc.code
+        except URLError:
+            if method == "HEAD":
+                continue
+            return None
+    return None
+
+
+def check_reference_url(url: str) -> str | None:
+    url = url.strip().rstrip(")")
+    if not url.startswith(("http://", "https://")):
+        return "reference URL must start with http:// or https://"
+    host = urlsplit(url).netloc.lower()
+    if host in REF_URL_SKIP_HOSTS:
+        return None
+    status = fetch_reference_status(url)
+    if status is None:
+        return None
+    if status in {404, 410}:
+        return f"reference URL returned HTTP {status}"
+    return None
+
+
 def load_post(path):
     content = path.read_text(encoding="utf-8")
     match = FRONT_MATTER_PATTERN.match(content)
@@ -54,12 +145,22 @@ def load_post(path):
     if metadata["layout"] != "post":
         raise ValueError("layout must be 'post'")
 
+    post_type = str(metadata.get("post_type", "")).strip()
+    if post_type not in {"deep-dive", "ai-news"}:
+        raise ValueError("post_type must be 'deep-dive' or 'ai-news'")
+
     tags = metadata["tags"]
     if not isinstance(tags, list) or not all(isinstance(tag, str) and tag.strip() for tag in tags):
         raise ValueError("tags must be a non-empty list of strings")
 
     if not metadata.get("description") and not metadata.get("meta"):
         raise ValueError("description or meta is required for SEO")
+
+    categories = metadata.get("categories")
+    if not isinstance(categories, list) or not all(
+        isinstance(category, str) and category.strip() for category in categories
+    ):
+        raise ValueError("categories must be a non-empty list of strings")
 
     image = metadata.get("image")
     if not isinstance(image, str) or not image.startswith("/uploads/"):
@@ -75,13 +176,15 @@ def validate_image_file(image_path, site_root):
         raise ValueError(f"image file not found: {image_path}")
 
 
-def validate_posts(posts_dir, site_root=None):
+def validate_posts(posts_dir, site_root=None, *, check_ref_urls: bool = False):
     errors = []
     tag_spellings = defaultdict(set)
     output_paths = defaultdict(list)
     translation_groups = defaultdict(dict)
     if site_root is None:
         site_root = posts_dir.parent
+
+    checked_reference_urls: dict[str, str | None] = {}
 
     for path in sorted(posts_dir.rglob("*.md")):
         try:
@@ -112,7 +215,6 @@ def validate_posts(posts_dir, site_root=None):
         if leaked:
             errors.append(f"{path}: prompt instruction text leaked into body: {', '.join(leaked)}")
 
-        # 일본어 포스트는 가나·한자가 정상이므로, ko 원문에만 혼입 문자 검사를 적용합니다.
         if lang == DEFAULT_LANG:
             stray_chars = find_unexpected_scripts(content)
             if stray_chars:
@@ -120,6 +222,22 @@ def validate_posts(posts_dir, site_root=None):
 
         if EXTERNAL_IMAGE_PATTERN.search(content):
             errors.append(f"{path}: contains an external image link")
+
+        language_error = validate_language_content(lang, content)
+        if language_error:
+            errors.append(f"{path}: {language_error}")
+
+        for ref_url in extract_reference_urls(content):
+            if not ref_url.startswith(("http://", "https://")):
+                errors.append(f"{path}: invalid reference URL format: {ref_url}")
+                continue
+            if not check_ref_urls:
+                continue
+            if ref_url not in checked_reference_urls:
+                checked_reference_urls[ref_url] = check_reference_url(ref_url)
+            ref_error = checked_reference_urls[ref_url]
+            if ref_error:
+                errors.append(f"{path}: {ref_error} for {ref_url}")
 
     for spellings in tag_spellings.values():
         if len(spellings) > 1:
@@ -136,13 +254,30 @@ def validate_posts(posts_dir, site_root=None):
                 + ", ".join(str(path) for path in paths)
             )
 
+    ko_slugs = {
+        normalized_slug
+        for (lang, normalized_slug), paths in output_paths.items()
+        if lang == DEFAULT_LANG and len(paths) == 1
+    }
+
     for key, langs in translation_groups.items():
-        if len(langs) < 2:
-            continue
         source = langs.get(DEFAULT_LANG)
         if not source:
             continue
+
         source_path, source_meta = source
+        expected_langs = set(translation_langs_for_metadata(source_meta))
+        present_langs = set(langs)
+        missing_langs = sorted(expected_langs - present_langs)
+        if missing_langs:
+            errors.append(
+                f"missing translations for '{key}' ({source_path.name}): "
+                + ", ".join(missing_langs)
+            )
+
+        if len(langs) < 2:
+            continue
+
         source_date = resolve_effective_date(source_path, source_meta)
         for lang, (path, metadata) in langs.items():
             if lang == DEFAULT_LANG:
@@ -154,15 +289,32 @@ def validate_posts(posts_dir, site_root=None):
                     f"{DEFAULT_LANG}={source_date}, {lang}={post_date} ({path})"
                 )
 
+    for path in sorted(posts_dir.rglob("*.md")):
+        try:
+            content, metadata = load_post(path)
+        except (OSError, UnicodeError, yaml.YAMLError, ValueError):
+            continue
+        if detect_lang(path, metadata) != DEFAULT_LANG:
+            continue
+        for slug in INTERNAL_LINK_PATTERN.findall(content):
+            normalized = re.sub(r"[^a-z0-9]+", "-", slug.lower()).strip("-")
+            if normalized not in ko_slugs:
+                errors.append(f"{path}: broken internal link to /posts/{slug}/")
+
     return errors
 
 
 def main():
     parser = argparse.ArgumentParser(description="Validate Jekyll post metadata and archive paths.")
     parser.add_argument("--posts-dir", type=Path, default=Path("_posts"))
+    parser.add_argument(
+        "--check-ref-urls",
+        action="store_true",
+        help="HEAD-check reference URLs in posts (slower, needs network)",
+    )
     args = parser.parse_args()
 
-    errors = validate_posts(args.posts_dir)
+    errors = validate_posts(args.posts_dir, check_ref_urls=args.check_ref_urls)
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)

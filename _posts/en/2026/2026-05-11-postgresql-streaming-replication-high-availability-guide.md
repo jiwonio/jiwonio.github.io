@@ -23,6 +23,7 @@ image: /uploads/postgresql-streaming-replication-high-availability-guide/thumbna
 lang: en
 translation_key: postgresql-streaming-replication-high-availability-guide
 permalink: /en/posts/postgresql-streaming-replication-high-availability-guide/
+post_type: deep-dive
 ---
 At the heart of every production service lies a database. However, an architecture that relies on a single database instance becomes a critical Single Point of Failure, where an unexpected hardware failure, network issue, or maintenance task can bring down the entire service. To address these risks and maximize service reliability, ensuring **database high availability (HA)** is not an option—it's a necessity.
 

@@ -17,6 +17,9 @@ translation_key: perfect-dev-environment-with-docker-and-vscode-dev-container
 description: チームメンバー全員が同じ環境で作業し、「私のPCでは動くのですが…」という問題を根本からなくす方法をお探しですか？DockerとVS Code
   Dev Containerを活用し、OSに関係なく一貫性のある隔離された開発環境を構築するための実践的なガイドを提供します。
 permalink: /ja/posts/perfect-dev-environment-with-docker-and-vscode-dev-container/
+categories:
+- AI
+post_type: deep-dive
 ---
 「私のPCではちゃんと動くのですが…」この言葉は、開発者が協力する際によく発生する悩ましい問題の一つです。開発者ごとに異なるオペレーティングシステム、インストールされたライブラリのバージョンの微妙な違い、各種環境変数の設定などは、予測不可能なバグを生み出し、プロジェクト全体の足を引っ張ることさえあります。このような問題を「環境の非一貫性」と呼びます。
 

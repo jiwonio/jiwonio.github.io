@@ -186,10 +186,31 @@ def generate_for_posts(force: bool = False) -> list[Path]:
     return created
 
 
+def list_missing_thumbnails() -> list[str]:
+    missing: list[str] = []
+    for path in sorted(POSTS_DIR.rglob("*.md")):
+        metadata = parse_front_matter(path)
+        slug = resolve_slug(path, metadata)
+        if not find_thumbnail(slug):
+            missing.append(slug)
+    return missing
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="누락된 포스트 썸네일과 기본 OG 이미지를 생성합니다.")
     parser.add_argument("--force", action="store_true", help="기존 썸네일도 덮어씁니다.")
+    parser.add_argument("--dry-run", action="store_true", help="누락 썸네일만 출력하고 생성하지 않습니다.")
     args = parser.parse_args()
+
+    if args.dry_run:
+        missing = list_missing_thumbnails()
+        if missing:
+            print("Missing thumbnails:")
+            for slug in missing:
+                print(f"  - {slug}")
+        else:
+            print("All post thumbnails are present.")
+        return 0
 
     default_path = create_default_og_image()
     print(f"✅ 기본 OG 이미지: {default_path.relative_to(ROOT)}")

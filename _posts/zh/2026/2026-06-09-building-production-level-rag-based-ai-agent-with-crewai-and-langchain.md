@@ -19,6 +19,7 @@ image: /uploads/building-production-level-rag-based-ai-agent-with-crewai-and-lan
 lang: zh
 translation_key: building-production-level-rag-based-ai-agent-with-crewai-and-langchain
 permalink: /zh/posts/building-production-level-rag-based-ai-agent-with-crewai-and-langchain/
+post_type: deep-dive
 ---
 如今，我们需要的已不再是仅仅回答简单问题的聊天机器人，而是能够自主执行多阶段复杂任务的 AI 系统。例如，当我们委托 AI 研究“最新 AI 半导体市场动向”时，我们期望它能自动搜索网络、提炼核心信息、分析竞争对手并最终撰写一份完整的报告。这正是 **AI 代理（AI Agent）** 的核心理念，而实现这一理念最强大的技术之一，就是与 **RAG (Retrieval-Augmented Generation)** 相结合的多代理系统。
 

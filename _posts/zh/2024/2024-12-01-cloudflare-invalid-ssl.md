@@ -12,6 +12,9 @@ slug: cloudflare-invalid-ssl
 description: 了解为什么 Cloudflare Full (strict) SSL 模式会失败而 Full 模式却能正常工作，尤其是在使用 GitHub
   Pages 作为源服务器时。理解常见的 SSL 问题，并学习如何修复它们，以实现安全无缝的连接。
 permalink: /zh/posts/cloudflare-invalid-ssl/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 **Cloudflare** 的 **Full (strict)** SSL 模式无法正常工作，而 Full 模式却可以，其原因通常在于源服务器（在此例中为 **GitHub Pages**）提供的 SSL 证书存在问题。Full (strict) 模式要求源服务器上的 SSL 证书不仅要有效，还必须由公认的证书颁发机构（CA）信任，与请求的域名匹配，并包含正确的证书链。然而，如果 GitHub Pages 的 SSL 证书不完全符合这些要求——例如缺少中间 CA、域名不匹配或设置延迟——Cloudflare 将在 Full (strict) 模式下拒绝连接。相反，Full 模式不验证证书的可信度，因此即使证书存在问题，它也能正常工作。
 

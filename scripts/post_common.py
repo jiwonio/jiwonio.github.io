@@ -25,14 +25,12 @@ from blog_i18n import (
     translation_langs_for_metadata,
 )
 from blog_i18n import generate_translation as _generate_translation
+from models_config import IMAGE_MODEL, TEXT_MODEL
 
 try:
     from PIL import Image
 except ImportError:
     Image = None
-
-IMAGE_MODEL = "gemini-3.1-flash-image"
-TEXT_MODEL = "gemini-2.5-pro"
 FORBIDDEN_REPEAT_COUNT = 3
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ]")
@@ -434,6 +432,7 @@ def generate_with_retry(
     for attempt in range(1, max_retries + 1):
         try:
             print(f"🔄 AI 글쓰기 API 요청 중... (시도 {attempt}/{max_retries})")
+            print(f"::notice::gemini_text_generation_attempt={attempt}")
             content = sanitize_generated_content(generate_text(client, prompt))
             metadata, slug = validate_fn(content)
             return content, metadata, slug
@@ -501,6 +500,7 @@ def publish_post(
     content = inject_front_matter_field(content, "lang", DEFAULT_LANG)
     content = inject_front_matter_field(content, "translation_key", slug)
     content = inject_front_matter_field(content, "post_type", post_type)
+    content = inject_front_matter_field(content, "ai_generated", True)
     content = inject_front_matter_field(content, "permalink", permalink_for_lang(DEFAULT_LANG, slug))
 
     public_image_path = ""

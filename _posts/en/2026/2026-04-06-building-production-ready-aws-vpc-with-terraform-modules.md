@@ -21,6 +21,7 @@ image: /uploads/building-production-ready-aws-vpc-with-terraform-modules/thumbna
 lang: en
 translation_key: building-production-ready-aws-vpc-with-terraform-modules
 permalink: /en/posts/building-production-ready-aws-vpc-with-terraform-modules/
+post_type: deep-dive
 ---
 When operating cloud infrastructure, the battle against "repetition" is unavoidable. The need to build similar yet subtly different network environments across multiple stages like development, staging, and production is a challenge every server engineer faces. While manually configuring VPCs, subnets, and routing tables in the AWS console might seem intuitive at first, the potential for error grows exponentially as the scale increases. Tracking change history or reproducing an identical environment becomes nearly impossible.
 

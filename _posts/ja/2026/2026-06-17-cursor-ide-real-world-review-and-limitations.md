@@ -16,6 +16,8 @@ image: /uploads/cursor-ide-real-world-review-and-limitations/thumbnail.webp
 lang: ja
 translation_key: cursor-ide-real-world-review-and-limitations
 permalink: /ja/posts/cursor-ide-real-world-review-and-limitations/
+post_type: deep-dive
+ai_generated: true
 ---
 数多くのAIコーディングアシスタントツールが登場しています。GitHub Copilotは基本的な自動補完を超え、開発ワークフローの一部となり、各IDEも独自のAI機能を続々と組み込んでいます。しかし、そのほとんどは既存のエディタにプラグインとして追加される形に留まっています。
 

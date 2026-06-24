@@ -1,4 +1,5 @@
 {% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
+{% assign lang_meta = site.data.languages[current_lang] %}
 {% assign lang_posts = site.posts_by_lang[current_lang] %}
 {% assign per_page = site.posts_per_page | default: 5 %}
 {% assign page_num = page.page | default: 1 %}
@@ -9,30 +10,30 @@
     {% if page_num < total_pages %}
         {% assign next_page = page_num | plus: 1 %}
         {% if current_lang == site.default_lang %}
-            <a class="pagination-item older" href="/page/{{ next_page }}/">Older</a>
+            <a class="pagination-item older" href="/page/{{ next_page }}/">{{ lang_meta.pagination.older }}</a>
         {% else %}
-            <a class="pagination-item older" href="/{{ current_lang }}/page/{{ next_page }}/">Older</a>
+            <a class="pagination-item older" href="/{{ current_lang }}/page/{{ next_page }}/">{{ lang_meta.pagination.older }}</a>
         {% endif %}
     {% else %}
-        <span class="pagination-item older">Older</span>
+        <span class="pagination-item older">{{ lang_meta.pagination.older }}</span>
     {% endif %}
 
     {% if page_num > 1 %}
         {% assign prev_page = page_num | minus: 1 %}
         {% if current_lang == site.default_lang %}
             {% if prev_page == 1 %}
-                <a class="pagination-item newer" href="/">Newer</a>
+                <a class="pagination-item newer" href="/">{{ lang_meta.pagination.newer }}</a>
             {% else %}
-                <a class="pagination-item newer" href="/page/{{ prev_page }}/">Newer</a>
+                <a class="pagination-item newer" href="/page/{{ prev_page }}/">{{ lang_meta.pagination.newer }}</a>
             {% endif %}
         {% else %}
             {% if prev_page == 1 %}
-                <a class="pagination-item newer" href="/{{ current_lang }}/">Newer</a>
+                <a class="pagination-item newer" href="/{{ current_lang }}/">{{ lang_meta.pagination.newer }}</a>
             {% else %}
-                <a class="pagination-item newer" href="/{{ current_lang }}/page/{{ prev_page }}/">Newer</a>
+                <a class="pagination-item newer" href="/{{ current_lang }}/page/{{ prev_page }}/">{{ lang_meta.pagination.newer }}</a>
             {% endif %}
         {% endif %}
     {% else %}
-        <span class="pagination-item newer">Newer</span>
+        <span class="pagination-item newer">{{ lang_meta.pagination.newer }}</span>
     {% endif %}
 </div>

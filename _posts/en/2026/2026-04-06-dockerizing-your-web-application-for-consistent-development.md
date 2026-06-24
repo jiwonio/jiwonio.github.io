@@ -19,6 +19,9 @@ description: Learn how to build a Docker development environment to solve the "b
   a consistent and reproducible development environment using Dockerfile and Docker
   Compose.
 permalink: /en/posts/dockerizing-your-web-application-for-consistent-development/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 Many developers have likely heard or said the phrase, "But it works on my machine!" at some point during collaboration. Subtle differences in operating systems, library versions, and configuration settings among developers can cause unexpected bugs. Moreover, new team members often spend a significant amount of time on complex development environment setup processes. This is a persistent problem that hampers productivity.
 

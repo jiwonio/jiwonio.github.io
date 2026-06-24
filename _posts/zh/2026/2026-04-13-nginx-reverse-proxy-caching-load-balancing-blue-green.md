@@ -18,6 +18,7 @@ image: /uploads/nginx-reverse-proxy-caching-load-balancing-blue-green/thumbnail.
 lang: zh
 translation_key: nginx-reverse-proxy-caching-load-balancing-blue-green
 permalink: /zh/posts/nginx-reverse-proxy-caching-load-balancing-blue-green/
+post_type: deep-dive
 ---
 任何经验丰富的开发人员都应该有过使用 **Nginx** 作为Web服务器或简单反向代理的经历。但仅仅依靠一个 `proxy_pass` 指令，很难说我们已经充分发挥了 Nginx 的全部潜力。在流量增加、服务稳定性变得至关重要的生产环境中，我们必须更精细地运用 Nginx，以最大化**性能、可用性和部署效率**。
 

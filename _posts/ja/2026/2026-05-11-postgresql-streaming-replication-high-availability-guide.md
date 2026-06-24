@@ -19,6 +19,7 @@ image: /uploads/postgresql-streaming-replication-high-availability-guide/thumbna
 lang: ja
 translation_key: postgresql-streaming-replication-high-availability-guide
 permalink: /ja/posts/postgresql-streaming-replication-high-availability-guide/
+post_type: deep-dive
 ---
 すべての本番サービスの心臓部にはデータベースがあります。しかし、単一のデータベースインスタンスのみに依存するアーキテクチャは、予期せぬハードウェア障害、ネットワーク問題、またはメンテナンス作業によってサービス全体が停止する可能性のある、致命的な単一障害点(Single Point of Failure)となります。このようなリスクを解決し、サービスの安定性を最大化するために、**データベースの高可用性(High Availability, HA)** の確保は選択ではなく必須です。
 

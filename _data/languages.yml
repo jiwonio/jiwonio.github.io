@@ -6,6 +6,7 @@ ko:
     웹 개발과 AI 코딩 도구를 다루는 기술 블로그입니다.
     실무에서 바로 쓸 수 있는 설정, 아키텍처, 트러블슈팅을 기록합니다.
   archive_title: "아카이브"
+  search_title: "검색"
   privacy_title: "개인정보 처리방침"
   year_heading: "연도"
   tag_heading: "태그"
@@ -21,6 +22,10 @@ ko:
   ai_news_series:
     label: "AI News 시리즈"
     path: "/archive/tag/ai-news/"
+  pagination:
+    older: "이전 글"
+    newer: "최신 글"
+  ai_disclosure: "이 글은 Google Gemini API로 생성·편집되었으며, 운영자가 검토 후 게시합니다. 썸네일 이미지도 AI로 생성될 수 있습니다."
   share:
     aria_label: "공유하기"
     label: "공유"
@@ -39,6 +44,7 @@ en:
     A technical blog on web development and AI coding tools.
     Practical setups, architecture notes, and troubleshooting for production work.
   archive_title: "Archive"
+  search_title: "Search"
   privacy_title: "Privacy Policy"
   year_heading: "Year"
   tag_heading: "Tag"
@@ -54,6 +60,10 @@ en:
   ai_news_series:
     label: "AI News series"
     path: "/en/archive/tag/ai-news/"
+  pagination:
+    older: "Older"
+    newer: "Newer"
+  ai_disclosure: "This post was generated and edited with the Google Gemini API, then published after operator review. Thumbnails may also be AI-generated."
   share:
     aria_label: "Share"
     label: "Share"
@@ -72,6 +82,7 @@ ja:
     Web開発とAIコーディングツールを扱う技術ブログです。
     実務ですぐ使える設定、アーキテクチャ、トラブルシューティングを記録します。
   archive_title: "アーカイブ"
+  search_title: "検索"
   privacy_title: "プライバシーポリシー"
   year_heading: "年"
   tag_heading: "タグ"
@@ -87,6 +98,10 @@ ja:
   ai_news_series:
     label: "AI News シリーズ"
     path: "/ja/archive/tag/ai-news/"
+  pagination:
+    older: "古い記事"
+    newer: "新しい記事"
+  ai_disclosure: "この記事は Google Gemini API で生成・編集され、運営者の確認後に公開されています。サムネイル画像も AI 生成の場合があります。"
   share:
     aria_label: "共有"
     label: "共有"
@@ -105,6 +120,7 @@ zh:
     分享 Web 开发与 AI 编程工具的技术博客。
     记录可直接用于生产的配置、架构与排错经验。
   archive_title: "归档"
+  search_title: "搜索"
   privacy_title: "隐私政策"
   year_heading: "年份"
   tag_heading: "标签"
@@ -120,6 +136,10 @@ zh:
   ai_news_series:
     label: "AI News 系列"
     path: "/zh/archive/tag/ai-news/"
+  pagination:
+    older: "较早文章"
+    newer: "较新文章"
+  ai_disclosure: "本文由 Google Gemini API 生成并编辑，经运营者审核后发布。缩略图也可能由 AI 生成。"
   share:
     aria_label: "分享"
     label: "分享"

@@ -20,6 +20,8 @@ image: /uploads/jetbrains-ai-assistant-practical-deep-dive/thumbnail.webp
 lang: en
 translation_key: jetbrains-ai-assistant-practical-deep-dive
 permalink: /en/posts/jetbrains-ai-assistant-practical-deep-dive/
+post_type: deep-dive
+ai_generated: true
 ---
 Developers perform a great deal of cognitive labor beyond just writing code. This includes analyzing legacy code, contemplating better structures for refactoring, and writing clear commit messages to explain changes. If GitHub Copilot opened the era of code auto-completion, AI tools are now becoming more deeply involved in the entire development workflow.
 

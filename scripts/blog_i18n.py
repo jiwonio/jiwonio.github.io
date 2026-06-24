@@ -16,8 +16,21 @@ LANG_PATH = re.compile(r"_posts/(en|ja|zh|ko)/")
 SITE_ROOT = Path(__file__).resolve().parent.parent
 POSTS_DIR = SITE_ROOT / "_posts"
 
+from models_config import TRANSLATION_MODELS as _TRANSLATION_MODELS
+
 DEFAULT_LANG = "ko"
 TRANSLATION_LANGS = ("en", "ja", "zh")
+AI_GENERATION_START_DATE = "2026-06-01"
+
+LEGACY_KO_TITLES = {
+    "style-guide": "스타일 가이드",
+    "ubuntu22-swap-memory": "Ubuntu 22.04 LTS 스왑 메모리 설정하기",
+    "datagrip-driver-error": "DataGrip에서 Amazon RDS 연결 시 드라이버 오류 해결",
+    "ubuntu22-default-setting": "AWS EC2 Ubuntu 초기 설정 가이드",
+    "nodejs-installation-failure": "Windows 11 Node.js 설치 오류 해결",
+    "cloudflare-invalid-ssl": "Cloudflare Full (strict) SSL 오류 원인과 해결",
+    "multiple-wsl2-instances": "Windows 11 WSL2로 여러 개발 환경 만들기",
+}
 TRANSLATION_LANGS_BY_TYPE = {
     "deep-dive": ("en", "ja", "zh"),
     "ai-news": ("en",),
@@ -139,6 +152,8 @@ def ensure_translation_metadata(content: str, source_content: str, target_lang: 
         metadata["layout"] = "post"
     if source_metadata.get("post_type"):
         metadata["post_type"] = source_metadata["post_type"]
+    if "ai_generated" in source_metadata:
+        metadata["ai_generated"] = source_metadata["ai_generated"]
 
     body = content[FRONT_MATTER_PATTERN.match(content).end() :]
     return dump_front_matter(metadata) + body
@@ -167,8 +182,48 @@ def is_primarily_english(content: str) -> bool:
     return korean_chars < 40
 
 
+def infer_ai_generated(metadata: dict, path: Path) -> bool:
+    if metadata.get("ai_generated") is True:
+        return True
+    if metadata.get("ai_generated") is False:
+        return False
+
+    post_type = str(metadata.get("post_type", "deep-dive")).strip()
+    if post_type == "ai-news":
+        return True
+
+    categories = infer_categories(metadata)
+    if "AI" not in categories:
+        return False
+
+    try:
+        date_prefix = resolve_date_prefix(path)
+    except ValueError:
+        return False
+    return date_prefix >= AI_GENERATION_START_DATE
+
+
+def infer_categories(metadata: dict) -> list[str]:
+    categories = metadata.get("categories")
+    if isinstance(categories, list) and categories:
+        return [str(category).strip() for category in categories if str(category).strip()]
+
+    post_type = str(metadata.get("post_type", "deep-dive")).strip()
+    if post_type == "ai-news":
+        return ["AI"]
+
+    tags = [str(tag).casefold() for tag in metadata.get("tags", [])]
+    ai_markers = (
+        "ai", "llm", "copilot", "cursor", "ollama", "gemini", "langchain",
+        "openai", "rag", "crewai", "langsmith", "jetbrains",
+    )
+    if any(marker in tag for tag in tags for marker in ai_markers):
+        return ["AI"]
+    return ["DevOps"]
+
+
 def prepare_ko_post_content(path: Path) -> str:
-    """레거시 포스트에 lang, translation_key, slug, description, post_type을 보강합니다."""
+    """레거시 포스트에 lang, translation_key, slug, description, post_type, categories를 보강합니다."""
     content = path.read_text(encoding="utf-8")
     metadata = parse_front_matter(content)
     slug = resolve_slug(path, metadata)
@@ -180,6 +235,12 @@ def prepare_ko_post_content(path: Path) -> str:
         metadata["post_type"] = "deep-dive"
     if not metadata.get("description") and metadata.get("meta"):
         metadata["description"] = str(metadata["meta"]).strip()
+    metadata["categories"] = infer_categories(metadata)
+    slug = metadata["slug"]
+    if slug in LEGACY_KO_TITLES:
+        metadata["title"] = LEGACY_KO_TITLES[slug]
+    if infer_ai_generated(metadata, path):
+        metadata["ai_generated"] = True
 
     return dump_front_matter(metadata) + content[FRONT_MATTER_PATTERN.match(content).end() :]
 
@@ -191,7 +252,7 @@ You are a senior technical translator. Translate the Jekyll blog post below into
 
 Rules:
 - Output only the translated markdown file. No preamble or explanation.
-- Keep these front matter fields exactly unchanged: layout, slug, date, categories, tags, image, post_type
+- Keep these front matter fields exactly unchanged: layout, slug, date, categories, tags, image, post_type, ai_generated
 - Set lang: {target_lang}
 - Set translation_key: {slug}
 - Translate title, description, and all prose. Keep code blocks unchanged.
@@ -266,13 +327,7 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
-TRANSLATION_MODELS = (
-    "gemini-2.5-pro",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
-)
+TRANSLATION_MODELS = _TRANSLATION_MODELS
 
 
 def generate_translation(

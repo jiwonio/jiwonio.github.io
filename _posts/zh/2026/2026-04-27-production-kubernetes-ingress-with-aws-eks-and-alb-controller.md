@@ -20,6 +20,7 @@ image: /uploads/production-kubernetes-ingress-with-aws-eks-and-alb-controller/th
 lang: zh
 translation_key: production-kubernetes-ingress-with-aws-eks-and-alb-controller
 permalink: /zh/posts/production-kubernetes-ingress-with-aws-eks-and-alb-controller/
+post_type: deep-dive
 ---
 在使用 Amazon EKS (Elastic Kubernetes Service) 运营 Kubernetes 集群时，最重要的挑战之一是如何稳定、高效地将外部流量路由到集群内部的服务。虽然 Kubernetes 提供了 `NodePort` 或 `LoadBalancer` 类型的服务，但它们在满足生产环境的复杂需求方面存在明显的局限性。例如，每当部署一个 `LoadBalancer` 类型的服务时，都会创建一个新的 ELB (Elastic Load Balancer)，这不仅增加了成本负担，而且难以应用精细的 L7 路由规则（如基于路径、基于主机的路由）。
 
@@ -265,6 +266,6 @@ kubectl apply -f ingress-2048.yaml
 ### 参考资料
 
 *   [AWS Load Balancer Controller 官方文档](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/ "AWS Load Balancer Controller Documentation"){:target="_blank"}
-*   [Amazon EKS 最佳实践指南 - 网络](https://aws.github.io/aws-eks-best-practices/networking/ingress/ "Amazon EKS Best Practices Guide for Networking"){:target="_blank"}
+*   [Amazon EKS 最佳实践指南 - 网络](https://docs.aws.amazon.com/eks/latest/best-practices/ingress.html "Amazon EKS Best Practices Guide for Networking"){:target="_blank"}
 *   [AWS 博客：介绍 AWS Load Balancer Controller](https://aws.amazon.com/ko/blogs/containers/introducing-aws-load-balancer-controller/ "Introducing AWS Load Balancer Controller Blog Post"){:target="_blank"}
 *   [AWS Load Balancer Controller 注解参考](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/guide/ingress/annotations/ "Official Annotation Reference"){:target="_blank"}

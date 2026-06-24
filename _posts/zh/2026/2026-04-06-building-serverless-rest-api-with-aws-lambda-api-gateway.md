@@ -21,6 +21,7 @@ image: /uploads/building-serverless-rest-api-with-aws-lambda-api-gateway/thumbna
 lang: zh
 translation_key: building-serverless-rest-api-with-aws-lambda-api-gateway
 permalink: /zh/posts/building-serverless-rest-api-with-aws-lambda-api-gateway/
+post_type: deep-dive
 ---
 在传统的 Web 应用程序开发中，服务器的预置、扩展、补丁和维护是影响开发者生产力的主要障碍之一。每当流量激增时，开发者不得不手动增加服务器，反之，在服务器空闲时，又不得不为空置资源支付成本，效率极低。以 **AWS Lambda** 和 **API Gateway** 为代表的无服务器（Serverless）架构从根本上改变了这一模式。
 
@@ -266,4 +267,4 @@ sam deploy --guided
 - [AWS Lambda 开发人员指南](https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/welcome.html "AWS Lambda 官方文档"){:target="_blank"}
 - [Amazon API Gateway 开发人员指南](https://docs.aws.amazon.com/ko_kr/apigateway/latest/developerguide/welcome.html "Amazon API Gateway 官方文档"){:target="_blank"}
 - [AWS SAM（无服务器应用程序模型）开发人员指南](https://docs.aws.amazon.com/ko_kr/serverless-application-model/latest/developerguide/what-is-sam.html "AWS SAM 官方文档"){:target="_blank"}
-- [管理 AWS Lambda 函数的数据库连接](https://aws.amazon.com/ko/blogs/compute/database-connection-management-for-serverless-applications/ "AWS 官方博客"){:target="_blank"}
+- [管理 AWS Lambda 函数的数据库连接](https://docs.aws.amazon.com/lambda/latest/dg/services-rds.html "AWS 官方博客"){:target="_blank"}

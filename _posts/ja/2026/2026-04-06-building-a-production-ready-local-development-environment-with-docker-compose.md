@@ -15,6 +15,9 @@ translation_key: building-a-production-ready-local-development-environment-with-
 slug: building-a-production-ready-local-development-environment-with-docker-compose
 description: DockerとDocker Composeを活用し、「自分のPCでしか動かない」問題を解決する方法を探ります。Python Django、PostgreSQL、Redisを含むマルチコンテナ開発環境を構築し、本番環境に近い環境を構成するための実践的なガイドを提供します。
 permalink: /ja/posts/building-a-production-ready-local-development-environment-with-docker-compose/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 「私のPCではちゃんと動くのですが…」開発者なら一度は経験したことがある、あるいは口にしたことがある言葉でしょう。開発環境と実際のサービスが稼働する本番環境の微妙な違いは、予期せぬバグやデプロイ失敗の主な原因となります。ライブラリのバージョン、オペレーティングシステム、システム設定など、無数の変数が存在するためです。このような問題を解決するために登場した技術が、まさに**Docker**です。
 

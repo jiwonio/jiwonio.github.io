@@ -11,6 +11,9 @@ slug: ubuntu22-swap-memory
 description: 学习如何在 Ubuntu 22.04 LTS 上配置交换内存，以解决低规格服务器上的 RAM 短缺问题。非常适合运行资源密集型应用的 AWS
   EC2 和自托管服务器。
 permalink: /zh/posts/ubuntu22-swap-memory/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 在使用 **Amazon Web Services EC2** 等服务的免费套餐或其他自托管服务器时，安装大型外部资源时偶尔会遇到内存不足的问题。
 这可能导致服务器长时间卡顿，并最终崩溃。

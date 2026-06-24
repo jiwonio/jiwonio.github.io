@@ -10,6 +10,9 @@ translation_key: datagrip-driver-error
 slug: datagrip-driver-error
 description: 了解如何解决将 Amazon RDS 连接到 JetBrains DataGrip 时的驱动程序错误。本指南涵盖了常见问题和实用解决方案，以实现无缝的数据库管理。
 permalink: /zh/posts/datagrip-driver-error/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 JetBrains 提供了 **DataGrip**，这是一款用于处理关系型和 NoSQL 数据库的跨平台工具。
 该工具支持多种数据库，包括 MySQL、Oracle Database、PostgreSQL、SQLite、MongoDB 和 Redis。

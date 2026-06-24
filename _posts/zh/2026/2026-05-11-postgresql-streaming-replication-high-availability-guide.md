@@ -20,6 +20,7 @@ image: /uploads/postgresql-streaming-replication-high-availability-guide/thumbna
 lang: zh
 translation_key: postgresql-streaming-replication-high-availability-guide
 permalink: /zh/posts/postgresql-streaming-replication-high-availability-guide/
+post_type: deep-dive
 ---
 数据库是所有生产服务的心脏。然而，一个仅依赖单一数据库实例的架构，会因意外的硬件故障、网络问题或维护工作而成为致命的单点故障（Single Point of Failure），导致整个服务中断。为了解决这些风险并最大化服务的稳定性，确保**数据库高可用性（High Availability, HA）**已不再是可选项，而是必需品。
 

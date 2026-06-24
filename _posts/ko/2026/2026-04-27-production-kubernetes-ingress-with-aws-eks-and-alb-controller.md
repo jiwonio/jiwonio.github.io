@@ -266,6 +266,6 @@ kubectl apply -f ingress-2048.yaml
 ### 참고문헌
 
 *   [AWS Load Balancer Controller 공식 문서](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/ "AWS Load Balancer Controller Documentation"){:target="_blank"}
-*   [Amazon EKS 모범 사례 가이드 - 네트워킹](https://aws.github.io/aws-eks-best-practices/networking/ingress/ "Amazon EKS Best Practices Guide for Networking"){:target="_blank"}
+*   [Amazon EKS 모범 사례 가이드 - 네트워킹](https://docs.aws.amazon.com/eks/latest/best-practices/ingress.html "Amazon EKS Best Practices Guide for Networking"){:target="_blank"}
 *   [AWS의 쿠버네티스 인그레스 컨트롤러 소개](https://aws.amazon.com/ko/blogs/containers/introducing-aws-load-balancer-controller/ "Introducing AWS Load Balancer Controller Blog Post"){:target="_blank"}
 *   [AWS Load Balancer Controller Annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/guide/ingress/annotations/ "Official Annotation Reference"){:target="_blank"}

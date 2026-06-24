@@ -10,6 +10,9 @@ translation_key: style-guide
 slug: style-guide
 description: 这是我博客的第一篇文章，旨在记录和解释本站的基本风格指南。
 permalink: /zh/posts/style-guide/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 这是我基于 **Jekyll 的 GitHub Pages** 博客上的**第一篇**文章。你可以把它看作是一篇笔记。
 当我隔了很久再写作时，往往会忘记之前的风格，导致各种风格混杂在一起。

@@ -15,6 +15,8 @@ tags:
 description: 了解如何使用 Ollama 在个人机器上自行安装和运行语言模型。本文将探讨设置过程、模型选择标准以及实际应用中的性能权衡。
 image: /uploads/ollama-self-hosted-language-model-runner/thumbnail.webp
 permalink: /zh/posts/ollama-self-hosted-language-model-runner/
+post_type: deep-dive
+ai_generated: true
 ---
 基于云的 AI 服务虽然功能强大，但也存在一些缺点，例如成本、数据隐私和网络依赖性。当需要处理敏感数据、在离线环境中使用 AI 功能，或者只是想控制实验成本时，自托管方案便成了一个可行的选择。然而，自行配置语言模型的过程通常复杂且耗时。
 

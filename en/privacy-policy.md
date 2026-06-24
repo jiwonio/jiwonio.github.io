@@ -8,7 +8,7 @@ seo_description: Privacy policy for the Jiwon Min blog, including Google AdSense
 image: /assets/og-default.webp
 ---
 
-<p class="privacy-policy__updated"><strong>Last updated:</strong> June 19, 2026</p>
+<p class="privacy-policy__updated"><strong>Last updated:</strong> June 24, 2026</p>
 
 <p>This blog (<a href="https://blog.jiwon.io">blog.jiwon.io</a>, the "Site") is operated by Jiwon Min ("Operator"). By using the Site, you agree to this policy.</p>
 
@@ -52,11 +52,15 @@ The Operator does not store visitor personal data on its own servers. Retention 
 
 You may request access, correction, deletion, or restriction of processing as permitted by applicable law. Contact us using the details below.
 
-## 7. Contact
+## 7. AI-Generated Content
+
+Some posts and thumbnails are created or translated automatically using the Google Gemini API. Drafts are reviewed by the operator before publication. Posts marked with `ai_generated` disclose this at the top of the article. Visitor personal data is not sent to the Gemini API during automated content generation.
+
+## 8. Contact
 
 - Operator: Jiwon Min
 - Email: [min@jiwon.io](mailto:min@jiwon.io)
 
-## 8. Changes
+## 9. Changes
 
 This policy may be updated from time to time. Changes will be posted on this page.

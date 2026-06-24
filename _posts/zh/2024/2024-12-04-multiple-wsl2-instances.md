@@ -10,6 +10,9 @@ translation_key: multiple-wsl2-instances
 slug: multiple-wsl2-instances
 description: 学习如何在 Windows 11 上使用 WSL2 设置和管理多个开发环境。本指南涵盖安装、配置以及优化工作流程的技巧。
 permalink: /zh/posts/multiple-wsl2-instances/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 在当今快节奏的开发世界中，高效地管理**多个开发环境**至关重要。
 **适用于 Linux 的 Windows 子系统 2 (WSL2)** 提供了一种强大而灵活的方式，可以直接在您的 **Windows 11** 计算机上创建和管理隔离的环境。

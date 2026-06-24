@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Style Guide
+title: 스타일 가이드
 meta: As this is the first post on my blog, it serves as a record and an explanation
   of the basic style guide for this site.
 tags:
@@ -9,10 +9,13 @@ image: /uploads/style-guide/thumbnail.webp
 lang: ko
 translation_key: style-guide
 slug: style-guide
-description: As this is the first post on my blog, it serves as a record and an explanation
-  of the basic style guide for this site.
+description: 블로그 첫 글로, Jekyll 기반 GitHub Pages에서 사용하는 기본 스타일 가이드를 정리합니다.
 post_type: deep-dive
+categories:
+- DevOps
 ---
+이 글은 Jekyll로 운영하는 GitHub Pages 블로그의 **스타일 가이드**입니다. 오랜만에 글을 쓸 때마다 서식이 뒤섞이는 걸 막기 위해, 제목·본문·코드·인용문 등 기본 규칙을 한곳에 기록해 두었습니다. 아래 예시는 영어 UI 기준으로 작성했지만, 한국어 글에도 같은 구조를 그대로 적용할 수 있습니다.
+
 This is the **first** post on my **GitHub Pages powered by Jekyll**. You can consider it a note-taking post.
 When I write after a long time, I tend to forget my previous styles, leading to a mishmash of different styles.
 To prevent such a mess and to practice writing, I decided to write this post.

@@ -14,6 +14,9 @@ description: Learn to configure swap memory on Ubuntu 22.04 LTS to address RAM s
   on low-spec servers. Perfect for AWS EC2 and self-hosted servers running resource-heavy
   applications.
 permalink: /en/posts/ubuntu22-swap-memory/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 When using the free tier of services like **Amazon Web Services EC2** or other self-hosted servers,
 you might occasionally run into issues with insufficient RAM when installing large external resources.

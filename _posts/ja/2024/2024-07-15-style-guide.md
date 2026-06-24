@@ -10,6 +10,9 @@ translation_key: style-guide
 slug: style-guide
 description: このブログの最初の投稿として、このサイトの基本的なスタイルガイドの記録と説明を兼ねています。
 permalink: /ja/posts/style-guide/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 これは**Jekyll**で作成した私の**GitHub Pages**ブログの**最初の**投稿です。備忘録のようなものだとお考えください。
 久しぶりに文章を書くと、以前のスタイルを忘れてしまい、様々なスタイルが混在してしまうことがあります。

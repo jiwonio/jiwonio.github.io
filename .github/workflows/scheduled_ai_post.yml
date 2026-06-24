@@ -107,6 +107,10 @@ jobs:
 
           python "$SCRIPT"
 
+      - name: Run Python unit tests
+        if: env.RUN_GENERATION == 'true'
+        run: python -m unittest discover -s scripts/tests -v
+
       - name: Validate generated posts
         if: env.RUN_GENERATION == 'true'
         run: python scripts/validate_posts.py
@@ -117,6 +121,10 @@ jobs:
           JEKYLL_ENV: production
         run: bundle exec jekyll build
 
+      - name: Proof HTML (internal links)
+        if: env.RUN_GENERATION == 'true'
+        run: bundle exec htmlproofer ./_site --disable-external --allow-hash-href --ignore-empty-alt
+
       - name: Commit, Push and Create PR
         if: env.RUN_GENERATION == 'true'
         env:
@@ -126,7 +134,7 @@ jobs:
           git config --local user.name "jwjp"
           gh auth setup-git
 
-          git add _posts/ uploads/ assets/ scripts/
+          git add _posts/ uploads/
 
           if ! git diff-index --quiet HEAD; then
             BEFORE_SHA=$(git rev-parse HEAD)

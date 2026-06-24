@@ -18,6 +18,8 @@ image: /uploads/building-local-code-review-cli-with-ollama-python/thumbnail.webp
 lang: en
 translation_key: building-local-code-review-cli-with-ollama-python
 permalink: /en/posts/building-local-code-review-cli-with-ollama-python/
+post_type: deep-dive
+ai_generated: true
 ---
 Code review is a core process for maintaining software quality, but it can also be a time-consuming task for team members. While AI tools like GitHub Copilot and ChatGPT have become excellent aids, security concerns about sending sensitive code to external APIs and ongoing cost issues remain.
 

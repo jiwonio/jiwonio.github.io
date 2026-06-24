@@ -12,6 +12,9 @@ slug: nodejs-installation-failure
 description: 了解如何在 Windows 11 上设置 Node.js 时修复常见的包安装错误。本指南为使用 Chocolaty 处理 C/C++ 和
   Python 编译问题提供了清晰的解决方案。
 permalink: /zh/posts/nodejs-installation-failure/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 在 Windows 11 上安装 [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} 时，你可能会遇到与附加软件包安装相关的错误。
 这些错误通常是由于某些 Node.js 包需要使用 **C/C++** 和 **Python** 进行编译而引起的。

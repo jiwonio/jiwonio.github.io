@@ -16,6 +16,8 @@ image: /uploads/building-local-code-review-cli-with-ollama-python/thumbnail.webp
 lang: ja
 translation_key: building-local-code-review-cli-with-ollama-python
 permalink: /ja/posts/building-local-code-review-cli-with-ollama-python/
+post_type: deep-dive
+ai_generated: true
 ---
 コードレビューはソフトウェアの品質を維持するための重要なプロセスですが、同僚の時間を多く消費する作業でもあります。GitHub CopilotやChatGPTのようなAIツールは優れた補助手段となりましたが、機密性の高いコードを外部APIに送信することに対するセキュリティ上の懸念やコストの問題は依然として残っています。
 

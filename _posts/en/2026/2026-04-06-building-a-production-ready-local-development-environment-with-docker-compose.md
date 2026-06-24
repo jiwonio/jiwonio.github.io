@@ -21,6 +21,9 @@ description: Learn how to solve the 'it works on my machine' problem using Docke
   development environment with Python Django, PostgreSQL, and Redis, creating an environment
   similar to production.
 permalink: /en/posts/building-a-production-ready-local-development-environment-with-docker-compose/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 "It works on my machine." It's a phrase every developer has likely experienced or said at least once. Subtle differences between the development environment and the production environment where the actual service runs are a major cause of unexpected bugs and deployment failures. This is due to numerous variables like library versions, operating systems, and system configurations. The technology that emerged to solve these problems is **Docker**.
 

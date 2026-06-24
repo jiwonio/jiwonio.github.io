@@ -21,6 +21,7 @@ image: /uploads/aws-sqs-dlq-asynchronous-message-processing-guide/thumbnail.webp
 lang: zh
 translation_key: aws-sqs-dlq-asynchronous-message-processing-guide
 permalink: /zh/posts/aws-sqs-dlq-asynchronous-message-processing-guide/
+post_type: deep-dive
 ---
 现代的 Web 应用程序面临着一个挑战：既要为用户提供快速的响应时间，又要在后台可靠地处理耗时较长的任务，如发送邮件、数据聚合、图像处理等。如果试图同步处理所有用户请求，响应时间会变长，损害用户体验，并可能导致整个系统性能下降。解决这些问题的核心架构模式正是**异步消息处理**。
 

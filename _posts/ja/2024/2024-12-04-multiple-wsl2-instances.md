@@ -10,6 +10,9 @@ translation_key: multiple-wsl2-instances
 slug: multiple-wsl2-instances
 description: Windows 11でWSL2を使用して複数の開発環境をセットアップ・管理する方法を学びます。このガイドでは、インストール、設定、ワークフローを最適化するためのヒントを解説します。
 permalink: /ja/posts/multiple-wsl2-instances/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 今日のペースの速い開発の世界では、**複数の開発環境**を効率的に管理することが不可欠です。
 Windows Subsystem for Linux 2 (**WSL2**) は、**Windows 11** マシン上で直接、分離された環境を作成・管理するための強力で柔軟な方法を提供します。

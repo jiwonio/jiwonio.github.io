@@ -15,6 +15,9 @@ slug: dockerizing-your-web-application-for-consistent-development
 description: 了解如何构建 Docker 开发环境来解决“但在我电脑上是好的啊...”的问题。本文将分步介绍如何使用 Dockerfile 和 Docker
   Compose 创建一个一致且可复现的开发环境。
 permalink: /zh/posts/dockerizing-your-web-application-for-consistent-development/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 很多开发者在协作过程中，都可能说过或听过“但在我电脑上是好的啊...”这句话。每个开发者不同的操作系统、库版本以及配置上的微小差异，都可能成为意想不到的 bug 的根源。每当有新成员加入项目时，复杂的开发环境配置过程又会消耗大量时间。这是一个长期以来降低生产效率的顽疾。
 

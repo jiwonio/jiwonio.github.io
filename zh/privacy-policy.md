@@ -8,7 +8,7 @@ seo_description: Jiwon Min 博客隐私政策，说明 Google AdSense、Google A
 image: /assets/og-default.webp
 ---
 
-<p class="privacy-policy__updated"><strong>最后更新：</strong> 2026年6月19日</p>
+<p class="privacy-policy__updated"><strong>最后更新：</strong> 2026年6月24日</p>
 
 <p>本博客（<a href="https://blog.jiwon.io">blog.jiwon.io</a>，以下简称“网站”）由 Jiwon Min（以下简称“运营者”）运营。使用本网站即表示您同意本政策。</p>
 
@@ -52,11 +52,15 @@ image: /assets/og-default.webp
 
 根据适用法律，您可请求查阅、更正、删除或限制处理个人信息。请通过下方联系方式与我们联系。
 
-## 7. 联系方式
+## 7. AI 生成内容
+
+部分文章与缩略图通过 Google Gemini API 自动生成或翻译。草稿经运营者审核后发布；带有 `ai_generated` 标记的文章会在正文顶部说明。自动生成过程中不会向 Gemini API 发送访客个人信息。
+
+## 8. 联系方式
 
 - 运营者：Jiwon Min
 - 邮箱：[min@jiwon.io](mailto:min@jiwon.io)
 
-## 8. 变更
+## 9. 变更
 
 本政策可能会更新，变更内容将发布在本页面。

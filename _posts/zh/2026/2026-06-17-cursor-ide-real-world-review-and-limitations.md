@@ -16,6 +16,8 @@ image: /uploads/cursor-ide-real-world-review-and-limitations/thumbnail.webp
 lang: zh
 translation_key: cursor-ide-real-world-review-and-limitations
 permalink: /zh/posts/cursor-ide-real-world-review-and-limitations/
+post_type: deep-dive
+ai_generated: true
 ---
 如今，大量的 AI 编程辅助工具应运而生。GitHub Copilot 已经超越了基本的自动补全，成为开发工作流的一部分，各大 IDE 也纷纷内置了自己的 AI 功能。但其中大多数仍停留在以插件形式附加于现有编辑器之上。
 

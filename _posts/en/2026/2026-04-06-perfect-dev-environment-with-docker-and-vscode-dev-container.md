@@ -22,6 +22,9 @@ description: Are you looking for a way to ensure all team members work in the sa
   shows you how to build a consistent and isolated development environment, regardless
   of your OS, using Docker and VS Code Dev Containers.
 permalink: /en/posts/perfect-dev-environment-with-docker-and-vscode-dev-container/
+categories:
+- AI
+post_type: deep-dive
 ---
 "But it works on my machine!" This is one of the most common and frustrating problems in collaborative development. Subtle differences in operating systems, installed library versions, and various environment variable settings among developers can lead to unpredictable bugs and derail entire projects. This issue is known as "environment inconsistency."
 

@@ -24,13 +24,17 @@ from blog_i18n import (
     TRANSLATION_LANGS,
     LANG_LABELS,
     detect_lang_from_path,
+    dump_front_matter,
     generate_translation,
     get_gemini_client,
+    infer_ai_generated,
+    infer_categories,
     parse_front_matter,
     prepare_ko_post_content,
     resolve_slug,
     translation_langs_for_metadata,
     translation_output_path,
+    FRONT_MATTER_PATTERN,
 )
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -61,19 +65,47 @@ def missing_translations(
     ]
 
 
+def prepare_translation_post_content(path: Path, source_metadata: dict, source_path: Path) -> str:
+    content = path.read_text(encoding="utf-8")
+    metadata = parse_front_matter(content)
+    metadata["categories"] = infer_categories({**metadata, "categories": metadata.get("categories") or source_metadata.get("categories")})
+    if not metadata.get("post_type") and source_metadata.get("post_type"):
+        metadata["post_type"] = source_metadata["post_type"]
+    if infer_ai_generated(source_metadata, source_path):
+        metadata["ai_generated"] = True
+    elif "ai_generated" in source_metadata:
+        metadata["ai_generated"] = source_metadata["ai_generated"]
+    return dump_front_matter(metadata) + content[FRONT_MATTER_PATTERN.match(content).end() :]
+
+
 def prepare_posts(posts: list[Path], *, dry_run: bool) -> int:
     updated = 0
     for path in posts:
         new_content = prepare_ko_post_content(path)
         old_content = path.read_text(encoding="utf-8")
-        if new_content == old_content:
-            continue
-        if dry_run:
-            print(f"[prepare] would update {path.relative_to(ROOT)}")
-        else:
-            path.write_text(new_content, encoding="utf-8")
-            print(f"[prepare] updated {path.relative_to(ROOT)}")
-        updated += 1
+        if new_content != old_content:
+            if dry_run:
+                print(f"[prepare] would update {path.relative_to(ROOT)}")
+            else:
+                path.write_text(new_content, encoding="utf-8")
+                print(f"[prepare] updated {path.relative_to(ROOT)}")
+            updated += 1
+
+        source_metadata = parse_front_matter(new_content if new_content != old_content else old_content)
+        for lang in TRANSLATION_LANGS:
+            translation_path = translation_output_path(path, lang)
+            if not translation_path.exists():
+                continue
+            translated_content = prepare_translation_post_content(translation_path, source_metadata, path)
+            old_translation = translation_path.read_text(encoding="utf-8")
+            if translated_content == old_translation:
+                continue
+            if dry_run:
+                print(f"[prepare] would update {translation_path.relative_to(ROOT)}")
+            else:
+                translation_path.write_text(translated_content, encoding="utf-8")
+                print(f"[prepare] updated {translation_path.relative_to(ROOT)}")
+            updated += 1
     return updated
 
 

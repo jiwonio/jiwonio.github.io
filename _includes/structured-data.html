@@ -52,7 +52,7 @@
       "description": {{ schema_description | jsonify }},
       "image": {{ schema_image | jsonify }},
       "datePublished": "{{ page.date | date_to_xmlschema }}",
-      "dateModified": "{{ page.last_modified_at | default: page.date | date_to_xmlschema }}",
+      "dateModified": "{{ page.updated | default: page.last_modified_at | default: page.date | date_to_xmlschema }}",
       "author": { "@id": "{{ site.url }}/#person" },
       "publisher": { "@id": "{{ site.url }}/#person" },
       "inLanguage": "{{ schema_lang }}",

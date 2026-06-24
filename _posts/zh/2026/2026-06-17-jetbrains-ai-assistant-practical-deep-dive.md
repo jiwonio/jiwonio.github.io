@@ -16,6 +16,8 @@ image: /uploads/jetbrains-ai-assistant-practical-deep-dive/thumbnail.webp
 lang: zh
 translation_key: jetbrains-ai-assistant-practical-deep-dive
 permalink: /zh/posts/jetbrains-ai-assistant-practical-deep-dive/
+post_type: deep-dive
+ai_generated: true
 ---
 除了编写代码，开发者还承担着大量的认知劳动：分析遗留代码、思考并重构更优的结构、撰写清晰说明变更的提交信息等。如果说 GitHub Copilot 开启了代码自动补全的时代，那么如今的 AI 工具正在更深层次地融入整个开发工作流。
 

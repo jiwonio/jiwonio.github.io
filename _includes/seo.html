@@ -17,7 +17,8 @@
   | strip -%}
 
 {%- assign page_lang = page.lang | default: site.default_lang | default: 'ko' -%}
-{%- assign page_locale = site.data.languages[page_lang].locale | default: site.locale -%}
+{%- assign lang_meta = site.data.languages[page_lang] -%}
+{%- assign page_locale = lang_meta.locale | default: site.locale -%}
 {%- assign seo_canonical = page.canonical | default: page.url | absolute_url -%}
 
 {%- if page.layout == "post" -%}
@@ -29,11 +30,11 @@
 {%- elsif layout.archives and page.date -%}
   {%- comment -%} jekyll-archives 연도 아카이브 (page.title 없음) {%- endcomment -%}
   {%- assign seo_og_type = "website" -%}
-  {%- assign seo_title = page.date | date: "%Y" | append: " Archive | " | append: site.title -%}
+  {%- assign seo_title = page.date | date: "%Y" | append: " " | append: lang_meta.archive_title | append: " | " | append: site.title -%}
 {%- elsif layout.archives -%}
   {%- comment -%} jekyll-archives 태그 아카이브 {%- endcomment -%}
   {%- assign seo_og_type = "website" -%}
-  {%- assign seo_title = page.title | append: " | Archive | " | append: site.title -%}
+  {%- assign seo_title = page.title | append: " | " | append: lang_meta.archive_title | append: " | " | append: site.title -%}
 {%- else -%}
   {%- assign seo_og_type = "website" -%}
   {%- assign seo_title = page.title | append: " | " | append: site.title -%}
@@ -66,9 +67,9 @@
 {%- if page.title == "Home" -%}
   {%- assign seo_image_alt = site.title | append: " · " | append: site.tagline -%}
 {%- elsif layout.archives and page.date -%}
-  {%- assign seo_image_alt = page.date | date: "%Y" | append: " Archive" -%}
+  {%- assign seo_image_alt = page.date | date: "%Y" | append: " " | append: lang_meta.archive_title -%}
 {%- elsif layout.archives -%}
-  {%- assign seo_image_alt = page.title | append: " Archive" -%}
+  {%- assign seo_image_alt = page.title | append: " " | append: lang_meta.archive_title -%}
 {%- else -%}
   {%- assign seo_image_alt = page.title | default: site.title -%}
 {%- endif -%}

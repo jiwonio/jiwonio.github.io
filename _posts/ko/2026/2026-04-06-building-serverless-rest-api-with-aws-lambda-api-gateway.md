@@ -266,4 +266,4 @@ AWS Lambda와 API Gateway를 기반으로 한 서버리스 아키텍처는 더 �
 - [AWS Lambda 개발자 안내서](https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/welcome.html "AWS Lambda 공식 문서"){:target="_blank"}
 - [Amazon API Gateway 개발자 안내서](https://docs.aws.amazon.com/ko_kr/apigateway/latest/developerguide/welcome.html "Amazon API Gateway 공식 문서"){:target="_blank"}
 - [AWS SAM (서버리스 애플리케이션 모델) 개발자 안내서](https://docs.aws.amazon.com/ko_kr/serverless-application-model/latest/developerguide/what-is-sam.html "AWS SAM 공식 문서"){:target="_blank"}
-- [AWS Lambda 함수의 데이터베이스 연결 관리](https://aws.amazon.com/ko/blogs/compute/database-connection-management-for-serverless-applications/ "AWS 공식 블로그"){:target="_blank"}
+- [AWS Lambda 함수의 데이터베이스 연결 관리](https://docs.aws.amazon.com/lambda/latest/dg/services-rds.html "AWS 공식 블로그"){:target="_blank"}

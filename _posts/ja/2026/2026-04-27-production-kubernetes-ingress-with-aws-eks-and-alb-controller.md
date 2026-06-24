@@ -20,6 +20,7 @@ image: /uploads/production-kubernetes-ingress-with-aws-eks-and-alb-controller/th
 lang: ja
 translation_key: production-kubernetes-ingress-with-aws-eks-and-alb-controller
 permalink: /ja/posts/production-kubernetes-ingress-with-aws-eks-and-alb-controller/
+post_type: deep-dive
 ---
 Amazon EKS (Elastic Kubernetes Service) を使用してKubernetesクラスターを運用する際、最も重要な課題の一つは、外部トラフィックをクラスター内部のサービスへ安定的かつ効率的にルーティングすることです。Kubernetesは`NodePort`や`LoadBalancer`タイプのサービスを提供しますが、これらは本番環境の複雑な要件をすべて満たすには限界が明確です。例えば、`LoadBalancer`タイプのサービスをデプロイするたびに新しいELB (Elastic Load Balancer) が作成されてコスト負担が大きくなり、詳細なL7ルーティングルール（パスベース、ホストベースのルーティング）を適用することも困難です。
 
@@ -265,6 +266,6 @@ kubectl apply -f ingress-2048.yaml
 ### 参考資料
 
 *   [AWS Load Balancer Controller公式ドキュメント](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/ "AWS Load Balancer Controller Documentation"){:target="_blank"}
-*   [Amazon EKS ベストプラクティスガイド - ネットワーキング](https://aws.github.io/aws-eks-best-practices/networking/ingress/ "Amazon EKS Best Practices Guide for Networking"){:target="_blank"}
+*   [Amazon EKS ベストプラクティスガイド - ネットワーキング](https://docs.aws.amazon.com/eks/latest/best-practices/ingress.html "Amazon EKS Best Practices Guide for Networking"){:target="_blank"}
 *   [Introducing the AWS Load Balancer Controller](https://aws.amazon.com/blogs/containers/introducing-aws-load-balancer-controller/ "Introducing AWS Load Balancer Controller Blog Post"){:target="_blank"}
 *   [AWS Load Balancer Controller Annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.7/guide/ingress/annotations/ "Official Annotation Reference"){:target="_blank"}

@@ -20,6 +20,7 @@ lang: ja
 translation_key: llm-application-monitoring-observability-with-langsmith
 post_type: deep-dive
 permalink: /ja/posts/llm-application-monitoring-observability-with-langsmith/
+ai_generated: true
 ---
 AIベースのアプリケーション、特にLLM（大規模言語モデル）を活用するシステムは、その複雑な内部動作のため、しばしば「ブラックボックス」のように感じられます。ユーザーのプロンプトが入力され、もっともらしい結果が出力されますが、その過程で何が起こっているのか、コストはどれくらいかかっているのか、どこでボトルネックが発生しているのかを把握するのは非常に困難です。従来のサーバー監視方法では、CPUやメモリ使用量程度しかわからず、LLMアプリケーションの核心である「品質」「コスト」「遅延」を追跡することはできません。
 

@@ -8,7 +8,7 @@ seo_description: Jiwon Min 블로그의 개인정보 처리방침입니다. Goog
 image: /assets/og-default.webp
 ---
 
-<p class="privacy-policy__updated"><strong>최종 업데이트:</strong> 2026년 6월 19일</p>
+<p class="privacy-policy__updated"><strong>최종 업데이트:</strong> 2026년 6월 24일</p>
 
 <p>본 블로그(<a href="https://blog.jiwon.io">blog.jiwon.io</a>, 이하 "사이트")는 Jiwon Min(이하 "운영자")이 운영합니다. 사이트를 이용하면 아래 내용에 동의한 것으로 간주합니다.</p>
 
@@ -52,11 +52,15 @@ image: /assets/og-default.webp
 
 관련 법령에 따라 개인정보 열람·정정·삭제·처리 정지를 요청할 수 있습니다. 문의는 아래 연락처로 해 주세요.
 
-## 7. 문의
+## 7. AI 생성 콘텐츠
+
+일부 글과 썸네일은 Google Gemini API를 사용해 자동 생성·번역됩니다. 생성된 초안은 운영자가 검토한 뒤 게시하며, `ai_generated` 표시가 있는 글은 해당 사실을 본문 상단에 안내합니다. 자동 생성 과정에서 방문자의 개인정보는 Gemini API로 전송되지 않습니다.
+
+## 8. 문의
 
 - 운영자: Jiwon Min
 - 이메일: [min@jiwon.io](mailto:min@jiwon.io)
 
-## 8. 변경
+## 9. 변경
 
 본 방침은 필요 시 수정될 수 있으며, 변경 사항은 이 페이지에 게시합니다.

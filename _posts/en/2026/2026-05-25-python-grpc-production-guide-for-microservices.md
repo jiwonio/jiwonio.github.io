@@ -22,6 +22,7 @@ image: /uploads/python-grpc-production-guide-for-microservices/thumbnail.webp
 lang: en
 translation_key: python-grpc-production-guide-for-microservices
 permalink: /en/posts/python-grpc-production-guide-for-microservices/
+post_type: deep-dive
 ---
 In modern cloud-native environments, numerous **Microservices** communicate with each other to execute complex business logic. The most common communication method is undoubtedly the REST API. However, in environments where internal service-to-service communication (East-West traffic) is exploding, REST, a text-based protocol using JSON, can sometimes become a performance bottleneck. The overhead of message serialization/deserialization, the lack of a clear API contract, and limitations in streaming capabilities are challenges that must be addressed in systems requiring high performance and low latency.
 

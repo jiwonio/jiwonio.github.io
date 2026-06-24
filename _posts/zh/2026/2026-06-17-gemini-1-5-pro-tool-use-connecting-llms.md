@@ -15,6 +15,8 @@ image: /uploads/gemini-1-5-pro-tool-use-connecting-llms/thumbnail.webp
 lang: zh
 translation_key: gemini-1-5-pro-tool-use-connecting-llms
 permalink: /zh/posts/gemini-1-5-pro-tool-use-connecting-llms/
+post_type: deep-dive
+ai_generated: true
 ---
 大型语言模型（LLM）基于海量文本数据展现出惊人的语言能力。但 LLM 本身与外部世界是隔绝的。它们无法直接执行诸如获取实时股票信息、查询数据库或发送电子邮件等任务。克服这一限制的核心技术便是“工具使用（Tool Use）”，也称为“函数调用（Function Calling）”。
 
@@ -198,4 +200,4 @@ Gemini 1.5 Pro 的工具使用功能是一座强大的桥梁，它使 LLM 能够
 
 ### 参考资料
 - [Google AI for Developers - Tool use](https://ai.google.dev/docs/function_calling "Gemini Function Calling Official Documentation"){:target="_blank"}
-- [GoogleCloudPlatform/generative-ai-samples on GitHub](https://github.com/GoogleCloudPlatform/generative-ai-samples/blob/main/gemini/function-calling/intro_function_calling.ipynb "Gemini Function Calling Examples"){:target="_blank"}
+- [GoogleCloudPlatform/generative-ai-samples on GitHub](https://github.com/GoogleCloudPlatform/generative-ai/blob/main/gemini/function-calling/intro_function_calling.ipynb "Gemini Function Calling Examples"){:target="_blank"}

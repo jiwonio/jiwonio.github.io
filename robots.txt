@@ -6,4 +6,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://blog.jiwon.io/sitemap
+Sitemap: https://blog.jiwon.io/sitemap-index.xml

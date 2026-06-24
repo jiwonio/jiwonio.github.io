@@ -19,6 +19,7 @@ image: /uploads/building-production-level-centralized-logging-system-with-fluent
 lang: zh
 translation_key: building-production-level-centralized-logging-system-with-fluentd-on-kubernetes
 permalink: /zh/posts/building-production-level-centralized-logging-system-with-fluentd-on-kubernetes/
+post_type: deep-dive
 ---
 随着微服务架构（MSA）的普及，Kubernetes 已成为容器编排的标准。在成千上万个容器动态创建和销毁的 Kubernetes 环境中，使用传统方法追踪和解决分布式应用的日志问题几乎是不可能的。登录到每个 Pod 并使用 `kubectl logs` 命令查看日志只是一种临时措施，对于实时故障响应和根本原因分析存在明显的局限性。
 

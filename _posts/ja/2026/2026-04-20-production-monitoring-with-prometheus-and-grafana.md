@@ -18,6 +18,7 @@ image: /uploads/production-monitoring-with-prometheus-and-grafana/thumbnail.webp
 lang: ja
 translation_key: production-monitoring-with-prometheus-and-grafana
 permalink: /ja/posts/production-monitoring-with-prometheus-and-grafana/
+post_type: deep-dive
 ---
 成功するWebサービスの運営の核心は、単に機能を実装すること以上に、サービスが「生きている」間にどのような状態にあるかを継続的に観察し、問題を予測することにあります。ユーザーがサービス障害を経験する前に潜在的なボトルネックを特定し、リソース使用量の推移を分析してインフラを効率的に拡張することは、すべての熟練したエンジニアにとって必須の能力です。しかし、分散したマイクロサービスアーキテクチャ環境で、数多くのサーバーとアプリケーションの状態を断片的に管理することは、ほとんど不可能に近いでしょう。
 

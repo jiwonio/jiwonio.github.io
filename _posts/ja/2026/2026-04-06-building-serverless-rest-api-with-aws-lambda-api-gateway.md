@@ -21,6 +21,7 @@ image: /uploads/building-serverless-rest-api-with-aws-lambda-api-gateway/thumbna
 lang: ja
 translation_key: building-serverless-rest-api-with-aws-lambda-api-gateway
 permalink: /ja/posts/building-serverless-rest-api-with-aws-lambda-api-gateway/
+post_type: deep-dive
 ---
 従来のWebアプリケーション開発において、サーバーのプロビジョニング、スケーリング、パッチ適用、メンテナンスは開発者の生産性を阻害する主な要因の一つでした。トラフィックが急増するたびに手動でサーバーを増設したり、逆にアイドル状態のサーバーコストをそのまま支払い続けなければならない非効率性を受け入れる必要がありました。**AWS Lambda**と**API Gateway**を筆頭とするサーバーレス（Serverless）アーキテクチャは、このようなパラダイムを根本から変えました。
 
@@ -266,4 +267,4 @@ AWS LambdaとAPI Gatewayをベースとしたサーバーレスアーキテク�
 - [AWS Lambda デベロッパーガイド](https://docs.aws.amazon.com/ko_kr/lambda/latest/dg/welcome.html "AWS Lambda 公式ドキュメント"){:target="_blank"}
 - [Amazon API Gateway デベロッパーガイド](https://docs.aws.amazon.com/ko_kr/apigateway/latest/developerguide/welcome.html "Amazon API Gateway 公式ドキュメント"){:target="_blank"}
 - [AWS SAM (サーバーレスアプリケーションモデル) デベロッパーガイド](https://docs.aws.amazon.com/ko_kr/serverless-application-model/latest/developerguide/what-is-sam.html "AWS SAM 公式ドキュメント"){:target="_blank"}
-- [AWS Lambda 関数でのデータベース接続管理](https://aws.amazon.com/ko/blogs/compute/database-connection-management-for-serverless-applications/ "AWS 公式ブログ"){:target="_blank"}
+- [AWS Lambda 関数でのデータベース接続管理](https://docs.aws.amazon.com/lambda/latest/dg/services-rds.html "AWS 公式ブログ"){:target="_blank"}

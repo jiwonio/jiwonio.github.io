@@ -15,6 +15,8 @@ image: /uploads/gemini-1-5-pro-tool-use-connecting-llms/thumbnail.webp
 lang: ja
 translation_key: gemini-1-5-pro-tool-use-connecting-llms
 permalink: /ja/posts/gemini-1-5-pro-tool-use-connecting-llms/
+post_type: deep-dive
+ai_generated: true
 ---
 大規模言語モデル（LLM）は、膨大なテキストデータに基づいて驚くべき言語能力を発揮します。しかし、LLMはそれ自体では外部世界から切り離されています。リアルタイムの株価情報を取得したり、データベースにクエリを実行したり、メールを送信したりといったタスクを直接実行することはできません。この限界を克服する核心技術が、まさに「Tool Use」、すなわち関数呼び出し（Function Calling）です。
 
@@ -198,5 +200,5 @@ Gemini 1.5 ProのTool Use機能は、LLMの限界を超え、現実世界と相�
 
 ### 参考文献
 - [Google AI for Developers - Tool use](https://ai.google.dev/docs/function_calling "Gemini Function Calling Official Documentation"){:target="_blank"}
-- [GoogleCloudPlatform/generative-ai-samples on GitHub](https://github.com/GoogleCloudPlatform/generative-ai-samples/blob/main/gemini/function-calling/intro_function_calling.ipynb "Gemini Function Calling Examples"){:target="_blank"}
+- [GoogleCloudPlatform/generative-ai-samples on GitHub](https://github.com/GoogleCloudPlatform/generative-ai/blob/main/gemini/function-calling/intro_function_calling.ipynb "Gemini Function Calling Examples"){:target="_blank"}
 ---

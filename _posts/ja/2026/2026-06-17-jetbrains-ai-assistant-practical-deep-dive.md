@@ -17,6 +17,8 @@ image: /uploads/jetbrains-ai-assistant-practical-deep-dive/thumbnail.webp
 lang: ja
 translation_key: jetbrains-ai-assistant-practical-deep-dive
 permalink: /ja/posts/jetbrains-ai-assistant-practical-deep-dive/
+post_type: deep-dive
+ai_generated: true
 ---
 開発者はコードを書く以外にも、数多くの認知的労働をこなします。レガシーコードを分析し、より良い構造を考えてリファクタリングを行い、変更内容を明確に説明するコミットメッセージを作成するなどです。GitHub Copilotがコード自動補完の時代を切り開いたとすれば、今やAIツールは開発ワークフロー全体にさらに深く関与するようになっています。
 

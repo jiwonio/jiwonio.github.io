@@ -1,0 +1,27 @@
+---
+layout: page
+lang: zh
+title: 搜索
+page_key: search
+permalink: /zh/search/
+seo_description: 搜索 blog.jiwon.io 技术文章
+image: /assets/og-default.webp
+---
+
+<link href="/pagefind/pagefind-ui.css" rel="stylesheet">
+<div id="pagefind-search"></div>
+<script src="/pagefind/pagefind-ui.js"></script>
+<script>
+  window.addEventListener("DOMContentLoaded", function () {
+    if (typeof PagefindUI === "undefined") {
+      document.getElementById("pagefind-search").innerHTML =
+        "<p>无法加载搜索索引，请稍后重试。</p>";
+      return;
+    }
+    new PagefindUI({
+      element: "#pagefind-search",
+      showSubResults: true,
+      resetStyles: false,
+    });
+  });
+</script>

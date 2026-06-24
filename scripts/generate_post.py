@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -191,8 +193,45 @@ def generate_blog_post() -> str:
         image_prompt=image_prompt,
         post_type="deep-dive",
         today=today,
+        require_translations=True,
     )
 
 
+def dry_run() -> int:
+    """API 호출 없이 생성 전제 조건만 확인합니다."""
+    issues: list[str] = []
+
+    print("🔍 Deep-dive dry-run (API 호출 없음)")
+
+    if not os.environ.get("GEMINI_API_KEY", "").strip():
+        issues.append("GEMINI_API_KEY is not set")
+
+    recent_titles = get_recent_titles(50)
+    recent_slugs = get_recent_slugs(50)
+    token_counts = count_token_frequency(recent_titles, recent_slugs)
+    forbidden = find_forbidden_tokens(token_counts)
+    print(f"  금지 토큰: {', '.join(sorted(forbidden)) or '없음'}")
+    print(f"  기존 ko slug 수: {len(get_existing_ko_slugs())}")
+
+    if issues:
+        print("\n❌ dry-run 실패:")
+        for issue in issues:
+            print(f"  - {issue}")
+        return 1
+
+    print("  ✅ 사전 조건 통과")
+    return 0
+
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="AI 코딩 도구 심층 기술 글 자동 생성")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="API 호출 없이 사전 조건만 확인하고 종료",
+    )
+    args = parser.parse_args()
+
+    if args.dry_run:
+        raise SystemExit(dry_run())
     generate_blog_post()

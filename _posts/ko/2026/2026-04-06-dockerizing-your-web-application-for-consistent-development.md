@@ -15,6 +15,8 @@ slug: dockerizing-your-web-application-for-consistent-development
 description: \"내 컴퓨터에서는 되는데...\" 문제를 해결하는 Docker 개발 환경 구축 방법을 알아봅니다. Dockerfile과 Docker
   Compose를 활용하여 일관성 있고 재현 가능한 개발 환경을 만드는 과정을 단계별로 설명합니다.
 post_type: deep-dive
+categories:
+- DevOps
 ---
 많은 개발자들이 협업 과정에서 한 번쯤은 "제 컴퓨터에서는 잘 되는데요?"라는 말을 들어보거나 해본 경험이 있을 것입니다. 개발자마다 다른 운영체제, 라이브러리 버전, 설정 값의 미세한 차이는 예상치 못한 버그의 원인이 되며, 새로운 팀원이 프로젝트에 합류할 때마다 복잡한 개발 환경 설정 과정에 많은 시간을 소모하게 됩니다. 이는 생산성을 저해하는 고질적인 문제입니다.
 

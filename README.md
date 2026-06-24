@@ -22,7 +22,11 @@ _posts/
 | `scripts/generate_post.py` | 월요일 심층 기술 글(deep-dive) 자동 생성 |
 | `scripts/generate_ai_news.py` | 목요일 AI 뉴스 다이제스트(ai-news) 자동 생성 |
 | `scripts/backfill_translations.py` | 기존 원문의 누락 번역 백필 |
-| `scripts/validate_posts.py` | 배포 전 front matter·이미지·번역 그룹 검증 |
+| `scripts/validate_posts.py` | 배포 전 front matter·이미지·번역 완전성·내부 링크·언어 품질 검증 |
+| `scripts/models_config.py` | Gemini 텍스트·이미지·번역 모델 설정 |
+| `scripts/submit_indexnow.py` | 배포·변경 포스트 URL IndexNow 제출 (번역 그룹 포함) |
+| `scripts/sync_translation_dates.py` | 번역본 날짜를 ko 원문과 동기화 |
+| `scripts/tests/` | Python 단위 테스트 |
 
 ### 포스트 유형 (`post_type`)
 
@@ -41,9 +45,11 @@ _posts/
 
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
-| `jekyll.yml` | push → `gh-pages` | validate → build → GitHub Pages 배포, IndexNow 알림 |
+| `jekyll.yml` | push → `gh-pages` | test → validate → build → htmlproofer → Pagefind → 참고 URL 검증 → 배포 |
 | `scheduled_ai_post.yml` | 월·목 00:00 | 월=deep-dive, 목=ai-news 생성 후 PR(기본 자동 머지) |
 | `ai_news_health_check.yml` | 수 06:00 | ai-news RSS `--dry-run --strict` 사전 점검 |
+| `deep_dive_health_check.yml` | 일 06:00 | deep-dive `--dry-run` 사전 점검 |
+| `thumbnail_check.yml` | 화 07:00 | 누락 썸네일 `--dry-run` 점검 |
 | `backfill_translations.yml` | 수동 | 누락 번역 백필 (`workflow_dispatch`) |
 
 ### Repository Secrets
@@ -74,8 +80,20 @@ export GEMINI_API_KEY=...   # Windows: $env:GEMINI_API_KEY="..."
 # 포스트 검증 (배포와 동일)
 python scripts/validate_posts.py
 
+# 참고문헌 URL HEAD 검증 (네트워크 필요)
+python scripts/validate_posts.py --check-ref-urls
+
+# 단위 테스트
+python -m unittest discover -s scripts/tests -v
+
+# deep-dive 사전 점검 (API 키만 확인)
+python scripts/generate_post.py --dry-run
+
 # ai-news RSS만 확인 (API 호출 없음)
 python scripts/generate_ai_news.py --dry-run
+
+# 번역 날짜 동기화 (dry-run)
+python scripts/sync_translation_dates.py --dry-run
 
 # 한국어 메타데이터 정규화 (lang, translation_key, post_type 등)
 python scripts/backfill_translations.py --prepare

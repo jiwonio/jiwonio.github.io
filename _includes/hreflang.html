@@ -28,6 +28,15 @@
         {%- endif -%}
     {%- endfor -%}
 <link rel="alternate" hreflang="x-default" href="{{ '/' | absolute_url }}">
+{%- elsif page.page_key == 'search' -%}
+    {%- for lang in site.lang_codes -%}
+        {%- if lang == site.default_lang -%}
+<link rel="alternate" hreflang="{{ lang }}" href="{{ '/search/' | absolute_url }}">
+        {%- else -%}
+<link rel="alternate" hreflang="{{ lang }}" href="{{ '/' | append: lang | append: '/search/' | absolute_url }}">
+        {%- endif -%}
+    {%- endfor -%}
+<link rel="alternate" hreflang="x-default" href="{{ '/search/' | absolute_url }}">
 {%- elsif page.page_key == 'privacy-policy' -%}
     {%- for lang in site.lang_codes -%}
         {%- if lang == site.default_lang -%}

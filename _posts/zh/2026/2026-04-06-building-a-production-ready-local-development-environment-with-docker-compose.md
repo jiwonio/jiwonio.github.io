@@ -17,6 +17,9 @@ slug: building-a-production-ready-local-development-environment-with-docker-comp
 description: 本文将探讨如何利用 Docker 和 Docker Compose 解决“在我电脑上一切正常”的经典难题。通过构建一个包含 Python
   Django、PostgreSQL 和 Redis 的多容器开发环境，我们提供了一份实用的指南，帮助您搭建与生产环境高度一致的本地环境。
 permalink: /zh/posts/building-a-production-ready-local-development-environment-with-docker-compose/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 “在我电脑上可以正常运行啊？” 这句话，作为开发者，您可能都说过或者听过。开发环境与实际服务运行的生产环境之间的细微差异，是导致意外错误和部署失败的主要原因。因为存在库版本、操作系统、系统配置等众多变量。为解决这些问题而出现的技术就是 **Docker**。
 

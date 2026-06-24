@@ -14,6 +14,10 @@ layout: default
     <h1 class="post-title">{{ page.title }}</h1>
     <time datetime="{{ page.date | date_to_xmlschema }}" class="post-date">{{ page.date | date_to_string }}</time>
 
+    {% if page.ai_generated and lang_meta.ai_disclosure %}
+    <p class="post-disclosure" role="note">{{ lang_meta.ai_disclosure }}</p>
+    {% endif %}
+
     {% if page.translation_key %}
         {% assign siblings = site.translations[page.translation_key] %}
         {% assign has_other_langs = false %}

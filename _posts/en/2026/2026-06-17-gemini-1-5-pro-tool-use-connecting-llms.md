@@ -17,6 +17,8 @@ image: /uploads/gemini-1-5-pro-tool-use-connecting-llms/thumbnail.webp
 lang: en
 translation_key: gemini-1-5-pro-tool-use-connecting-llms
 permalink: /en/posts/gemini-1-5-pro-tool-use-connecting-llms/
+post_type: deep-dive
+ai_generated: true
 ---
 Large Language Models (LLMs) demonstrate incredible linguistic abilities based on vast amounts of text data. However, LLMs are inherently disconnected from the external world. They cannot directly perform tasks like fetching real-time stock information, querying a database, or sending an email. The key technology to overcome this limitation is 'Tool Use', also known as Function Calling.
 
@@ -200,5 +202,5 @@ The Tool Use feature in Gemini 1.5 Pro serves as a powerful bridge, allowing LLM
 
 ### References
 - [Google AI for Developers - Tool use](https://ai.google.dev/docs/function_calling "Gemini Function Calling Official Documentation"){:target="_blank"}
-- [GoogleCloudPlatform/generative-ai-samples on GitHub](https://github.com/GoogleCloudPlatform/generative-ai-samples/blob/main/gemini/function-calling/intro_function_calling.ipynb "Gemini Function Calling Examples"){:target="_blank"}
+- [GoogleCloudPlatform/generative-ai-samples on GitHub](https://github.com/GoogleCloudPlatform/generative-ai/blob/main/gemini/function-calling/intro_function_calling.ipynb "Gemini Function Calling Examples"){:target="_blank"}
 ---

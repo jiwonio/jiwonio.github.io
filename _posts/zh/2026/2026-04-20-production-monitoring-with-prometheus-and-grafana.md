@@ -18,6 +18,7 @@ image: /uploads/production-monitoring-with-prometheus-and-grafana/thumbnail.webp
 lang: zh
 translation_key: production-monitoring-with-prometheus-and-grafana
 permalink: /zh/posts/production-monitoring-with-prometheus-and-grafana/
+post_type: deep-dive
 ---
 成功运营一个Web服务的关键，不仅在于实现功能，更在于持续观察服务“存活”期间的状态并预测潜在问题。在用户遭遇服务故障之前，识别潜在瓶颈，分析资源使用趋势以高效扩展基础设施，是每一位资深工程师必备的能力。然而，在分布式微服务架构环境中，零散地管理众多服务器和应用程序的状态几乎是不可能的。
 

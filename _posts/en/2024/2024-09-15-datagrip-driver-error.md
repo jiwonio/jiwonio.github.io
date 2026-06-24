@@ -13,6 +13,9 @@ description: Learn how to resolve driver errors when connecting Amazon RDS to Je
   DataGrip. This guide covers common issues and practical solutions for seamless database
   management.
 permalink: /en/posts/datagrip-driver-error/
+categories:
+- DevOps
+post_type: deep-dive
 ---
 JetBrains offers **DataGrip**, a cross-platform tool for working with both relational and NoSQL databases.
 This tool supports a wide range of databases, including MySQL, Oracle Database, PostgreSQL, SQLite, MongoDB, and Redis.
