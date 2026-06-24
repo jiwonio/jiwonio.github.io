@@ -1,6 +1,6 @@
 PyYAML>=6.0,<7
 google-genai>=1.0,<2
 anthropic>=0.40,<1
-openai>=1.50,<2
+openai>=2.43.0,<3
 Pillow>=10.0,<13
 feedparser>=6.0,<7
