@@ -1,0 +1,62 @@
+name: Weekly Lighthouse Audit
+
+on:
+  schedule:
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Lighthouse on homepage
+        run: |
+          npx --yes lighthouse@12 https://blog.jiwon.io/ \
+            --output=json \
+            --output-path=./lighthouse-report.json \
+            --chrome-flags="--headless --no-sandbox" \
+            --only-categories=performance
+
+      - name: Check performance score
+        run: |
+          PERF=$(python -c "import json; print(int(json.load(open('lighthouse-report.json'))['categories']['performance']['score']*100))")
+          echo "Lighthouse performance score: ${PERF}%"
+          if [ "$PERF" -lt 80 ]; then
+            echo "::warning::Lighthouse performance ${PERF}% is below threshold (80)"
+          fi
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: lighthouse-report.json
+          retention-days: 30
+
+  notify-failure:
+    runs-on: ubuntu-latest
+    needs: lighthouse
+    if: failure()
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not configured, skipping Slack notification."
+            exit 0
+          fi
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"❌ Weekly Lighthouse audit failed\n${RUN_URL}\"}" \
+            "$SLACK_WEBHOOK_URL"
+
+      - name: Print failure summary
+        run: |
+          echo "::error::Weekly Lighthouse audit failed."
+          echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

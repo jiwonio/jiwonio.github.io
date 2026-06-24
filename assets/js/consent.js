@@ -49,6 +49,16 @@
     });
   }
 
+  function scheduleIdle(fn) {
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(function () {
+        fn();
+      }, { timeout: 3000 });
+      return;
+    }
+    setTimeout(fn, 1);
+  }
+
   function loadScript(src, options) {
     return new Promise(function (resolve, reject) {
       var script = document.createElement("script");
@@ -102,8 +112,10 @@
 
   function activateTracking() {
     updateConsent(true);
-    loadAdsRuntime();
-    loadNaverAnalytics();
+    scheduleIdle(function () {
+      loadAdsRuntime();
+      loadNaverAnalytics();
+    });
   }
 
   function hideBanner() {

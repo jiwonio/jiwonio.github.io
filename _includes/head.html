@@ -31,8 +31,16 @@
     {% include seo.html %}
     {% include structured-data.html %}
 
+    {% assign noto_preload = site.data.noto_preload[current_lang] %}
     {% if current_lang == 'ko' %}
+    {% if noto_preload %}<link rel="preload" href="{{ noto_preload }}" as="font" type="font/woff2" crossorigin>{% endif %}
     <link rel="stylesheet" href="/assets/vendor/noto-sans-kr/noto-sans-kr.css">
+    {% elsif current_lang == 'ja' %}
+    {% if noto_preload %}<link rel="preload" href="{{ noto_preload }}" as="font" type="font/woff2" crossorigin>{% endif %}
+    <link rel="stylesheet" href="/assets/vendor/noto-sans-jp/noto-sans-jp.css">
+    {% elsif current_lang == 'zh' %}
+    {% if noto_preload %}<link rel="preload" href="{{ noto_preload }}" as="font" type="font/woff2" crossorigin>{% endif %}
+    <link rel="stylesheet" href="/assets/vendor/noto-sans-sc/noto-sans-sc.css">
     {% endif %}
     <link rel="stylesheet" href="/assets/vendor/font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="/styles.css">

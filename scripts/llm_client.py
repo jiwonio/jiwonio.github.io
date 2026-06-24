@@ -6,7 +6,7 @@ import base64
 import os
 import time
 from collections.abc import Callable
-from typing import Literal, TypeVar
+from typing import Literal, NamedTuple, TypeVar
 from urllib.request import urlopen
 
 from models_config import (
@@ -25,6 +25,12 @@ MAX_IMAGE_BYTES = 10_000_000
 MAX_TRANSPORT_RETRIES = 3
 
 T = TypeVar("T")
+
+
+class TextGenerationResult(NamedTuple):
+    text: str
+    input_chars: int
+    output_chars: int
 
 
 def get_api_key(provider: str) -> str:
@@ -220,18 +226,23 @@ def _generate_openai_compatible_text(prompt: str, model: str, *, provider: str) 
     return with_transport_retry(_call)
 
 
-def generate_text(*, prompt: str, provider: str, model: str | None = None) -> str:
+def generate_text(
+    *, prompt: str, provider: str, model: str | None = None
+) -> TextGenerationResult:
     if not is_provider_available(provider):
         raise RuntimeError(f"{provider} API key가 설정되지 않았습니다.")
 
     model = model or get_text_model(provider)
+    input_chars = len(prompt)
     if provider == "gemini":
-        return _generate_gemini_text(prompt, model)
-    if provider == "anthropic":
-        return _generate_anthropic_text(prompt, model)
-    if provider in {"openai", "xai"}:
-        return _generate_openai_compatible_text(prompt, model, provider=provider)
-    raise ValueError(f"Unsupported provider: {provider}")
+        text = _generate_gemini_text(prompt, model)
+    elif provider == "anthropic":
+        text = _generate_anthropic_text(prompt, model)
+    elif provider in {"openai", "xai"}:
+        text = _generate_openai_compatible_text(prompt, model, provider=provider)
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
+    return TextGenerationResult(text, input_chars, len(text))
 
 
 def _generate_gemini_image(prompt: str, model: str) -> bytes:

@@ -414,9 +414,9 @@ def generate_with_retry(
                 f"🔄 AI 글쓰기 API 요청 중... "
                 f"({provider}/{model}, 시도 {attempt}/{max_retries})"
             )
-            raw = llm_generate_text(prompt=current_prompt, provider=provider, model=model)
+            result = llm_generate_text(prompt=current_prompt, provider=provider, model=model)
             content = sanitize_generated_content(
-                strip_preamble(strip_code_fence(raw))
+                strip_preamble(strip_code_fence(result.text))
             )
             metadata, slug = validate_fn(content)
             from api_monitor import notify_llm_usage
@@ -428,6 +428,8 @@ def generate_with_retry(
                 operation="generate_post",
                 slug=slug,
                 success=True,
+                input_chars=result.input_chars,
+                output_chars=result.output_chars,
             )
             return content, metadata, slug
         except Exception as exc:

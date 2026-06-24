@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from llm_client import TextGenerationResult
 from post_common import generate_with_retry
 
 
@@ -27,8 +28,8 @@ class GenerateWithRetryTests(unittest.TestCase):
         def fake_generate(*, prompt, provider, model):
             prompts.append(prompt)
             if len(prompts) == 1:
-                return "draft without marker"
-            return "intro\n<!--more-->\nbody"
+                return TextGenerationResult("draft without marker", len(prompt), 20)
+            return TextGenerationResult("intro\n<!--more-->\nbody", len(prompt), 30)
 
         def validate_fn(content):
             if "<!--more-->" not in content:

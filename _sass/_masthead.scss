@@ -2,6 +2,15 @@
 //
 // Super small header above the content for site name and short description.
 
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
 .masthead {
   padding-top: 2rem;
   padding-bottom: 2rem;
@@ -23,6 +32,11 @@
       color: var(--color-masthead);
       line-height: 1;
       flex-shrink: 0;
+
+      .icon {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
     }
 
     &__divider {
@@ -94,7 +108,8 @@
       }
 
       &__caret {
-        font-size: .85em;
+        width: .85em;
+        height: .85em;
         opacity: .7;
         transition: transform 0.15s ease;
       }

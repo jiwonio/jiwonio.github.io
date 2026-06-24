@@ -462,8 +462,10 @@ def generate_translation_content(
         provider, model = pick_translation_target(providers, attempt)
         try:
             print(f"  번역 API: {provider}/{model} (시도 {attempt}/{max_retries})")
-            raw = llm_generate_text(prompt=current_prompt, provider=provider, model=model)
-            content = sanitize_generated_content(strip_preamble(strip_code_fence(raw)))
+            result = llm_generate_text(prompt=current_prompt, provider=provider, model=model)
+            content = sanitize_generated_content(
+                strip_preamble(strip_code_fence(result.text))
+            )
             content = ensure_translation_metadata(content, source_content, target_lang, slug)
             validate_translation_content(content, target_lang, slug)
             from api_monitor import notify_llm_usage
@@ -475,6 +477,8 @@ def generate_translation_content(
                 operation=f"translate_{target_lang}",
                 slug=slug,
                 success=True,
+                input_chars=result.input_chars,
+                output_chars=result.output_chars,
             )
             return content
         except Exception as exc:

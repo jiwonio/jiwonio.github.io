@@ -1,5 +1,6 @@
 {%- assign current_lang = page.lang | default: site.default_lang | default: 'ko' -%}
 {%- assign lang_meta = site.data.languages[current_lang] -%}
+{%- include icons.html -%}
 {%- assign share_url = page.url | absolute_url -%}
 {%- assign share_text = page.title | uri_escape -%}
 {%- assign share = lang_meta.share -%}
@@ -13,7 +14,7 @@
                target="_blank"
                rel="noopener noreferrer"
                aria-label="{{ share.facebook }}">
-                <i class="fa fa-facebook" aria-hidden="true"></i>
+                {{ icon_facebook }}
             </a>
         </li>
         <li>
@@ -22,7 +23,7 @@
                target="_blank"
                rel="noopener noreferrer"
                aria-label="{{ share.twitter }}">
-                <i class="fa fa-twitter" aria-hidden="true"></i>
+                {{ icon_twitter }}
             </a>
         </li>
         <li>
@@ -31,7 +32,7 @@
                target="_blank"
                rel="noopener noreferrer"
                aria-label="{{ share.linkedin }}">
-                <i class="fa fa-linkedin" aria-hidden="true"></i>
+                {{ icon_linkedin }}
             </a>
         </li>
         <li>
@@ -45,7 +46,7 @@
                     data-share-toast-copied="{{ share.copied_toast }}"
                     data-share-copy-error="{{ share.copy_error }}"
                     aria-label="{{ share.copy }}">
-                <i class="fa fa-link" aria-hidden="true"></i>
+                {{ icon_link_copy }}
                 <span class="post-share__toast" aria-live="polite" aria-atomic="true"></span>
             </button>
         </li>

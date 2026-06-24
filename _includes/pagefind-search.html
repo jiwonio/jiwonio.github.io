@@ -1,17 +1,17 @@
 {%- assign current_lang = page.lang | default: site.default_lang | default: 'ko' -%}
 {%- assign lang_meta = site.data.languages[current_lang] -%}
 {%- assign search_ui = lang_meta.search_ui -%}
-<link href="/assets/vendor/pagefind/pagefind-ui.css" rel="stylesheet">
-<div id="pagefind-search"></div>
-<script src="/assets/vendor/pagefind/pagefind-ui.js"></script>
+<div id="pagefind-search" data-pagefind-lazy tabindex="-1"></div>
 <script>
-  window.addEventListener("DOMContentLoaded", function () {
-    if (typeof PagefindUI === "undefined") {
-      document.getElementById("pagefind-search").innerHTML =
-        "<p>{{ lang_meta.search_index_error }}</p>";
+  (function () {
+    var container = document.getElementById("pagefind-search");
+    if (!container) {
       return;
     }
-    var ui = new PagefindUI({
+
+    var loaded = false;
+    var initQueued = false;
+    var searchConfig = {
       element: "#pagefind-search",
       bundlePath: "/pagefind/",
       showSubResults: true,
@@ -24,7 +24,77 @@
         one_result: {{ search_ui.one_result | jsonify }},
         many_results: {{ search_ui.many_results | jsonify }}
       }
-    });
-    ui.triggerFilters({ lang: ["{{ current_lang }}"] });
-  });
+    };
+    var indexError = {{ lang_meta.search_index_error | jsonify }};
+    var pageLang = {{ current_lang | jsonify }};
+
+    function initPagefind() {
+      if (typeof PagefindUI === "undefined") {
+        container.innerHTML = "<p>" + indexError + "</p>";
+        return;
+      }
+      var ui = new PagefindUI(searchConfig);
+      ui.triggerFilters({ lang: [pageLang] });
+    }
+
+    function queueInit() {
+      if (initQueued) {
+        return;
+      }
+      initQueued = true;
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initPagefind, { once: true });
+      } else {
+        initPagefind();
+      }
+    }
+
+    function loadStylesheet(href) {
+      if (document.querySelector('link[href="' + href + '"]')) {
+        return;
+      }
+      var link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      document.head.appendChild(link);
+    }
+
+    function loadPagefind() {
+      if (loaded) {
+        return;
+      }
+      loaded = true;
+      loadStylesheet("/assets/vendor/pagefind/pagefind-ui.css");
+
+      if (typeof PagefindUI !== "undefined") {
+        queueInit();
+        return;
+      }
+
+      var script = document.createElement("script");
+      script.src = "/assets/vendor/pagefind/pagefind-ui.js";
+      script.onload = queueInit;
+      script.onerror = function () {
+        container.innerHTML = "<p>" + indexError + "</p>";
+      };
+      document.head.appendChild(script);
+    }
+
+    if ("IntersectionObserver" in window) {
+      var observer = new IntersectionObserver(
+        function (entries) {
+          if (entries[0] && entries[0].isIntersecting) {
+            observer.disconnect();
+            loadPagefind();
+          }
+        },
+        { rootMargin: "200px 0px" }
+      );
+      observer.observe(container);
+    } else {
+      loadPagefind();
+    }
+
+    container.addEventListener("focusin", loadPagefind, { once: true });
+  })();
 </script>

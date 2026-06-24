@@ -21,7 +21,7 @@
             <guid>{% if post.link %}{{ post.link }}{% else %}{{ site.url }}{{ post.url }}{% endif %}</guid>
             <pubDate>{{ post.date | date_to_xmlschema }}</pubDate>
             {% if post.image %}
-            <enclosure url="{{ post.image | absolute_url }}" type="image/webp" length="0" />
+            <enclosure url="{{ post.image | absolute_url }}" type="image/webp" />
             <media:content url="{{ post.image | absolute_url }}" medium="image" />
             {% endif %}
         </item>

@@ -92,3 +92,4 @@ build-iPhoneSimulator/
 .idea
 terminals/
 agent-tools/
+llm-usage.jsonl

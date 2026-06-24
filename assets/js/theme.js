@@ -9,9 +9,9 @@
   };
 
   var ICONS = {
-    system: "fa-adjust",
-    light: "fa-sun-o",
-    dark: "fa-moon-o",
+    system: "adjust",
+    light: "sun",
+    dark: "moon",
   };
 
   function getStored() {
@@ -44,9 +44,9 @@
 
   function updateToggle(button, preference) {
     var labels = resolveLabels();
-    var icon = button.querySelector("i");
-    if (icon) {
-      icon.className = "fa " + ICONS[preference];
+    var icon = button.querySelector("[data-icon]");
+    if (icon && window.SiteIcons) {
+      window.SiteIcons.set(icon, ICONS[preference]);
     }
     button.dataset.themePreference = preference;
     button.setAttribute("aria-label", labels[preference] + clickToChangeSuffix(labels));

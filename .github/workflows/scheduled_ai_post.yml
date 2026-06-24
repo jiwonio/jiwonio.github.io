@@ -23,7 +23,7 @@ on:
       auto_merge:
         description: 'PR 자동 머지'
         required: false
-        default: true
+        default: false
         type: boolean
       text_provider:
         description: '글 생성 LLM provider (auto=post_type 라우팅)'
@@ -50,6 +50,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  LLM_USAGE_LOG: llm-usage.jsonl
 
 concurrency:
   group: ai-post-generation
@@ -119,18 +120,22 @@ jobs:
             SCRIPT="scripts/generate_post.py"
             PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
             COMMIT_MSG="Add auto-generated deep-dive post"
+            echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
           elif [ "$POST_TYPE" = "ai-news" ]; then
             SCRIPT="scripts/generate_ai_news.py"
             PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
             COMMIT_MSG="Add auto-generated ai-news digest"
+            echo "POST_TYPE=ai-news" >> "$GITHUB_ENV"
           elif [ "$DOW" = "1" ]; then
             SCRIPT="scripts/generate_post.py"
             PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
             COMMIT_MSG="Add auto-generated deep-dive post"
+            echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
           elif [ "$DOW" = "4" ]; then
             SCRIPT="scripts/generate_ai_news.py"
             PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
             COMMIT_MSG="Add auto-generated ai-news digest"
+            echo "POST_TYPE=ai-news" >> "$GITHUB_ENV"
           else
             echo "예상치 못한 요일(DOW=$DOW), 스킵합니다."
             echo "RUN_GENERATION=false" >> "$GITHUB_ENV"
@@ -208,9 +213,21 @@ jobs:
 
             git push origin $BRANCH_NAME
 
+            PR_BODY=$(cat <<'EOF'
+          Multi-LLM 파이프라인으로 작성·번역·썸네일을 생성한 포스트입니다. 게시물 검증과 Jekyll 빌드를 통과했습니다.
+
+          ## Review checklist
+          - [ ] Facts and technical accuracy verified
+          - [ ] Reference links work and are relevant
+          - [ ] Thumbnail looks appropriate
+          - [ ] Translations reviewed (deep-dive: en/ja/zh, ai-news: en)
+          - [ ] AI disclosure present (`ai_generated`, image attribution)
+          EOF
+          )
+
             PR_URL=$(gh pr create \
               --title "$PR_TITLE" \
-              --body "Multi-LLM 파이프라인으로 작성·번역·썸네일을 생성한 포스트입니다. 게시물 검증과 Jekyll 빌드를 통과했습니다." \
+              --body "$PR_BODY" \
               --base gh-pages \
               --head $BRANCH_NAME)
 
@@ -218,8 +235,10 @@ jobs:
 
             if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
               AUTO_MERGE="${{ github.event.inputs.auto_merge }}"
-            else
+            elif [ "$POST_TYPE" = "deep-dive" ]; then
               AUTO_MERGE="true"
+            else
+              AUTO_MERGE="false"
             fi
 
             if [ "$AUTO_MERGE" = "true" ]; then
@@ -230,6 +249,16 @@ jobs:
             fi
           else
             echo "⚠️ 커밋할 새로운 변경 사항이 없습니다."
+          fi
+
+      - name: LLM usage report
+        if: always() && env.RUN_GENERATION == 'true'
+        run: |
+          LOG="${LLM_USAGE_LOG:-llm-usage.jsonl}"
+          if [ -f "$LOG" ]; then
+            python scripts/usage_report.py "$LOG" --warn-budget 50
+          else
+            echo "No LLM usage log found at $LOG"
           fi
 
   notify-failure:

@@ -1,0 +1,24 @@
+[project]
+name = "jwjp-blog-scripts"
+version = "0.1.0"
+description = "Automation scripts for blog.jiwon.io (post generation, validation, i18n)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "PyYAML>=6.0,<7",
+    "google-genai>=1.0,<2",
+    "anthropic>=0.40,<1",
+    "openai>=1.50,<2",
+    "Pillow>=10.0,<13",
+    "feedparser>=6.0,<7",
+]
+
+[project.optional-dependencies]
+dev = []
+
+[tool.setuptools]
+py-modules = []
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"

@@ -1,11 +1,12 @@
 {% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
 {% assign current_meta = site.data.languages[current_lang] %}
+{% include icons.html %}
 <div class="lang-switcher">
     <details class="lang-switcher__details">
         <summary class="lang-switcher__trigger" title="{{ current_meta.label }}" aria-label="{{ current_meta.lang_switcher.aria_label }}: {{ current_meta.label }}">
-            <i class="fa fa-globe" aria-hidden="true"></i>
+            {{ icon_globe }}
             <span class="lang-switcher__current">{{ current_lang | upcase }}</span>
-            <i class="fa fa-angle-down lang-switcher__caret" aria-hidden="true"></i>
+            {{ icon_angle_down }}
         </summary>
         <ul class="lang-switcher__menu" role="list">
             {% for lang in site.lang_codes %}

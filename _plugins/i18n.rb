@@ -62,6 +62,11 @@ module Jekyll
       slug unless slug.nil? || slug.empty?
     end
 
+    def description_snippet(lang_meta, site, limit = 120)
+      raw = lang_meta["description"] || site.config["description"] || ""
+      raw.to_s.gsub(/\s+/, " ").strip[0, limit]
+    end
+
     def build_tag_archives(tags_hash)
       grouped = {}
 
@@ -177,7 +182,9 @@ module Jekyll
           page.data["tag_names"] = entry["names"]
           page.data["image"] = site.config.dig("seo", "default_image")
           lang_meta = site.data.dig("languages", lang) || {}
-          page.data["seo_description"] = lang_meta["description"] || site.config["description"]
+          tag_heading = lang_meta["tag_heading"] || "Tag"
+          snippet = I18n.description_snippet(lang_meta, site)
+          page.data["seo_description"] = "#{entry['title']} #{tag_heading} - #{snippet}"
           site.pages << page
         end
       end
@@ -204,7 +211,9 @@ module Jekyll
           page.data["date"] = Date.new(year, 1, 1)
           page.data["image"] = site.config.dig("seo", "default_image")
           lang_meta = site.data.dig("languages", lang) || {}
-          page.data["seo_description"] = lang_meta["description"] || site.config["description"]
+          year_heading = lang_meta["year_heading"] || "Year"
+          snippet = I18n.description_snippet(lang_meta, site)
+          page.data["seo_description"] = "#{year} #{year_heading} - #{snippet}"
           site.pages << page
         end
       end
