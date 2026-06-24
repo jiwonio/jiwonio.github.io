@@ -5,6 +5,7 @@ Jekyll 4 기반 다국어 기술 블로그입니다. 한국어(ko) 원문과 en/
 - **사이트:** https://blog.jiwon.io
 - **배포 브랜치:** `gh-pages` (GitHub Pages)
 - **스택:** Ruby 3.3, Jekyll 4.3, Python 3.11
+- **남은 작업:** [TODO.md](TODO.md) (GitHub App 전환 등)
 
 ## 아키텍처 개요
 
@@ -53,17 +54,17 @@ _posts/
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
 | `jekyll.yml` | push/PR → `gh-pages` | test → validate → build → htmlproofer → Pagefind → 배포 (PR은 빌드만) |
-| `scheduled_ai_post.yml` | 월·목 00:00 | 월=deep-dive(자동 머지), 목=ai-news(수동 검토 PR) |
+| `scheduled_ai_post.yml` | 월·목 00:00 | 월=deep-dive, 목=ai-news (검증 통과 시 자동 머지) |
 | `url_check.yml` | 일 04:00 | 참고문헌·본문 외부 URL HEAD 검증 (3회 재시도) |
 | `lighthouse.yml` | 일 06:00 | 홈페이지 Lighthouse 성능 점검 (80% 미만 경고) |
 | `llm_usage_weekly.yml` | 월 07:00 | 최근 7일 LLM 사용량·비용 Slack 요약 |
-| `sync_maintenance.yml` | 수 05:00 | `sync_post_images`·`sync_translation_dates` → PR (수동 머지) |
+| `sync_maintenance.yml` | 수 05:00 | `sync_post_images`·`sync_translation_dates` → PR (자동 머지) |
 | `ai_news_health_check.yml` | 수 06:00 | 단위 테스트 + ai-news RSS `--dry-run --strict` 사전 점검 |
 | `deep_dive_health_check.yml` | 일 06:00 | 단위 테스트 + deep-dive `--dry-run` 사전 점검 |
 | `thumbnail_check.yml` | 화 07:00 | 누락 썸네일 `--dry-run` 점검·자동 생성 |
 | `translation_audit.yml` | 일 05:00 | deep-dive en/ja/zh 번역 완전성 주간 감사 |
 | `schedule_watchdog.yml` | 매일 08:00 | `scheduled_ai_post` 최근 8일 내 성공 실행 여부 감시 |
-| `backfill_translations.yml` | 수동 | 누락 번역 백필 → PR (수동 머지) |
+| `backfill_translations.yml` | 수동 | 누락 번역 백필 → PR (자동 머지) |
 | `dependabot_automerge.yml` | Dependabot PR | patch/minor actions·pip 업데이트 CI 통과 시 자동 머지 |
 
 ### LLM 라우팅
@@ -110,9 +111,12 @@ _posts/
 | `MY_PAT` | (폴백) PAT — App 미설정 시 사용 |
 | `SLACK_WEBHOOK_URL` | 워크플로 실패·LLM 비용 Slack 알림 (**권장**) |
 
-#### GitHub App으로 MY_PAT 대체하기
+#### GitHub App으로 MY_PAT 대체하기 (TODO — 나중에 진행)
 
-PAT는 만료일이 있어 자동 포스팅이 갑자기 멈출 수 있습니다. GitHub App은 **설치 토큰을 실행마다 발급**하므로 장기 운영에 적합합니다.
+> 상세 체크리스트: [TODO.md](TODO.md)
+
+PAT는 만료일이 있어 자동 포스팅이 갑자기 멈출 수 있습니다. GitHub App은 **설치 토큰을 실행마다 발급**하므로 장기 운영에 적합합니다.  
+**지금은 `MY_PAT`만으로 동작합니다.** App Secret을 넣지 않아도 됩니다.
 
 1. **GitHub App 생성** — [github.com/settings/apps/new](https://github.com/settings/apps/new)
    - 이름: 예) `blog-jwjp-automation`
