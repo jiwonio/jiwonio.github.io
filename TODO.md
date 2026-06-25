@@ -151,7 +151,7 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 - [x] Repository Secrets: `GH_APP_ID`, `GH_APP_PRIVATE_KEY` (2026-06-25)
 - [x] App을 `jwjp/jwjp.github.io`에 설치 (2026-06-25)
 - [x] Actions 로그 `Using GitHub App installation token.` 확인 (2026-06-25)
-- [x] `setup-git-auth`: `gh auth login`을 별도 step으로 분리 (GITHUB_ENV 타이밍 버그 수정, 2026-06-25)
+- [x] `setup-git-auth`: git HTTPS `x-access-token` 설정으로 수정 (gh auth login 충돌 해결, 2026-06-25)
 - [ ] (선택) `MY_PAT` Secret 제거 — App 안정화 후
 
 관련: `.github/actions/setup-git-auth/`, `README.md` → "GitHub App으로 MY_PAT 대체하기"

@@ -93,6 +93,7 @@ jobs:
           fi
           if [ -n "${{ inputs.slug }}" ]; then
             ARGS+=(--slug "${{ inputs.slug }}")
+            ARGS+=(--force-langs)
           fi
           ARGS+=(--langs "${{ inputs.langs }}")
           ARGS+=(--sleep "${{ inputs.sleep }}")

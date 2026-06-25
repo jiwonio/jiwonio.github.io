@@ -54,10 +54,11 @@ def missing_translations(
     langs: tuple[str, ...],
     *,
     metadata: dict | None = None,
+    force_langs: bool = False,
 ) -> list[str]:
     if metadata is None:
         metadata = parse_front_matter(source_path.read_text(encoding="utf-8"))
-    allowed = set(translation_langs_for_metadata(metadata))
+    allowed = set(TRANSLATION_LANGS) if force_langs else set(translation_langs_for_metadata(metadata))
     return [
         lang
         for lang in langs
@@ -117,6 +118,7 @@ def backfill(
     dry_run: bool,
     sleep_seconds: float,
     translation_provider: str | None = None,
+    force_langs: bool = False,
 ) -> tuple[int, int, int]:
     created = 0
     skipped = 0
@@ -126,7 +128,9 @@ def backfill(
         source_content = source_path.read_text(encoding="utf-8")
         metadata = parse_front_matter(source_content)
         slug = resolve_slug(source_path, metadata)
-        pending_langs = missing_translations(source_path, langs, metadata=metadata)
+        pending_langs = missing_translations(
+            source_path, langs, metadata=metadata, force_langs=force_langs
+        )
 
         if not pending_langs:
             print(f"[{index}/{len(posts)}] skip (complete): {slug}")
@@ -174,6 +178,11 @@ def main() -> int:
         choices=["gemini", "anthropic", "openai", "xai"],
         help="번역에 사용할 LLM provider (기본: 번역 폴백 체인)",
     )
+    parser.add_argument(
+        "--force-langs",
+        action="store_true",
+        help="post_type/date 번역 정책 무시하고 --langs 그대로 적용 (레거시 ai-news 백필용)",
+    )
     args = parser.parse_args()
 
     langs = tuple(lang.strip() for lang in args.langs.split(",") if lang.strip())
@@ -200,12 +209,17 @@ def main() -> int:
     if args.prepare:
         return 0
 
+    force_langs = args.force_langs or bool(args.slug)
+    if force_langs:
+        print("force-langs: ignoring post_type/date translation policy for requested langs.")
+
     created, skipped, failures = backfill(
         posts,
         langs,
         dry_run=args.dry_run,
         sleep_seconds=args.sleep,
         translation_provider=args.translation_provider,
+        force_langs=force_langs,
     )
     print(f"Done. created={created}, skipped_complete={skipped}, failures={failures}")
 
