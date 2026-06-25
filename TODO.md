@@ -134,7 +134,7 @@ cd e2e && npm ci && npx playwright test
 
 CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인** 권장.
 
-- [ ] `8412740` 이후 `jekyll.yml` htmlproofer가 CI에서 통과하는지 확인 (푸시 후 Actions 확인)
+- [x] `8412740` 이후 `jekyll.yml` htmlproofer CI 통과 확인 (2026-06-25 푸시 빌드 success)
 - [x] **중복 태그 slug:** ko `개발 환경` / en `Development Environment` 등 언어별 표기로 정리 (2026-06-25)
 - [x] **번역본 태그 언어 혼용:** cursor 포스트 en/ja 태그 현지화 + `validate_posts.py` 검사 추가 (2026-06-25)
 - [x] `tag_slug_translations` 엣지 케이스 단위 테스트 — `scripts/tests/test_i18n_tags.py` (2026-06-25)
@@ -164,13 +164,13 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ### 레거시 ai-news 번역 백필
 
-- [ ] Actions → **Backfill Post Translations** (`ai-news-2026-06-23` → ja,zh) — setup-git-auth 수정 후 재실행 필요
-- [ ] 백필 후 `validate_posts.py --audit-translations` 통과 확인
+- [x] Actions → **Backfill Post Translations** (`ai-news-2026-06-23` → ja,zh) (2026-06-25, `--force-langs`)
+- [x] 백필 후 `validate_posts.py --audit-translations` 통과 확인 (2026-06-25)
 
 ### CI 안정성 (최근 수정 후속)
 
-- [ ] `8412740` 태그 링크 수정 후 `jekyll.yml` 전체 파이프라인 green 확인
-- [ ] 실패 시 Actions 로그에서 htmlproofer / Pagefind 단계 확인
+- [x] `8412740` 태그 링크 수정 후 `jekyll.yml` 전체 파이프라인 green 확인 (2026-06-25)
+- [x] 실패 시 Actions 로그에서 htmlproofer / Pagefind 단계 확인 — 최근 빌드 success
 
 ---
 

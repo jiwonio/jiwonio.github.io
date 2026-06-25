@@ -32,26 +32,21 @@ runs:
         private-key: ${{ inputs.private-key }}
         owner: ${{ github.repository_owner }}
 
-    - name: Select credentials
+    - name: Select credentials and configure git
       id: select
       shell: bash
       run: |
         if [ -n "${{ steps.app-token.outputs.token }}" ]; then
-          echo "GH_TOKEN=${{ steps.app-token.outputs.token }}" >> "$GITHUB_ENV"
+          TOKEN="${{ steps.app-token.outputs.token }}"
           echo "token-source=app" >> "$GITHUB_OUTPUT"
           echo "Using GitHub App installation token."
         elif [ -n "${{ inputs.pat }}" ]; then
-          echo "GH_TOKEN=${{ inputs.pat }}" >> "$GITHUB_ENV"
+          TOKEN="${{ inputs.pat }}"
           echo "token-source=pat" >> "$GITHUB_OUTPUT"
           echo "Using MY_PAT fallback."
         else
           echo "Configure GH_APP_ID + GH_APP_PRIVATE_KEY (recommended) or MY_PAT."
           exit 1
         fi
-
-    - name: Configure git for HTTPS push
-      shell: bash
-      env:
-        GH_TOKEN: ${{ env.GH_TOKEN }}
-      run: |
-        git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+        echo "GH_TOKEN=${TOKEN}" >> "$GITHUB_ENV"
+        git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "https://github.com/"
