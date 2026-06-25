@@ -11,6 +11,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from blog_i18n import DEFAULT_LANG, resolve_effective_date, translation_langs_for_metadata
+from post_common import find_invalid_internal_post_slugs, get_existing_ko_slugs
 from post_schema import (
     CODE_BLOCK_PATTERN,
     EXTERNAL_IMAGE_PATTERN,
@@ -292,12 +293,6 @@ def validate_posts(
                 + ", ".join(str(path) for path in paths)
             )
 
-    ko_slugs = {
-        normalized_slug
-        for (lang, normalized_slug), paths in output_paths.items()
-        if lang == DEFAULT_LANG and len(paths) == 1
-    }
-
     for key, langs in translation_groups.items():
         source = langs.get(DEFAULT_LANG)
         if not source:
@@ -327,17 +322,14 @@ def validate_posts(
                     f"{DEFAULT_LANG}={source_date}, {lang}={post_date} ({path})"
                 )
 
+    ko_slug_set = set(get_existing_ko_slugs())
     for path in sorted(posts_dir.rglob("*.md")):
         try:
             content, metadata = load_post(path)
         except (OSError, UnicodeError, yaml.YAMLError, ValueError):
             continue
-        if detect_lang(path, metadata) != DEFAULT_LANG:
-            continue
-        for slug in INTERNAL_LINK_PATTERN.findall(content):
-            normalized = re.sub(r"[^a-z0-9]+", "-", slug.lower()).strip("-")
-            if normalized not in ko_slugs:
-                errors.append(f"{path}: broken internal link to /posts/{slug}/")
+        for invalid_slug in find_invalid_internal_post_slugs(content, ko_slug_set):
+            errors.append(f"{path}: broken internal link to /posts/{invalid_slug}/")
 
     return errors
 

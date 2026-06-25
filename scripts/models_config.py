@@ -18,8 +18,8 @@ PROVIDER_MODELS = {
         "image": "gemini-3.1-flash-image",
     },
     "anthropic": {
-        "text": "claude-sonnet-4-20250514",
-        "translation": ("claude-3-5-haiku-20241022",),
+        "text": "claude-sonnet-4-6",
+        "translation": ("claude-haiku-4-5-20251001",),
         "image": None,
     },
     "openai": {
@@ -40,8 +40,8 @@ ESTIMATED_COST_PER_1M = {
     "gemini-2.5-flash": {"input": 0.30, "output": 2.50},
     "gemini-2.5-flash-lite": {"input": 0.10, "output": 0.40},
     "gemini-3.1-flash-image": {"input": 0.50, "output": 0.50},
-    "claude-sonnet-4-20250514": {"input": 3.0, "output": 15.0},
-    "claude-3-5-haiku-20241022": {"input": 0.80, "output": 4.0},
+    "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
+    "claude-haiku-4-5-20251001": {"input": 1.0, "output": 5.0},
     "gpt-4.1": {"input": 2.0, "output": 8.0},
     "gpt-4.1-mini": {"input": 0.40, "output": 1.60},
     "grok-4": {"input": 3.0, "output": 15.0},

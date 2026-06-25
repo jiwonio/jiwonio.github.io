@@ -42,6 +42,7 @@ from post_common import (
     tokenize,
     validate_base_content,
     validate_tag_consistency,
+    find_invalid_internal_post_slugs,
     get_existing_ko_slugs,
     generate_with_retry,
     INTERNAL_LINK_PATTERN,
@@ -300,6 +301,14 @@ def validate_ai_news_content(
     if internal_links < MIN_INTERNAL_LINKS:
         raise ValueError(f"내부 링크(/posts/)가 {MIN_INTERNAL_LINKS}개 이상 필요합니다: {internal_links}개")
 
+    invalid_slugs = find_invalid_internal_post_slugs(content, get_existing_ko_slugs())
+    if invalid_slugs:
+        raise ValueError(
+            "존재하지 않는 내부 링크 slug: "
+            + ", ".join(invalid_slugs[:5])
+            + " (slug를 잘라 쓰지 말고 후보 URL을 그대로 복사하세요)"
+        )
+
     ref_urls = extract_reference_urls(content)
     if len(ref_urls) < MIN_REFERENCE_URLS:
         raise ValueError(f"참고문헌 URL이 {MIN_REFERENCE_URLS}개 이상 필요합니다: {len(ref_urls)}개")
@@ -367,6 +376,7 @@ def build_generation_prompt(
   {DEVELOPER_PERSPECTIVE_LABEL} 2~3문장 (코딩 도구, API, 비용, 보안, 배포 영향)
   **관련 글:** [제목](/posts/slug/){{:target="_blank"}} (해당 시)
 - 내부 링크 후보에서 관련 글 **2개 이상** 본문에 연결
+- `/posts/` slug는 후보 URL을 **한 글자도 바꾸지 말고** 그대로 복사 (줄임·축약 금지)
 - 본문(<!--more--> 이후) 1,500자 이상
 - 마지막에 ## 이번 주 한 줄 정리 (bullet 3~4개)
 - slug: {today_slug} (고정)

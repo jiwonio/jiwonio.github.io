@@ -268,6 +268,66 @@ def count_markdown_internal_links(content: str) -> int:
     return len(INTERNAL_LINK_PATTERN.findall(content))
 
 
+def normalize_post_slug(slug: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", str(slug).lower()).strip("-")
+
+
+def resolve_internal_post_slug(link_slug: str, ko_slugs: set[str]) -> str | None:
+    """Map a /posts/ slug to a known ko post slug (exact, prefix, or token overlap)."""
+    raw = link_slug.strip().strip("/")
+    if not raw:
+        return None
+    normalized = normalize_post_slug(raw)
+    if raw in ko_slugs:
+        return raw
+    if normalized in ko_slugs:
+        return normalized
+
+    extensions = sorted(s for s in ko_slugs if s.startswith(f"{raw}-") or s.startswith(raw))
+    if len(extensions) == 1:
+        return extensions[0]
+
+    link_tokens = {token for token in raw.split("-") if token}
+    if len(link_tokens) < 3:
+        return None
+
+    scored: list[tuple[int, str]] = []
+    for candidate in ko_slugs:
+        cand_tokens = {token for token in candidate.split("-") if token}
+        overlap = len(link_tokens & cand_tokens)
+        if overlap >= max(3, int(len(link_tokens) * 0.85)):
+            scored.append((overlap, candidate))
+
+    if not scored:
+        return None
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    if len(scored) == 1 or scored[0][0] > scored[1][0]:
+        return scored[0][1]
+    return None
+
+
+def repair_internal_post_slugs(content: str, ko_slugs: set[str]) -> str:
+    """Fix truncated /posts/slug/ links when they uniquely match one ko post."""
+
+    def replace_link(match: re.Match[str]) -> str:
+        prefix, slug, suffix = match.group(1), match.group(2), match.group(3)
+        resolved = resolve_internal_post_slug(slug, ko_slugs)
+        if not resolved or resolved == slug:
+            return match.group(0)
+        return f"{prefix}{resolved}{suffix}"
+
+    pattern = re.compile(r"(\]\(/posts/)([^)/\s]+)(/[^)]*\))")
+    return pattern.sub(replace_link, content)
+
+
+def find_invalid_internal_post_slugs(content: str, ko_slugs: set[str]) -> list[str]:
+    invalid: list[str] = []
+    for slug in re.findall(r"\]\(/posts/([^)/\s]+)", content):
+        if resolve_internal_post_slug(slug, ko_slugs) is None:
+            invalid.append(slug)
+    return sorted(set(invalid))
+
+
 def repair_internal_links(
     content: str,
     candidates: list[dict],
@@ -304,8 +364,10 @@ def repair_internal_links(
 
 def repair_ai_news_structure(content: str, internal_candidates: list[dict]) -> str:
     """Normalize common LLM formatting mistakes before strict validation."""
+    ko_slugs = get_existing_ko_slugs()
     content = repair_hero_image_placeholder(content)
-    return repair_internal_links(content, internal_candidates)
+    content = repair_internal_links(content, internal_candidates)
+    return repair_internal_post_slugs(content, ko_slugs)
 
 
 def extract_reference_urls(content: str) -> list[str]:

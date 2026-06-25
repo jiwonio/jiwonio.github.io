@@ -368,6 +368,7 @@ Rules:
 - Use concise declarative sentences. Avoid overly formal or repetitive phrasing.
 - Preserve marker lines exactly as standalone lines: <!--more-->, -----
 - Do not output [HERO_IMAGE]; keep hero images that already exist in the body.
+- Keep markdown internal links like [title](/posts/exact-slug/) unchanged (do not shorten or rewrite slugs).
 - Translate the references heading appropriately for {label}, but keep link URLs unchanged.
 - Remove lines like "This translation was provided by ..." from the body.
 - Do not add external image URLs.{urls_note}
@@ -378,6 +379,7 @@ Source post (references section omitted from input):
 
 
 def validate_translation_content(content: str, target_lang: str, slug: str) -> dict:
+    from post_common import find_invalid_internal_post_slugs, get_existing_ko_slugs
     metadata = parse_front_matter(content)
 
     if metadata.get("lang") != target_lang:
@@ -397,6 +399,14 @@ def validate_translation_content(content: str, target_lang: str, slug: str) -> d
 
     if EXTERNAL_IMAGE_PATTERN.search(content):
         raise ValueError("외부 이미지 링크가 포함되어 있습니다.")
+
+    invalid_slugs = find_invalid_internal_post_slugs(content, get_existing_ko_slugs())
+    if invalid_slugs:
+        raise ValueError(
+            "존재하지 않는 내부 링크 slug: "
+            + ", ".join(invalid_slugs[:5])
+            + " (번역 시 /posts/ slug를 변경하지 마세요)"
+        )
 
     return metadata
 
@@ -475,6 +485,9 @@ def generate_translation_content(
                 strip_preamble(strip_code_fence(result.text))
             )
             content = ensure_translation_metadata(content, source_content, target_lang, slug)
+            from post_common import get_existing_ko_slugs, repair_internal_post_slugs
+
+            content = repair_internal_post_slugs(content, get_existing_ko_slugs())
             validate_translation_content(content, target_lang, slug)
             from api_monitor import notify_llm_usage
 

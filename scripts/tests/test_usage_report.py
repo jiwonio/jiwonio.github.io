@@ -20,7 +20,7 @@ class UsageReportTests(unittest.TestCase):
             },
             {
                 "provider": "anthropic",
-                "model": "claude-sonnet-4-20250514",
+                "model": "claude-sonnet-4-6",
                 "success": False,
                 "estimated_cost_usd": 0.02,
             },
