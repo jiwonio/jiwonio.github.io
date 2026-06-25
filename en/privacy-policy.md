@@ -54,7 +54,7 @@ You may request access, correction, deletion, or restriction of processing as pe
 
 ## 7. AI-Generated Content
 
-Some posts and thumbnails are created or translated automatically using the Google Gemini API. Drafts are reviewed by the operator before publication. Posts marked with `ai_generated` disclose this at the top of the article. Visitor personal data is not sent to the Gemini API during automated content generation.
+Some posts and thumbnails may be created, translated, or edited using third-party AI language models and image generation services. The specific providers may change over time. Drafts are reviewed by the operator before publication. Posts marked with `ai_generated` disclose this at the top of the article. Visitor personal data is not sent to these services during automated content generation.
 
 ## 8. Contact
 
