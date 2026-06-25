@@ -57,6 +57,15 @@
 
     .theme-toggle {
       margin: 0;
+
+      .icon--theme {
+        width: 1.05em;
+        height: 1.05em;
+      }
+
+      .icon--stroke.icon--theme {
+        stroke-width: 1.75;
+      }
     }
 
     .lang-switcher {
