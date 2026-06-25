@@ -38,6 +38,7 @@ from post_common import (
     normalize_slug,
     normalize_url,
     publish_post,
+    repair_ai_news_structure,
     tokenize,
     validate_base_content,
     validate_tag_consistency,
@@ -248,11 +249,23 @@ def count_internal_links(content: str) -> int:
     return len(INTERNAL_LINK_PATTERN.findall(content))
 
 
-def validate_ai_news_content(content: str, past_urls: set[str]) -> tuple[dict, str]:
+def resolve_edition_datetime(date_override: str | None = None) -> datetime:
+    if date_override:
+        parsed = datetime.strptime(date_override.strip(), "%Y-%m-%d")
+        return parsed.replace(tzinfo=get_kst_now().tzinfo)
+    return get_kst_now()
+
+
+def validate_ai_news_content(
+    content: str,
+    past_urls: set[str],
+    *,
+    edition_date: datetime | None = None,
+) -> tuple[dict, str]:
     metadata = validate_base_content(content)
     validate_tag_consistency(metadata)
 
-    today = get_kst_now()
+    today = edition_date or get_kst_now()
     expected_slug = f"ai-news-{today.strftime('%Y-%m-%d')}"
     slug = normalize_slug(str(metadata["slug"]))
 
@@ -386,18 +399,26 @@ image: "/uploads/{today_slug}/thumbnail.webp"
 (도입부 2~3문단)
 
 <!--more-->
+
 [HERO_IMAGE]
 -----
-(본문 H2 섹션들)
+(본문 H2 섹션들 — [HERO_IMAGE]와 -----는 반드시 위와 같이 각각 단독 한 줄)
 ### 참고문헌
 - [원문 제목](URL){{:target="_blank"}}
 """
 
 
-def generate_ai_news_post(*, text_provider: str | None = None, translation_provider: str | None = None) -> str:
-    today = get_kst_now()
+def generate_ai_news_post(
+    *,
+    text_provider: str | None = None,
+    translation_provider: str | None = None,
+    date_override: str | None = None,
+) -> str:
+    today = resolve_edition_datetime(date_override)
     today_slug = f"ai-news-{today.strftime('%Y-%m-%d')}"
     current_time = today.strftime("%Y-%m-%d %H:%M:%S +0900")
+    if date_override:
+        print(f"📅 edition date override: {date_override}")
 
     print("📡 RSS 피드 수집 중...")
     raw_items = fetch_rss_items() + fetch_hn_items()
@@ -422,8 +443,12 @@ def generate_ai_news_post(*, text_provider: str | None = None, translation_provi
     )
 
     def validate(content: str) -> tuple[dict, str]:
+        repaired = repair_ai_news_structure(content, internal_candidates)
+        if repaired != content:
+            print("🔧 LLM 출력 자동 보정 적용 (HERO_IMAGE 블록·내부 링크)")
+            content = repaired
         try:
-            return validate_ai_news_content(content, past_urls)
+            return validate_ai_news_content(content, past_urls, edition_date=today)
         except ValueError as exc:
             preview = content[:300].replace("\n", " ")
             raise ValueError(f"{exc} | 응답 미리보기: {preview}") from exc
@@ -526,6 +551,11 @@ if __name__ == "__main__":
         choices=["gemini", "anthropic", "openai", "xai"],
         help="번역에 사용할 LLM provider (기본: 번역 폴백 체인)",
     )
+    parser.add_argument(
+        "--date",
+        metavar="YYYY-MM-DD",
+        help="slug/날짜 고정 (누락 호수 복구용, 예: 2026-06-25)",
+    )
     args = parser.parse_args()
 
     if args.dry_run:
@@ -533,4 +563,5 @@ if __name__ == "__main__":
     generate_ai_news_post(
         text_provider=args.text_provider,
         translation_provider=args.translation_provider,
+        date_override=args.date,
     )

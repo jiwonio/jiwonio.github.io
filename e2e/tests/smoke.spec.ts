@@ -73,6 +73,19 @@ test.describe("blog smoke tests", () => {
     expect(after === "light" || after === "dark").toBeTruthy();
   });
 
+  test("pagination language switch skips missing ja/zh pages", async ({ page }, testInfo) => {
+    await gotoOrSkip(page, testInfo, "/page/7/");
+
+    const trigger = page.locator(".lang-switcher__trigger");
+    await expect(trigger).toBeVisible({ timeout: 15_000 });
+    await trigger.click();
+
+    const jaLink = page.locator(".lang-switcher__option[href*='/ja/page/7']");
+    const zhLink = page.locator(".lang-switcher__option[href*='/zh/page/7']");
+    await expect(jaLink).toHaveCount(0);
+    await expect(zhLink).toHaveCount(0);
+  });
+
   test("tag archive language switch resolves localized slug", async ({ page }, testInfo) => {
     await gotoOrSkip(page, testInfo, "/archive/tag/개발-환경/");
 

@@ -163,15 +163,3 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           title: Backfill Post Translations failed
           failed-step: ${{ steps.pre_merge.outcome == 'failure' && 'pre-merge validation (tests, validate_posts, Jekyll, htmlproofer)' || steps.backfill_run.outcome == 'failure' && 'backfill script (LLM translation)' || 'see Actions log' }}
-
-  notify-failure:
-    runs-on: ubuntu-latest
-    needs: backfill
-    if: failure()
-    steps:
-      - uses: actions/checkout@v4
-      - name: Notify Slack
-        uses: ./.github/actions/notify-slack-failure
-        with:
-          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: Backfill Post Translations failed

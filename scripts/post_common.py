@@ -245,6 +245,69 @@ def body_after_more(content: str) -> str:
     return parts[1] if len(parts) > 1 else ""
 
 
+def repair_hero_image_placeholder(content: str) -> str:
+    """Ensure [HERO_IMAGE] and ----- exist on standalone lines after <!--more-->."""
+    if has_standalone_line(content, "[HERO_IMAGE]"):
+        return content
+    marker = "<!--more-->"
+    if marker not in content:
+        return content
+
+    head, tail = content.split(marker, 1)
+    tail = tail.replace("[HERO_IMAGE]", "")
+    lines = tail.splitlines()
+    while lines and lines[0].strip() in {"", "-----"}:
+        lines.pop(0)
+    rebuilt_tail = "\n".join(lines)
+    if rebuilt_tail:
+        rebuilt_tail = "\n" + rebuilt_tail
+    return f"{head}{marker}\n\n[HERO_IMAGE]\n-----\n{rebuilt_tail}"
+
+
+def count_markdown_internal_links(content: str) -> int:
+    return len(INTERNAL_LINK_PATTERN.findall(content))
+
+
+def repair_internal_links(
+    content: str,
+    candidates: list[dict],
+    *,
+    min_links: int = 2,
+) -> str:
+    """Insert /posts/ links from candidates when the model omitted them."""
+    if count_markdown_internal_links(content) >= min_links:
+        return content
+    if not candidates:
+        return content
+
+    needed = min_links - count_markdown_internal_links(content)
+    inject_lines: list[str] = []
+    for item in candidates:
+        url = str(item.get("url", ""))
+        title = str(item.get("title", "관련 글"))
+        if not url.startswith("/posts/") or url in content:
+            continue
+        inject_lines.append(f'- [{title}]({url}){{:target="_blank"}}')
+        if len(inject_lines) >= needed:
+            break
+
+    if not inject_lines:
+        return content
+
+    block = "## 관련 블로그 글\n" + "\n".join(inject_lines) + "\n\n"
+    ref_marker = "### 참고문헌"
+    if ref_marker in content:
+        idx = content.index(ref_marker)
+        return content[:idx] + block + content[idx:]
+    return content.rstrip() + "\n\n" + block
+
+
+def repair_ai_news_structure(content: str, internal_candidates: list[dict]) -> str:
+    """Normalize common LLM formatting mistakes before strict validation."""
+    content = repair_hero_image_placeholder(content)
+    return repair_internal_links(content, internal_candidates)
+
+
 def extract_reference_urls(content: str) -> list[str]:
     refs_start = content.find("### 참고문헌")
     if refs_start < 0:
@@ -446,10 +509,21 @@ def generate_with_retry(
             last_error = exc
             error_msg = str(exc)
             if attempt < max_retries:
+                hints = ""
+                if "[HERO_IMAGE]" in error_msg:
+                    hints += (
+                        "\n- After <!--more-->, put [HERO_IMAGE] on its own line, "
+                        "then ----- on the next line."
+                    )
+                if "내부 링크" in error_msg or "/posts/" in error_msg:
+                    hints += (
+                        "\n- Include at least 2 markdown links like "
+                        "[title](/posts/slug/) in the body."
+                    )
                 current_prompt = (
                     f"{prompt}\n\n"
                     f"[Previous attempt failed validation: {error_msg}. "
-                    "Fix these issues and regenerate.]"
+                    f"Fix these issues and regenerate.{hints}]"
                 )
             if "503" in error_msg or "UNAVAILABLE" in error_msg:
                 wait = retry_backoff_seconds * attempt
