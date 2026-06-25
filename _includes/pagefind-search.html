@@ -1,7 +1,8 @@
 {%- assign current_lang = page.lang | default: site.default_lang | default: 'ko' -%}
 {%- assign lang_meta = site.data.languages[current_lang] -%}
 {%- assign search_ui = lang_meta.search_ui -%}
-<div id="pagefind-search" data-pagefind-lazy tabindex="-1"></div>
+{%- assign pagefind_eager = include.eager | default: false -%}
+<div id="pagefind-search"{% unless pagefind_eager %} data-pagefind-lazy{% endunless %} tabindex="-1"></div>
 <script>
   (function () {
     var container = document.getElementById("pagefind-search");
@@ -80,7 +81,11 @@
       document.head.appendChild(script);
     }
 
-    if ("IntersectionObserver" in window) {
+    var eager = {{ pagefind_eager | jsonify }};
+
+    if (eager) {
+      loadPagefind();
+    } else if ("IntersectionObserver" in window) {
       var observer = new IntersectionObserver(
         function (entries) {
           if (entries[0] && entries[0].isIntersecting) {
@@ -95,6 +100,8 @@
       loadPagefind();
     }
 
-    container.addEventListener("focusin", loadPagefind, { once: true });
+    if (!eager) {
+      container.addEventListener("focusin", loadPagefind, { once: true });
+    }
   })();
 </script>
