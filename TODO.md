@@ -50,7 +50,7 @@ TODO.md와 README.md를 읽고 전체 상태를 파악해줘.
 ```
 프로젝트: jwjp/jwjp.github.io (gh-pages)
 TODO.md 기준으로 [항목명] 작업해줘.
-현재 MY_PAT 사용 중, GitHub App은 미설정.
+GitHub App 우선, MY_PAT는 폴백.
 완료 후 커밋·푸시까지 해줘.
 ```
 
@@ -59,6 +59,7 @@ TODO.md 기준으로 [항목명] 작업해줘.
 ```bash
 # Python
 pip install -r scripts/requirements.txt
+pip install -e ./scripts
 python -m unittest discover -s scripts/tests -v
 python scripts/validate_posts.py
 
@@ -95,7 +96,7 @@ cd e2e && npm ci && npx playwright test
 
 - `scripts/blog_i18n.py` → `AI_NEWS_FULL_I18N_START = "2026-06-24"`
 - 이 날짜 **이후** ai-news: en/ja/zh 자동 번역
-- **이전** ai-news: en만 (예: `ai-news-2026-06-23`) — ja/zh는 backfill 필요
+- **이전** ai-news: en만 — ja/zh는 backfill 완료 (`ai-news-2026-06-23`)
 
 ---
 
@@ -116,6 +117,7 @@ cd e2e && npm ci && npx playwright test
 | 자동 포스팅 | `.github/workflows/scheduled_ai_post.yml` |
 | UI 문구·SEO 메타 | `_data/languages.yml` |
 | E2E | `e2e/tests/smoke.spec.ts` |
+| 폰트 서브셋 | `scripts/download_noto_font.py` |
 
 ---
 
@@ -123,6 +125,7 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
+| `9b8c4bf` | AI 뉴스 격식체, RSS MIME/리다이렉트, UI·Pagefind 개선 |
 | `8412740` | 태그 아카이브 언어 전환: 존재하는 페이지만 링크, `tag_slug_translations` 매핑 |
 | `8c6331a` | TODO.md 추가, README 정리 |
 | `1526fd5` | GitHub App 스캐폴딩, auto-merge, ai-news i18n |
@@ -132,12 +135,9 @@ cd e2e && npm ci && npx playwright test
 
 ## 알려진 이슈 · 검토 필요
 
-CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인** 권장.
-
-- [x] `8412740` 이후 `jekyll.yml` htmlproofer CI 통과 확인 (2026-06-25 푸시 빌드 success)
-- [x] **중복 태그 slug:** ko `개발 환경` / en `Development Environment` 등 언어별 표기로 정리 (2026-06-25)
-- [x] **번역본 태그 언어 혼용:** cursor 포스트 en/ja 태그 현지화 + `validate_posts.py` 검사 추가 (2026-06-25)
-- [x] `tag_slug_translations` 엣지 케이스 단위 테스트 — `scripts/tests/test_i18n_tags.py` (2026-06-25)
+- [x] `8412740` 이후 `jekyll.yml` htmlproofer CI 통과 확인 (2026-06-25)
+- [x] 중복 태그 slug / 번역본 태그 언어 혼용 정리 (2026-06-25)
+- [x] `tag_slug_translations` 단위 테스트 — `scripts/tests/test_i18n_tags.py` (2026-06-25)
 - [x] `_config.yml` `exclude`에 `e2e/`, `TODO.md` 추가 (2026-06-25)
 - [ ] Windows 로컬 `htmlproofer` libcurl 미설치로 실패 가능 — CI가 정본
 
@@ -147,30 +147,22 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ### GitHub App으로 MY_PAT 대체
 
-- [x] [GitHub App 생성](https://github.com/settings/apps/new) (2026-06-25)
-- [x] Repository Secrets: `GH_APP_ID`, `GH_APP_PRIVATE_KEY` (2026-06-25)
-- [x] App을 `jwjp/jwjp.github.io`에 설치 (2026-06-25)
-- [x] Actions 로그 `Using GitHub App installation token.` 확인 (2026-06-25)
-- [x] `setup-git-auth`: git HTTPS `x-access-token` 설정으로 수정 (gh auth login 충돌 해결, 2026-06-25)
-- [ ] (선택) `MY_PAT` Secret 제거 — App 안정화 후
+- [x] GitHub App 생성·Secrets·설치·토큰 확인 (2026-06-25)
+- [x] `setup-git-auth`: git HTTPS `x-access-token` 설정 (2026-06-25)
+- [ ] (선택) `MY_PAT` Secret 제거 — App 안정화 2~4주 후
 
-관련: `.github/actions/setup-git-auth/`, `README.md` → "GitHub App으로 MY_PAT 대체하기"
+### 운영 Secret 점검 (GitHub UI에서 수동 확인)
 
-### 운영 Secret 점검
-
-- [ ] `MY_PAT` 만료일 확인 및 갱신 (App 전환 전 필수)
+- [ ] `MY_PAT` 만료일 확인 (App 폴백용 유지)
 - [ ] `SLACK_WEBHOOK_URL` 설정·알림 수신 확인
 - [ ] LLM API 키 4종 동작 확인 (`GEMINI`, `ANTHROPIC`, `OPENAI`, `XAI`)
 
-### 레거시 ai-news 번역 백필
+### CI·의존성
 
-- [x] Actions → **Backfill Post Translations** (`ai-news-2026-06-23` → ja,zh) (2026-06-25, `--force-langs`)
-- [x] 백필 후 `validate_posts.py --audit-translations` 통과 확인 (2026-06-25)
-
-### CI 안정성 (최근 수정 후속)
-
-- [x] `8412740` 태그 링크 수정 후 `jekyll.yml` 전체 파이프라인 green 확인 (2026-06-25)
-- [x] 실패 시 Actions 로그에서 htmlproofer / Pagefind 단계 확인 — 최근 빌드 success
+- [x] Actions 버전 일괄 업데이트 (checkout v7, setup-python v6 등, 2026-06-25)
+- [x] `dependabot_automerge.yml`에 GitHub App 토큰 적용 (2026-06-25)
+- [x] Jekyll 4.4.1 / jekyll-archives 2.3.0 Gemfile 반영 (2026-06-25)
+- [ ] `openai>=2.x` Dependabot PR — `llm_client.py` 호환 검증 후 별도 머지
 
 ---
 
@@ -178,19 +170,17 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ### 태그·i18n 품질
 
-- [x] 포스트 태그 표기 정책: 번역 그룹마다 **언어별 현지화 태그** + `tag_slug_translations` 매핑 (2026-06-25)
-- [x] `개발-환경` / `development-environment` ko 포스트 태그 통일 (`개발 환경`) (2026-06-25)
-- [x] en/ja 포스트 한국어 태그 현지화 (`Coding Tools`, `コーディングツール`) (2026-06-25)
-- [x] `build_tag_slug_translations` 단위 테스트 — `scripts/i18n_tags.py` (2026-06-25)
+- [x] 포스트 태그 표기 정책 + `tag_slug_translations` (2026-06-25)
+- [x] `build_tag_slug_translations` 단위 테스트 (2026-06-25)
 
 ### Jekyll 빌드·배포
 
-- [x] `_config.yml` `exclude`에 `e2e/`, `TODO.md` 추가 (2026-06-25)
-- [ ] `_site`에 테스트 산출물이 올라가지 않도록 `.gitignore`·CI 정리
+- [x] `_config.yml` `exclude`에 `e2e/`, `TODO.md` (2026-06-25)
+- [x] `_site` git 미추적 확인, `.gitignore`에 `.venv/` 추가 (2026-06-25)
 
 ### 자동화 모니터링
 
-- [x] `pre-merge-validate` 실패 시 Slack에 실패 단계 명시 — `notify-slack-failure` action (2026-06-25)
+- [x] `pre-merge-validate` 실패 시 Slack — `notify-slack-failure` (2026-06-25)
 - [ ] `llm_usage_weekly.yml` Slack 요약 수신 확인
 - [ ] `translation_audit.yml` 주간 결과 모니터링
 - [ ] `schedule_watchdog.yml` — AI 포스팅 8일 이상 누락 시 알림 확인
@@ -198,14 +188,15 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ### 성능·에셋
 
-- [ ] Noto Sans KR woff2 서브셋 수 축소 (repo 용량)
+- [x] Noto Sans KR woff2 서브셋: 124개 → 7개 (`download_noto_font.py --subset-from-site`, 2026-06-25)
+- [ ] 신규 글자 등장 시 폰트 재생성: `python scripts/download_noto_font.py --family Noto+Sans+KR --subset-from-site --prune`
 - [ ] Lighthouse(`lighthouse.yml`) 성능 80 미만 시 개선
 - [ ] Pagefind lazy load Core Web Vitals 영향 측정
 
 ### 콘텐츠·SEO
 
-- [ ] 레거시 ai-news 전부 ja/zh 백필할지 정책 결정
-- [ ] `AI_NEWS_FULL_I18N_START` 날짜 상수 유지·변경 여부
+- [x] 레거시 ai-news ja/zh 백필 (`ai-news-2026-06-23`, 2026-06-25)
+- [x] `AI_NEWS_FULL_I18N_START = "2026-06-24"` 유지 (2026-06-25)
 - [ ] IndexNow 제출(`submit_indexnow.py`) 실제 색인 반영 모니터링
 
 ---
@@ -214,22 +205,22 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ### 개발 환경
 
-- [x] `scripts/pyproject.toml` 추가 (`pip install -e scripts/`) (2026-06-25)
-- [ ] `sys.path.insert` 제거 및 import 경로 정리
-- [ ] Windows 로컬 Jekyll·htmlproofer 원클릭 셋업 문서화 (또는 devcontainer)
+- [x] `scripts/pyproject.toml` + `pip install -e ./scripts` (2026-06-25)
+- [x] `sys.path.insert` 제거, CI·README에 editable install 반영 (2026-06-25)
+- [ ] Windows 로컬 Jekyll·htmlproofer 원클릭 셋업 (또는 devcontainer)
 
 ### 테스트·품질
 
+- [x] E2E RSS·태그·페이지네이션 스모크 추가/수정 (2026-06-25)
 - [ ] E2E(`e2e.yml`) CI 주간 결과 확인
-- [ ] 로컬 E2E: `cd e2e && npm ci && npx playwright test`
 - [ ] `url_check.yml` 주기적 실패 URL 정리
-- [x] smoke 테스트에 태그 아카이브 언어 전환 케이스 추가 (`개발-환경` → en) (2026-06-25)
 
 ### 정리·문서
 
+- [x] README에 `e2e.yml` 워크플로 표 추가 (2026-06-25)
+- [x] LLM 예산 `$75` (`models_config.LLM_MONTHLY_BUDGET_USD`, 2026-06-25)
 - [x] GitHub App 전환 후 README MY_PAT 폴백 설명 축소 (2026-06-25)
-- [ ] `dependabot_automerge.yml` 실제 머지 동작 확인
-- [ ] README 워크플로 표와 TODO 동기화 유지
+- [ ] README 워크플로 표와 TODO 동기화 유지 (지속)
 
 ---
 
@@ -250,8 +241,6 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ## Grok에게 물어볼 질문 (리뷰용)
 
-다른 PC에서 아래를 그대로 붙여 넣어 **보완·추가 수정 목록**을 받을 수 있습니다.
-
 ```
 TODO.md "알려진 이슈"와 전체 코드베이스를 보고 답해줘:
 
@@ -262,7 +251,7 @@ TODO.md "알려진 이슈"와 전체 코드베이스를 보고 답해줘:
 5. CI/CD·Secrets·모니터링에서 빈 구멍은?
 6. 우선순위 높음/중간/낮음으로 정리해줘.
 
-제약: GitHub App은 당분간 보류, MY_PAT 유지.
+제약: GitHub App 우선, MY_PAT는 폴백으로 유지.
 ```
 
 ---

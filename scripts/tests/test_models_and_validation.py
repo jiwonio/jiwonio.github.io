@@ -1,12 +1,8 @@
 import unittest
 from pathlib import Path
-import sys
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from blog_i18n import infer_ai_generated
 from validate_posts import validate_language_content, prose_body
-
 
 class ModelsAndValidationTests(unittest.TestCase):
     def test_infer_ai_generated_for_ai_news(self):
@@ -67,7 +63,6 @@ layout: post
 詳しい手順を説明します。
 """
         self.assertIsNotNone(validate_language_content("zh", content))
-
 
 if __name__ == "__main__":
     unittest.main()

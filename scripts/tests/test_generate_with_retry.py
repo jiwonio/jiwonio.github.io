@@ -1,13 +1,8 @@
 import unittest
-from pathlib import Path
-import sys
 from unittest.mock import patch
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from llm_client import TextGenerationResult
 from post_common import generate_with_retry
-
 
 class GenerateWithRetryTests(unittest.TestCase):
     @patch("post_common.llm_generate_text")
@@ -51,7 +46,6 @@ class GenerateWithRetryTests(unittest.TestCase):
         self.assertEqual(prompts[0], "base prompt")
         self.assertIn("Previous attempt failed validation", prompts[1])
         self.assertIn("missing <!--more-->", prompts[1])
-
 
 if __name__ == "__main__":
     unittest.main()

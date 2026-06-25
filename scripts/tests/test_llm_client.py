@@ -1,10 +1,6 @@
 import os
 import unittest
-from pathlib import Path
-import sys
 from unittest.mock import patch
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from llm_client import (
     filter_available_providers,
@@ -14,7 +10,6 @@ from llm_client import (
     resolve_text_providers,
     resolve_translation_providers,
 )
-
 
 class LlmClientTests(unittest.TestCase):
     def test_resolve_text_providers_deep_dive_prefers_gemini(self):
@@ -94,7 +89,6 @@ class LlmClientTests(unittest.TestCase):
         with patch.dict(os.environ, env, clear=True):
             available = filter_available_providers(("gemini", "anthropic", "openai"))
         self.assertEqual(available, ["anthropic"])
-
 
 if __name__ == "__main__":
     unittest.main()

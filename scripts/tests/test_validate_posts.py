@@ -1,18 +1,13 @@
 import tempfile
 import unittest
 from pathlib import Path
-import sys
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from validate_posts import validate_posts
-
 
 def write_post(root: Path, relative: str, body: str) -> None:
     path = root / relative
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(body, encoding="utf-8")
-
 
 def make_post(lang: str, slug: str, post_type: str, prose: str) -> str:
     return f"""---
@@ -32,7 +27,6 @@ image: /uploads/{slug}/thumbnail.webp
 ---
 {prose}
 """
-
 
 KO_PROSE = """한국어 도입부입니다. 실무에서 바로 쓸 수 있는 설정과 트러블슈팅을 정리합니다.
 
@@ -58,7 +52,6 @@ ZH_PROSE = """中文导语。记录可直接用于生产的配置与排错经验
 
 中文正文。分步说明配置方法与注意事项。
 """
-
 
 class ValidatePostsTests(unittest.TestCase):
     def setUp(self):
@@ -114,7 +107,6 @@ class ValidatePostsTests(unittest.TestCase):
 
         errors = validate_posts(self.posts, site_root=self.root)
         self.assertTrue(any("broken internal link" in error for error in errors))
-
 
 if __name__ == "__main__":
     unittest.main()

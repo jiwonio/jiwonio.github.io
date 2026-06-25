@@ -5,14 +5,11 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
 
 import feedparser
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from blog_i18n import FRONT_MATTER_PATTERN
 from feeds_config import (

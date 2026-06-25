@@ -2,12 +2,8 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-import sys
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from usage_report import check_budget, format_summary, parse_jsonl, summarize
-
 
 class UsageReportTests(unittest.TestCase):
     def test_summarize_counts_calls_and_cost(self):
@@ -65,7 +61,6 @@ class UsageReportTests(unittest.TestCase):
     def test_check_budget_passes_when_under_threshold(self):
         summary = {"total_calls": 10, "total_cost_usd": 20.0}
         self.assertTrue(check_budget(summary, 50.0))
-
 
 if __name__ == "__main__":
     unittest.main()

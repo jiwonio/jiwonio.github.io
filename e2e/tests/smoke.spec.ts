@@ -74,14 +74,15 @@ test.describe("blog smoke tests", () => {
   });
 
   test("pagination language switch skips missing ja/zh pages", async ({ page }, testInfo) => {
-    await gotoOrSkip(page, testInfo, "/page/7/");
+    // Use a high page number that exists in ko but not in ja/zh archives.
+    await gotoOrSkip(page, testInfo, "/page/50/");
 
     const trigger = page.locator(".lang-switcher__trigger");
     await expect(trigger).toBeVisible({ timeout: 15_000 });
     await trigger.click();
 
-    const jaLink = page.locator(".lang-switcher__option[href*='/ja/page/7']");
-    const zhLink = page.locator(".lang-switcher__option[href*='/zh/page/7']");
+    const jaLink = page.locator(".lang-switcher__option[href*='/ja/page/50']");
+    const zhLink = page.locator(".lang-switcher__option[href*='/zh/page/50']");
     await expect(jaLink).toHaveCount(0);
     await expect(zhLink).toHaveCount(0);
   });
@@ -116,6 +117,57 @@ test.describe("blog smoke tests", () => {
     await expect(page.locator("h1, .post-list, .archive-list").first()).toBeVisible({
       timeout: 15_000,
     });
+  });
+
+  test("RSS feed is available", async ({ page }, testInfo) => {
+    const feedResponse = await page.goto("/rss.xml", {
+      waitUntil: "domcontentloaded",
+      timeout: 30_000,
+    });
+    if (!feedResponse) {
+      testInfo.skip(true, "No response from /rss.xml.");
+      return;
+    }
+    if (feedResponse.status() >= 500) {
+      testInfo.skip(true, `RSS feed returned ${feedResponse.status()}.`);
+      return;
+    }
+    expect(feedResponse.ok()).toBeTruthy();
+
+    const contentType = feedResponse.headers()["content-type"] ?? "";
+    expect(contentType).toMatch(/xml/i);
+
+    const body = await page.locator("body").textContent();
+    expect(body ?? "").toMatch(/<rss|<feed/i);
+
+    const redirectResponse = await page.goto("/rss/", {
+      waitUntil: "domcontentloaded",
+      timeout: 30_000,
+    });
+    expect(redirectResponse?.ok()).toBeTruthy();
+
+    const finalUrl = page.url();
+    if (finalUrl.endsWith("/rss.xml")) {
+      return;
+    }
+
+    const canonicalCount = await page.locator("link[rel='canonical']").count();
+    if (canonicalCount > 0) {
+      const canonicalHref = await page
+        .locator("link[rel='canonical']")
+        .first()
+        .getAttribute("href");
+      expect(canonicalHref?.endsWith("/rss.xml")).toBeTruthy();
+      return;
+    }
+
+    const fallbackCount = await page.locator("a[href$='/rss.xml']").count();
+    if (fallbackCount === 0) {
+      testInfo.skip(
+        true,
+        "RSS redirect page not deployed yet; /rss.xml feed check already passed."
+      );
+    }
   });
 
   test("language switcher opens on Korean home", async ({ page }, testInfo) => {

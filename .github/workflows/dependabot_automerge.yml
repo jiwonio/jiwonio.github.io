@@ -12,6 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup git auth
+        uses: ./.github/actions/setup-git-auth
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          pat: ${{ secrets.MY_PAT }}
+
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v2
@@ -23,7 +33,7 @@ jobs:
           steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
           steps.metadata.outputs.update-type == 'version-update:semver-minor'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ env.GH_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           gh pr merge "$PR_NUMBER" --merge --auto

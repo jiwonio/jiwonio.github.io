@@ -2,13 +2,9 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-import sys
 from unittest.mock import patch
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
 from api_monitor import estimate_cost_usd, notify_llm_usage
-
 
 class ApiMonitorTests(unittest.TestCase):
     @patch("api_monitor.urlopen")
@@ -71,7 +67,6 @@ class ApiMonitorTests(unittest.TestCase):
             record = json.loads(lines[0])
             self.assertEqual(record["input_chars"], 1000)
             self.assertGreater(record["estimated_cost_usd"], 0)
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -13,6 +13,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.request import Request, urlopen
 
+from models_config import LLM_MONTHLY_BUDGET_USD
+
 SITE_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_LOG = SITE_ROOT / "llm-usage.jsonl"
 LLM_USAGE_NOTICE_RE = re.compile(r"::notice::llm_usage=(.+)$")
@@ -209,7 +211,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--from-actions", action="store_true")
     parser.add_argument("--days", type=int, default=7)
     parser.add_argument("--slack", action="store_true")
-    parser.add_argument("--warn-budget", type=float, default=50.0)
+    parser.add_argument("--warn-budget", type=float, default=LLM_MONTHLY_BUDGET_USD)
     args = parser.parse_args(argv)
 
     if args.from_actions:

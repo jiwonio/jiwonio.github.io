@@ -22,10 +22,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
@@ -33,6 +33,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
+          pip install -e ./scripts
 
       - name: Summarize LLM usage from Actions logs
         env:
@@ -40,7 +41,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           DAYS="${{ github.event.inputs.days || '7' }}"
-          python scripts/usage_report.py --from-actions --days "$DAYS" --slack --warn-budget 50
+          python scripts/usage_report.py --from-actions --days "$DAYS" --slack --warn-budget 75
 
   notify-failure:
     runs-on: ubuntu-latest

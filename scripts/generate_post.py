@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import argparse
 import re
-import sys
 from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from llm_client import list_available_providers
 from post_common import (

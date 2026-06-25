@@ -60,6 +60,9 @@ POST_TYPE_TEXT_PROVIDERS = {
 TRANSLATION_PROVIDER_CHAIN = ("gemini", "anthropic", "openai", "xai")
 IMAGE_PROVIDER_CHAIN = ("gemini", "xai")
 
+# Estimated monthly LLM spend threshold (USD) for CI warnings and Slack reports.
+LLM_MONTHLY_BUDGET_USD = 75.0
+
 # 하위 호환 (기존 import)
 TEXT_MODEL = PROVIDER_MODELS["gemini"]["text"]
 IMAGE_MODEL = PROVIDER_MODELS["gemini"]["image"]

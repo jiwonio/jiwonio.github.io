@@ -1,8 +1,4 @@
 import unittest
-from pathlib import Path
-import sys
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from generate_ai_news import (
     deduplicate_items,
@@ -12,7 +8,6 @@ from generate_ai_news import (
     normalize_title,
     title_similarity,
 )
-
 
 class GenerateAiNewsTests(unittest.TestCase):
     def test_normalize_title_strips_punctuation(self):
@@ -57,7 +52,6 @@ class GenerateAiNewsTests(unittest.TestCase):
             "- **Copilot**: 컨텍스트 필터링이 개선되어 체감 품질이 좋아질 수 있습니다.\n"
         )
         self.assertEqual(find_plain_da_tone_violations(prose), [])
-
 
 if __name__ == "__main__":
     unittest.main()

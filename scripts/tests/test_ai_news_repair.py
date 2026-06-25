@@ -1,8 +1,4 @@
 import unittest
-from pathlib import Path
-import sys
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from post_common import (
     count_markdown_internal_links,
@@ -13,7 +9,6 @@ from post_common import (
     repair_internal_post_slugs,
     resolve_internal_post_slug,
 )
-
 
 class AiNewsRepairTests(unittest.TestCase):
     def test_repair_hero_image_placeholder_inserts_block(self):
@@ -66,7 +61,6 @@ body text
         self.assertTrue(has_standalone_line(repaired, "[HERO_IMAGE]"))
         self.assertGreaterEqual(count_markdown_internal_links(repaired), 1)
 
-
     def test_resolve_truncated_internal_slug(self):
         ko_slugs = {
             "building-a-production-ready-local-development-environment-with-docker-compose",
@@ -85,7 +79,6 @@ body text
         content = "See [Docker](/posts/building-a-production-ready-local-development-with-docker-compose/)."
         repaired = repair_internal_post_slugs(content, ko_slugs)
         self.assertIn("development-environment-with-docker-compose", repaired)
-
 
 if __name__ == "__main__":
     unittest.main()

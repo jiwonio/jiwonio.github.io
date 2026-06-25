@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import re
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -37,6 +39,20 @@ FAMILIES: dict[str, dict[str, str]] = {
     },
 }
 
+SITE_TEXT_GLOBS = (
+    "_posts/**/*.md",
+    "_includes/**/*.html",
+    "_layouts/**/*.html",
+    "_data/languages.yml",
+    "_config.yml",
+    "index.html",
+    "archive.html",
+    "search.html",
+    "en/**/*.html",
+    "ja/**/*.html",
+    "zh/**/*.html",
+)
+
 
 def fetch(url: str) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -46,6 +62,12 @@ def fetch(url: str) -> bytes:
 
 def filename_from_url(url: str) -> str:
     return url.split("/")[-1].split("?")[0]
+
+
+def local_font_filename(url: str) -> str:
+    """Stable local filename for remote font kit URLs."""
+    digest = hashlib.sha1(url.encode("utf-8")).hexdigest()[:16]
+    return f"noto-{digest}.woff2"
 
 
 def first_preload_face(css: str) -> str | None:
@@ -59,21 +81,77 @@ def first_preload_face(css: str) -> str | None:
     return None
 
 
-def download_family(family_key: str, preload_map: dict[str, str]) -> None:
+def collect_site_characters(root: Path = ROOT) -> str:
+    """Gather unique characters used across site content for font subsetting."""
+    chars: set[str] = set()
+    for pattern in SITE_TEXT_GLOBS:
+        for path in root.glob(pattern):
+            if not path.is_file():
+                continue
+            chars.update(path.read_text(encoding="utf-8", errors="ignore"))
+
+    # Keep printable glyphs plus common whitespace used in copy.
+    filtered = sorted(
+        char
+        for char in chars
+        if char.isprintable() or char in {"\n", "\t"}
+    )
+    return "".join(filtered)
+
+
+def prune_unused_font_files(out_dir: Path, css_text: str) -> int:
+    """Remove woff2 files no longer referenced by the generated CSS."""
+    referenced = {
+        match.group(1)
+        for match in re.finditer(r"url\(([^)]+\.woff2)\)", css_text)
+    }
+    removed = 0
+    for path in out_dir.glob("*.woff2"):
+        if path.name not in referenced:
+            path.unlink()
+            removed += 1
+    return removed
+
+
+def chunk_text_for_font_api(text: str, max_chars: int = 400) -> list[str]:
+    """Split glyph list so each Google Fonts request stays under URL limits."""
+    if len(text) <= max_chars:
+        return [text]
+    return [text[index : index + max_chars] for index in range(0, len(text), max_chars)]
+
+
+def fetch_family_css(family_key: str, subset_text: str | None = None) -> str:
+    base_url = (
+        "https://fonts.googleapis.com/css2?"
+        f"family={family_key}:wght@400;700&display=swap"
+    )
+    if not subset_text:
+        return fetch(base_url).decode("utf-8")
+
+    blocks: list[str] = []
+    for chunk in chunk_text_for_font_api(subset_text):
+        css_url = f"{base_url}&text={urllib.parse.quote(chunk, safe='')}"
+        blocks.append(fetch(css_url).decode("utf-8"))
+    return "\n".join(blocks)
+
+
+def download_family(
+    family_key: str,
+    preload_map: dict[str, str],
+    *,
+    subset_text: str | None = None,
+    prune: bool = False,
+) -> None:
     config = FAMILIES[family_key]
     out_dir = ROOT / "assets" / "vendor" / config["dir"]
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    css_url = (
-        "https://fonts.googleapis.com/css2?"
-        f"family={family_key}:wght@400;700&display=swap"
-    )
-    css = fetch(css_url).decode("utf-8")
-    urls = re.findall(r"url\((https://[^)]+)\)", css)
+    css = fetch_family_css(family_key, subset_text)
+    remote_urls = sorted(set(re.findall(r"url\((https://[^)]+)\)", css)))
     rewritten = css
 
-    for url in urls:
-        filename = filename_from_url(url)
+    for url in remote_urls:
+        filename = local_font_filename(url) if subset_text else filename_from_url(url)
         destination = out_dir / filename
         if not destination.exists():
             destination.write_bytes(fetch(url))
@@ -82,7 +160,13 @@ def download_family(family_key: str, preload_map: dict[str, str]) -> None:
 
     css_path = out_dir / config["css_name"]
     css_path.write_text(rewritten, encoding="utf-8")
-    print(f"wrote {css_path} ({len(urls)} files)")
+    referenced = set(re.findall(r"url\(([^)]+\.woff2)\)", rewritten))
+    print(f"wrote {css_path} ({len(referenced)} files)")
+
+    if prune:
+        removed = prune_unused_font_files(out_dir, rewritten)
+        if removed:
+            print(f"pruned {removed} unused woff2 files from {out_dir}")
 
     preload_face = first_preload_face(rewritten)
     if preload_face:
@@ -97,15 +181,34 @@ def main() -> None:
         choices=sorted(FAMILIES),
         help="Google Fonts family key (repeatable). Defaults to all families.",
     )
+    parser.add_argument(
+        "--subset-from-site",
+        action="store_true",
+        help="Request only glyphs used in site content (smaller woff2 set).",
+    )
+    parser.add_argument(
+        "--prune",
+        action="store_true",
+        help="Delete woff2 files in the vendor dir that are not referenced by CSS.",
+    )
     args = parser.parse_args()
     families = args.family or sorted(FAMILIES)
+
+    subset_text = collect_site_characters() if args.subset_from_site else None
+    if subset_text:
+        print(f"subset text: {len(subset_text)} unique characters")
 
     preload_map: dict[str, str] = {}
     if PRELOAD_DATA.exists():
         preload_map = yaml.safe_load(PRELOAD_DATA.read_text(encoding="utf-8")) or {}
 
     for family_key in families:
-        download_family(family_key, preload_map)
+        download_family(
+            family_key,
+            preload_map,
+            subset_text=subset_text,
+            prune=args.prune,
+        )
 
     PRELOAD_DATA.parent.mkdir(parents=True, exist_ok=True)
     PRELOAD_DATA.write_text(

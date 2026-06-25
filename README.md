@@ -65,6 +65,7 @@ _posts/
 | `translation_audit.yml` | 일 05:00 | deep-dive en/ja/zh 번역 완전성 주간 감사 |
 | `schedule_watchdog.yml` | 매일 08:00 | `scheduled_ai_post` 최근 8일 내 성공 실행 여부 감시 |
 | `backfill_translations.yml` | 수동 | 누락 번역 백필 → PR (자동 머지) |
+| `e2e.yml` | 토 08:00 | 프로덕션 스모크 테스트 (Playwright, 실패 시 Slack) |
 | `dependabot_automerge.yml` | Dependabot PR | patch/minor actions·pip 업데이트 CI 통과 시 자동 머지 |
 
 ### LLM 라우팅
@@ -96,7 +97,7 @@ _posts/
 - 로컬/CI 실행 시 `llm-usage.jsonl`에 JSONL로 누적됩니다 (`LLM_USAGE_LOG`로 경로 변경 가능).
 - `python scripts/usage_report.py llm-usage.jsonl` — 로컬 요약
 - `python scripts/usage_report.py --from-actions --days 7 --slack` — Actions 로그 파싱 + Slack
-- `--warn-budget 50` — 월간 추정 비용 임계값(USD) 경고
+- `--warn-budget 75` — 월간 추정 비용 임계값(USD) 경고 (`models_config.LLM_MONTHLY_BUDGET_USD`)
 
 ### Repository Secrets
 
@@ -138,6 +139,7 @@ App을 새로 만들 때는 [github.com/settings/apps/new](https://github.com/se
 
 ```bash
 pip install -r scripts/requirements.txt
+pip install -e ./scripts
 export GEMINI_API_KEY=...   # Windows: $env:GEMINI_API_KEY="..."
 # 선택: ANTHROPIC_API_KEY, OPENAI_API_KEY, XAI_API_KEY
 
@@ -151,7 +153,7 @@ python scripts/validate_posts.py --audit-translations
 python scripts/validate_posts.py --check-ref-urls --check-external-urls
 
 # LLM 사용량 요약
-python scripts/usage_report.py llm-usage.jsonl --warn-budget 50
+python scripts/usage_report.py llm-usage.jsonl --warn-budget 75
 
 # 단위 테스트
 python -m unittest discover -s scripts/tests -v

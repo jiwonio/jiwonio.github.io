@@ -27,6 +27,8 @@ Gemfile.lock
 
 *.gem
 *.rbc
+.venv/
+*.egg-info/
 __pycache__/
 *.py[cod]
 /.config

@@ -1,8 +1,4 @@
 import unittest
-from pathlib import Path
-import sys
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from post_schema import (
     has_standalone_line,
@@ -10,7 +6,6 @@ from post_schema import (
     sanitize_generated_content,
     strip_references_section,
 )
-
 
 class PostSchemaTests(unittest.TestCase):
     def test_has_standalone_line(self):
@@ -64,7 +59,6 @@ class PostSchemaTests(unittest.TestCase):
         stripped = strip_references_section(content)
         self.assertNotIn("### 참고문헌", stripped)
         self.assertIn("body", stripped)
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -9,7 +9,6 @@ from urllib.request import Request, urlopen
 
 import yaml
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
 from blog_i18n import DEFAULT_LANG, resolve_effective_date, translation_langs_for_metadata
 from post_common import find_invalid_internal_post_slugs, get_existing_ko_slugs
 from post_schema import (

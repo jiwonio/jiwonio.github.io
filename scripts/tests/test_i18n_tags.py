@@ -2,12 +2,10 @@ import unittest
 
 from i18n_tags import build_tag_slug_translations
 
-
 def _slugify(tag_name: str) -> str | None:
     """Simplified slugify matching Jekyll behavior for test fixtures."""
     slug = tag_name.strip().lower().replace(" ", "-")
     return slug or None
-
 
 class BuildTagSlugTranslationsTests(unittest.TestCase):
     def test_maps_disjoint_language_specific_slugs(self):
@@ -78,7 +76,6 @@ class BuildTagSlugTranslationsTests(unittest.TestCase):
         )
 
         self.assertEqual(result, {})
-
 
 if __name__ == "__main__":
     unittest.main()
