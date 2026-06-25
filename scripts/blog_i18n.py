@@ -346,6 +346,8 @@ def prepare_ko_post_content(path: Path) -> str:
 
 def build_translation_prompt(source_content: str, target_lang: str, slug: str) -> str:
     label = LANG_LABELS[target_lang]
+    metadata = parse_front_matter(source_content)
+    post_type = str(metadata.get("post_type", "deep-dive")).strip()
     ref_urls = extract_reference_urls(source_content)
     translation_input = strip_references_section(source_content)
     urls_note = ""
@@ -355,6 +357,14 @@ def build_translation_prompt(source_content: str, target_lang: str, slug: str) -
             "Keep these reference URLs unchanged:\n"
             + "\n".join(f"  - {url}" for url in ref_urls)
         )
+    tone_note = ""
+    if post_type == "ai-news":
+        tone_note = (
+            "- Preserve the polite blog register of the Korean source in {label} "
+            "(natural formal tone: English professional but conversational; "
+            "Japanese です・ます; Chinese 正式而自然的书面语气). "
+            "Do not flatten into headline-style plain narration.\n"
+        ).format(label=label)
     return f"""
 You are a senior technical translator. Translate the Jekyll blog post below into {label}.
 
@@ -366,6 +376,7 @@ Rules:
 - Translate title, description, and all prose. Keep code blocks unchanged.
 - Preserve a natural first-person blog voice. Avoid stiff self-introductions like "I am a senior full-stack developer and tech blogger."
 - Use concise declarative sentences. Avoid overly formal or repetitive phrasing.
+{tone_note}
 - Preserve marker lines exactly as standalone lines: <!--more-->, -----
 - Do not output [HERO_IMAGE]; keep hero images that already exist in the body.
 - Keep markdown internal links like [title](/posts/exact-slug/) unchanged (do not shorten or rewrite slugs).

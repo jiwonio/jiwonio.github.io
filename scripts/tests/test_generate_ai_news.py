@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from generate_ai_news import (
     deduplicate_items,
     filter_ai_relevant_entries,
+    find_plain_da_tone_violations,
     keyword_score,
     normalize_title,
     title_similarity,
@@ -41,6 +42,21 @@ class GenerateAiNewsTests(unittest.TestCase):
         ]
         deduped = deduplicate_items(items)
         self.assertEqual(len(deduped), 1)
+
+    def test_find_plain_da_tone_violations_detects_plain_style(self):
+        prose = (
+            "이번 주는 에이전트 인프라가 한 단계 구체화된 한 주였다.\n"
+            "- **Copilot**: 컨텍스트 필터링이 개선되어 체감 품질이 좋아질 수 있다\n"
+        )
+        violations = find_plain_da_tone_violations(prose)
+        self.assertIn("였다", violations)
+
+    def test_find_plain_da_tone_violations_allows_formal_style(self):
+        prose = (
+            "이번 주는 에이전트 인프라가 한 단계 더 구체화된 한 주였습니다.\n"
+            "- **Copilot**: 컨텍스트 필터링이 개선되어 체감 품질이 좋아질 수 있습니다.\n"
+        )
+        self.assertEqual(find_plain_da_tone_violations(prose), [])
 
 
 if __name__ == "__main__":

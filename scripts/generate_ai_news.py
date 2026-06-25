@@ -64,6 +64,29 @@ BANNED_CLI_NOTATIONS = ("gh?", "git?")
 YO_ENDING_PATTERN = re.compile(
     r"(?:해요|했어요|이에요|예요|거예요|할게요|볼게요|보여요|같아요|있어요|없어요|되죠|있죠|하세요|줄게요|테니|테고요|었고요|였어요|일까요)"
 )
+FORMAL_ENDING_PATTERN = re.compile(r"(?:습니다|입니다|합니다|됩니다|습니까|입니까)")
+PLAIN_DA_SUFFIX = re.compile(
+    r"(?:했다|였다|겠다|된다|한다|같다|보인다|느꼈다|해졌다|생겼다|짚었다|내놨다|터졌다|밝혔다|"
+    r"발표했다|공개했다|쏟아졌다|열었다|이었다|있었다|없었다|올렸다|줬다|왔다|갔다|봤다|썼다|"
+    r"남았다|받았다|진화했다|가능해졌다|되었다)(?:\.|$)"
+)
+SKIP_TONE_LINES = frozenset({"<!--more-->", "[HERO_IMAGE]", "-----"})
+
+
+def find_plain_da_tone_violations(prose: str) -> list[str]:
+    """'~다' 체 문장/불릿을 찾아 정중체 위반 목록을 반환합니다."""
+    violations: list[str] = []
+    body = prose.split("### 참고문헌", 1)[0]
+    for line in body.splitlines():
+        stripped = line.strip().rstrip("-").strip()
+        if not stripped or stripped.startswith("#") or stripped in SKIP_TONE_LINES:
+            continue
+        if FORMAL_ENDING_PATTERN.search(stripped):
+            continue
+        match = PLAIN_DA_SUFFIX.search(stripped)
+        if match:
+            violations.append(match.group(0).rstrip("."))
+    return violations
 
 
 def normalize_title(title: str) -> str:
@@ -331,11 +354,27 @@ def validate_ai_news_content(
 
     fm_match = FRONT_MATTER_PATTERN.match(content)
     prose = content[fm_match.end() :] if fm_match else content
-    yo_matches = YO_ENDING_PATTERN.findall(prose.split("### 참고문헌", 1)[0])
+    prose_body = prose.split("### 참고문헌", 1)[0]
+    yo_matches = YO_ENDING_PATTERN.findall(prose_body)
     if yo_matches:
         raise ValueError(
-            "본문에 '~요' 어미가 포함되어 있습니다. '~다' 체(~한다, ~이다, ~된다)로 통일하세요: "
+            "본문에 '~요' 어미가 포함되어 있습니다. '~습니다·입니다' 체로 통일하세요: "
             + ", ".join(sorted(set(yo_matches))[:5])
+        )
+
+    da_violations = find_plain_da_tone_violations(prose)
+    if da_violations:
+        raise ValueError(
+            "본문에 '~다' 체 표현이 포함되어 있습니다. 일반 기술 글과 같이 "
+            "'~습니다·입니다' 체로 통일하세요: "
+            + ", ".join(sorted(set(da_violations))[:5])
+        )
+
+    formal_count = len(FORMAL_ENDING_PATTERN.findall(prose_body))
+    if formal_count < 12:
+        raise ValueError(
+            f"정중한 '~습니다·입니다' 문체가 부족합니다 (감지 {formal_count}회). "
+            "심층 기술 글과 같은 자연스러운 존댓말로 작성하세요."
         )
 
     return metadata, slug
@@ -356,10 +395,16 @@ def build_generation_prompt(
 이 블로그 주인이 직접 쓰는 1인칭 기술 글입니다.
 
 **[글쓰기 톤]**
-- 1인칭 시점의 기술 블로그 글 (~했다, ~인 것 같다, ~해 볼 것이다)
+- 심층 기술 글과 같은 **'~습니다·입니다' 체**로 자연스럽게 작성 (~합니다, ~입니다, ~됩니다, ~었습니다)
+- 1인칭 시점의 기술 블로그 글. 딱딱한 번역체나 뉴스 원고 톤은 피하고, 동료에게 설명하듯 읽기 쉽게
+- "~다" 체(~했다, ~이다, ~된다, ~겠다)와 "~요", "~해요" 어미 금지
 - "시니어 풀스택 개발자이자 기술 블로거입니다" 같은 자기소개·직함 나열 금지
-- 문장 끝은 **'~다' 체로 통일** (~한다, ~이다, ~된다, ~다). '~요', '~해요', '~습니다' 어미 금지
 - 도입부 2~3문단: 이번 주 소식 중 무엇이 왜 중요한지 개인적인 관점으로 시작
+- 톤 예시 (나쁨 → 좋음):
+  - 나쁨: "이번 주는 에이전트 인프라가 한 단계 구체화된 한 주였다."
+  - 좋음: "이번 주는 에이전트 인프라가 한 단계 더 구체화된 한 주였습니다."
+  - 나쁨: "Copilot 측에서 내부적으로 필터링해 준다는 건 체감 품질 향상으로 이어질 수 있다."
+  - 좋음: "Copilot이 컨텍스트를 내부적으로 걸러 주면, 체감 품질이 눈에 띄게 좋아질 수 있습니다."
 
 **[금지]**
 - 헤드라인만 나열하는 뉴스 큐레이션
