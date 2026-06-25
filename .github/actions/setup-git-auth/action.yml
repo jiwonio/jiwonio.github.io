@@ -49,8 +49,9 @@ runs:
           exit 1
         fi
 
-    - name: Configure git and gh CLI
+    - name: Configure git for HTTPS push
       shell: bash
+      env:
+        GH_TOKEN: ${{ env.GH_TOKEN }}
       run: |
-        echo "$GH_TOKEN" | gh auth login --with-token
-        gh auth setup-git
+        git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
