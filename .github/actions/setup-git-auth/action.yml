@@ -48,4 +48,9 @@ runs:
           echo "Configure GH_APP_ID + GH_APP_PRIVATE_KEY (recommended) or MY_PAT."
           exit 1
         fi
+
+    - name: Configure git and gh CLI
+      shell: bash
+      run: |
+        echo "$GH_TOKEN" | gh auth login --with-token
         gh auth setup-git

@@ -172,6 +172,7 @@ jobs:
 
       - name: Pre-merge validation
         if: env.RUN_GENERATION == 'true'
+        id: pre_merge
         uses: ./.github/actions/pre-merge-validate
 
       - name: Setup git auth
@@ -249,19 +250,22 @@ jobs:
             python scripts/usage_report.py "$LOG" --warn-budget 50
           fi
 
+      - name: Notify Slack (in-job failure detail)
+        if: failure() && env.RUN_GENERATION == 'true'
+        uses: ./.github/actions/notify-slack-failure
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          title: Bi-weekly AI Post Generation failed
+          failed-step: ${{ steps.pre_merge.outcome == 'failure' && 'pre-merge validation (tests, validate_posts, Jekyll, htmlproofer)' || steps.generate.outcome == 'failure' && 'post generation (LLM pipeline)' || 'see Actions log' }}
+
   notify-failure:
     runs-on: ubuntu-latest
     needs: build-and-post
     if: failure()
     steps:
+      - uses: actions/checkout@v4
       - name: Notify Slack
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          if [ -z "$SLACK_WEBHOOK_URL" ]; then
-            exit 0
-          fi
-          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          curl -sS -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"❌ Bi-weekly AI Post Generation failed\n${RUN_URL}\"}" \
-            "$SLACK_WEBHOOK_URL"
+        uses: ./.github/actions/notify-slack-failure
+        with:
+          webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          title: Bi-weekly AI Post Generation failed

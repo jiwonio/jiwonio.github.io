@@ -73,6 +73,8 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - scripts/
+  - e2e/
+  - TODO.md
   - .github/
   - .idea/
   - .claude/

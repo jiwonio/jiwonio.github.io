@@ -7,7 +7,7 @@ tags:
 - tech
 - Docker
 - DevOps
-- development-environment
+- 开发环境
 image: /uploads/dockerizing-your-web-application-for-consistent-development/thumbnail.webp
 lang: zh
 translation_key: dockerizing-your-web-application-for-consistent-development

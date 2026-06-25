@@ -10,7 +10,7 @@ tags:
 - AI
 - IDE
 - LLM
-- 코딩도구
+- コーディングツール
 description: Cursor IDEの主要機能、設定方法から実際のプロジェクトでの使用レビューまでを解説します。AIによるコード生成、修正、チャット機能のメリットと明確な限界を、シニア開発者の視点で分析します。
 image: /uploads/cursor-ide-real-world-review-and-limitations/thumbnail.webp
 lang: ja

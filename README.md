@@ -5,7 +5,7 @@ Jekyll 4 기반 다국어 기술 블로그입니다. 한국어(ko) 원문과 en/
 - **사이트:** https://blog.jiwon.io
 - **배포 브랜치:** `gh-pages` (GitHub Pages)
 - **스택:** Ruby 3.3, Jekyll 4.3, Python 3.11
-- **남은 작업:** [TODO.md](TODO.md) (GitHub App 전환 등)
+- **남은 작업:** [TODO.md](TODO.md)
 
 ## 아키텍처 개요
 
@@ -111,28 +111,17 @@ _posts/
 | `MY_PAT` | (폴백) PAT — App 미설정 시 사용 |
 | `SLACK_WEBHOOK_URL` | 워크플로 실패·LLM 비용 Slack 알림 (**권장**) |
 
-#### GitHub App으로 MY_PAT 대체하기 (TODO — 나중에 진행)
+#### GitHub App 인증 (권장, 설정 완료)
 
 > 상세 체크리스트: [TODO.md](TODO.md)
 
-PAT는 만료일이 있어 자동 포스팅이 갑자기 멈출 수 있습니다. GitHub App은 **설치 토큰을 실행마다 발급**하므로 장기 운영에 적합합니다.  
-**지금은 `MY_PAT`만으로 동작합니다.** App Secret을 넣지 않아도 됩니다.
+자동 포스팅·PR·머지는 **GitHub App 설치 토큰**을 우선 사용합니다 (`GH_APP_ID` + `GH_APP_PRIVATE_KEY`).  
+`MY_PAT`는 App이 없거나 실패할 때만 폴백입니다.
 
-1. **GitHub App 생성** — [github.com/settings/apps/new](https://github.com/settings/apps/new)
-   - 이름: 예) `blog-jwjp-automation`
-   - Homepage URL: `https://blog.jiwon.io`
-   - **Webhook**: 비활성(체크 해제) 가능
-   - **Repository permissions**
-     - Contents: Read and write
-     - Pull requests: Read and write
-   - **Where can this app be installed?** — Only on this account
-2. **앱 생성 후** — App ID 복사 → Secret `GH_APP_ID`
-3. **Private key** — Generate a private key → 다운로드한 `.pem` 파일 내용 전체를 Secret `GH_APP_PRIVATE_KEY`에 저장
-4. **저장소에 설치** — Install App → `jwjp/jwjp.github.io` 선택
-5. **검증** — Actions → Bi-weekly AI Post Generation → `workflow_dispatch` 실행  
-   로그에 `Using GitHub App installation token.`이 보이면 성공
+**검증:** Actions → **Weekly Sync Maintenance** (또는 `gh workflow run sync_maintenance.yml`)  
+→ `Setup git auth` 로그에 `Using GitHub App installation token.` 확인
 
-`MY_PAT`는 App Secret이 없을 때만 폴백으로 사용됩니다. App 설정 후에도 `MY_PAT`를 남겨 두면 마이그레이션 기간에 안전합니다.
+App을 새로 만들 때는 [github.com/settings/apps/new](https://github.com/settings/apps/new)에서 Contents·Pull requests **Read and write** 권한으로 생성 후 `jwjp/jwjp.github.io`에 설치합니다.
 
 ## 로컬 개발
 

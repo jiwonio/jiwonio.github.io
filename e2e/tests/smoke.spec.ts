@@ -73,6 +73,38 @@ test.describe("blog smoke tests", () => {
     expect(after === "light" || after === "dark").toBeTruthy();
   });
 
+  test("tag archive language switch resolves localized slug", async ({ page }, testInfo) => {
+    await gotoOrSkip(page, testInfo, "/archive/tag/개발-환경/");
+
+    const trigger = page.locator(".lang-switcher__trigger");
+    await expect(trigger).toBeVisible({ timeout: 15_000 });
+    await trigger.click();
+
+    const enLink = page.locator(
+      ".lang-switcher__option[href*='/en/archive/tag/']"
+    );
+    const enHref = await enLink.getAttribute("href");
+    if (!enHref) {
+      testInfo.skip(true, "English tag archive link not available for this tag.");
+      return;
+    }
+
+    expect(enHref).toMatch(/\/en\/archive\/tag\/development-environment\/?$/);
+
+    const response = await page.goto(enHref, {
+      waitUntil: "domcontentloaded",
+      timeout: 30_000,
+    });
+    if (!response || response.status() >= 500) {
+      testInfo.skip(true, `English tag archive unreachable (${response?.status() ?? "no response"}).`);
+      return;
+    }
+
+    await expect(page.locator("h1, .post-list, .archive-list").first()).toBeVisible({
+      timeout: 15_000,
+    });
+  });
+
   test("language switcher opens on Korean home", async ({ page }, testInfo) => {
     await gotoOrSkip(page, testInfo, "/");
 

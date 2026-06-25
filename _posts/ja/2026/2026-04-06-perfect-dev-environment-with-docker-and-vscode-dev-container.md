@@ -10,7 +10,7 @@ tags:
 - Docker
 - VS Code
 - Dev Container
-- 개발 환경
+- 開発環境
 image: /uploads/perfect-dev-environment-with-docker-and-vscode-dev-container/thumbnail.webp
 lang: ja
 translation_key: perfect-dev-environment-with-docker-and-vscode-dev-container

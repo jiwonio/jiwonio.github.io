@@ -224,6 +224,13 @@ def validate_posts(
         lang = detect_lang(path, metadata)
         for tag in metadata["tags"]:
             tag_spellings[tag.casefold()].add(tag)
+            tag_text = str(tag)
+            if lang == "en" and KOREAN_PATTERN.search(tag_text):
+                errors.append(f"{path}: en post has Korean tag '{tag}' (localize to English)")
+            elif lang == "ja" and KOREAN_PATTERN.search(tag_text):
+                errors.append(f"{path}: ja post has Korean tag '{tag}' (localize to Japanese)")
+            elif lang == "zh" and KOREAN_PATTERN.search(tag_text):
+                errors.append(f"{path}: zh post has Korean tag '{tag}' (localize to Chinese)")
 
         slug = metadata.get("slug") or path.stem[11:]
         normalized_slug = re.sub(r"[^a-z0-9]+", "-", str(slug).lower()).strip("-")

@@ -40,7 +40,7 @@ TODO.md와 README.md를 읽고 전체 상태를 파악해줘.
 3. 우선순위 제안 (높음/중간/낮음)
 
 현재 정책:
-- GitHub App 미설정, MY_PAT로 git push·PR·머지
+- GitHub App 설정 완료 (`GH_APP_ID` + `GH_APP_PRIVATE_KEY`), MY_PAT는 폴백
 - AI 포스트는 수동 검수 없이 pre-merge-validate 통과 시 auto-merge
 - ai-news 2026-06-24 이후만 en/ja/zh 자동 번역
 ```
@@ -81,7 +81,7 @@ cd e2e && npm ci && npx playwright test
 | 사이트 | Jekyll 4 다국어 기술 블로그 (ko 기본, en/ja/zh) |
 | AI 글 | 월=deep-dive, 목=ai-news (`scheduled_ai_post.yml`) |
 | 번역 묶음 | front matter `translation_key` |
-| 인증 | `MY_PAT` → git/PR/merge (GitHub App 코드는 있으나 Secret 미설정) |
+| 인증 | GitHub App 우선 (`setup-git-auth`), `MY_PAT` 폴백 |
 | 머지 | `pre-merge-validate` 통과 시 auto-merge (수동 검수 없음) |
 | 검증 | unittest, validate_posts, Jekyll build, htmlproofer, Pagefind |
 
@@ -134,29 +134,25 @@ cd e2e && npm ci && npx playwright test
 
 CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인** 권장.
 
-- [ ] `8412740` 이후 `jekyll.yml` htmlproofer가 CI에서 통과하는지 확인
-- [ ] **중복 태그 slug:** `개발-환경` vs `development-environment` — 같은 주제인데 언어별 slug가 둘 다 존재 (포스트 front matter 태그 표기 불일치)
-- [ ] **번역본 태그 언어 혼용:** en/ja 포스트에 한국어 태그 `코딩도구` 그대로 사용 → zh만 `编程工具`
-- [ ] `tag_slug_translations`는 `translation_key` 그룹 휴리스틱 기반 — 엣지 케이스 단위 테스트 없음
-- [ ] `_config.yml`에 `e2e/` 미제외 → 로컬 빌드 시 `e2e/node_modules`가 `_site`에 복사될 수 있음 (용량·htmlproofer 노이즈)
+- [ ] `8412740` 이후 `jekyll.yml` htmlproofer가 CI에서 통과하는지 확인 (푸시 후 Actions 확인)
+- [x] **중복 태그 slug:** ko `개발 환경` / en `Development Environment` 등 언어별 표기로 정리 (2026-06-25)
+- [x] **번역본 태그 언어 혼용:** cursor 포스트 en/ja 태그 현지화 + `validate_posts.py` 검사 추가 (2026-06-25)
+- [x] `tag_slug_translations` 엣지 케이스 단위 테스트 — `scripts/tests/test_i18n_tags.py` (2026-06-25)
+- [x] `_config.yml` `exclude`에 `e2e/`, `TODO.md` 추가 (2026-06-25)
 - [ ] Windows 로컬 `htmlproofer` libcurl 미설치로 실패 가능 — CI가 정본
 
 ---
 
 ## 우선순위 높음
 
-### GitHub App으로 MY_PAT 대체 (보류 — 사용자 결정)
+### GitHub App으로 MY_PAT 대체
 
-현재는 `MY_PAT` 폴백으로 자동 포스팅·PR·머지가 동작합니다. App 미설정 시에도 문제 없음.
-
-- [ ] [GitHub App 생성](https://github.com/settings/apps/new)
-  - Contents: Read and write
-  - Pull requests: Read and write
-  - Webhook: 비활성 가능
-- [ ] Repository Secrets 등록: `GH_APP_ID`, `GH_APP_PRIVATE_KEY` (PEM 전체)
-- [ ] App을 `jwjp/jwjp.github.io`에 설치
-- [ ] Actions 수동 실행 후 로그: `Using GitHub App installation token.`
-- [ ] (선택) `MY_PAT` Secret 제거 또는 만료 후 비활성
+- [x] [GitHub App 생성](https://github.com/settings/apps/new) (2026-06-25)
+- [x] Repository Secrets: `GH_APP_ID`, `GH_APP_PRIVATE_KEY` (2026-06-25)
+- [x] App을 `jwjp/jwjp.github.io`에 설치 (2026-06-25)
+- [x] Actions 로그 `Using GitHub App installation token.` 확인 (2026-06-25)
+- [x] `setup-git-auth`: `gh auth login`을 별도 step으로 분리 (GITHUB_ENV 타이밍 버그 수정, 2026-06-25)
+- [ ] (선택) `MY_PAT` Secret 제거 — App 안정화 후
 
 관련: `.github/actions/setup-git-auth/`, `README.md` → "GitHub App으로 MY_PAT 대체하기"
 
@@ -168,9 +164,7 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ### 레거시 ai-news 번역 백필
 
-- [ ] Actions → **Backfill Post Translations**
-  - `slug`: `ai-news-2026-06-23`
-  - `langs`: `ja,zh`
+- [ ] Actions → **Backfill Post Translations** (`ai-news-2026-06-23` → ja,zh) — setup-git-auth 수정 후 재실행 필요
 - [ ] 백필 후 `validate_posts.py --audit-translations` 통과 확인
 
 ### CI 안정성 (최근 수정 후속)
@@ -184,19 +178,19 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ### 태그·i18n 품질
 
-- [ ] 포스트 태그 표기 정책 수립 (번역 그룹마다 동일 semantic tag → 언어별 표기 vs canonical `tag_key`)
-- [ ] `개발-환경` / `development-environment` 중복 아카이브 통합 또는 리다이렉트 검토
-- [ ] en/ja 포스트의 한국어 태그(`코딩도구`) 현지화 여부 결정
-- [ ] `_plugins/i18n.rb` `build_tag_slug_translations` Ruby/통합 테스트 추가
+- [x] 포스트 태그 표기 정책: 번역 그룹마다 **언어별 현지화 태그** + `tag_slug_translations` 매핑 (2026-06-25)
+- [x] `개발-환경` / `development-environment` ko 포스트 태그 통일 (`개발 환경`) (2026-06-25)
+- [x] en/ja 포스트 한국어 태그 현지화 (`Coding Tools`, `コーディングツール`) (2026-06-25)
+- [x] `build_tag_slug_translations` 단위 테스트 — `scripts/i18n_tags.py` (2026-06-25)
 
 ### Jekyll 빌드·배포
 
-- [ ] `_config.yml` `exclude`에 `e2e/`, `TODO.md` 등 불필요 경로 추가 검토
+- [x] `_config.yml` `exclude`에 `e2e/`, `TODO.md` 추가 (2026-06-25)
 - [ ] `_site`에 테스트 산출물이 올라가지 않도록 `.gitignore`·CI 정리
 
 ### 자동화 모니터링
 
-- [ ] `pre-merge-validate` 실패 시 Slack에 실패 단계 명시
+- [x] `pre-merge-validate` 실패 시 Slack에 실패 단계 명시 — `notify-slack-failure` action (2026-06-25)
 - [ ] `llm_usage_weekly.yml` Slack 요약 수신 확인
 - [ ] `translation_audit.yml` 주간 결과 모니터링
 - [ ] `schedule_watchdog.yml` — AI 포스팅 8일 이상 누락 시 알림 확인
@@ -220,7 +214,7 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 
 ### 개발 환경
 
-- [ ] `scripts/` → `pyproject.toml` installable package (`pip install -e .`)
+- [x] `scripts/pyproject.toml` 추가 (`pip install -e scripts/`) (2026-06-25)
 - [ ] `sys.path.insert` 제거 및 import 경로 정리
 - [ ] Windows 로컬 Jekyll·htmlproofer 원클릭 셋업 문서화 (또는 devcontainer)
 
@@ -229,11 +223,11 @@ CI 통과 여부·아래 항목은 **다른 PC Grok 세션에서 우선 확인**
 - [ ] E2E(`e2e.yml`) CI 주간 결과 확인
 - [ ] 로컬 E2E: `cd e2e && npm ci && npx playwright test`
 - [ ] `url_check.yml` 주기적 실패 URL 정리
-- [ ] smoke 테스트에 태그 아카이브 언어 전환 케이스 추가 (ai-news, 개발-환경 등)
+- [x] smoke 테스트에 태그 아카이브 언어 전환 케이스 추가 (`개발-환경` → en) (2026-06-25)
 
 ### 정리·문서
 
-- [ ] GitHub App 전환 후 README MY_PAT 폴백 설명 축소
+- [x] GitHub App 전환 후 README MY_PAT 폴백 설명 축소 (2026-06-25)
 - [ ] `dependabot_automerge.yml` 실제 머지 동작 확인
 - [ ] README 워크플로 표와 TODO 동기화 유지
 
@@ -281,9 +275,9 @@ TODO.md "알려진 이슈"와 전체 코드베이스를 보고 답해줘:
 | `ANTHROPIC_API_KEY` | 필요 | ai-news, 폴백 |
 | `OPENAI_API_KEY` | 필요 | ai-news, 폴백 |
 | `XAI_API_KEY` | 필요 | ai-news, 폴백, 이미지 |
-| `MY_PAT` | **사용 중** | git push, PR, merge |
-| `GH_APP_ID` | 미설정 | App 전환 시 |
-| `GH_APP_PRIVATE_KEY` | 미설정 | App 전환 시 |
+| `MY_PAT` | 폴백 | App 미동작 시 git push, PR, merge |
+| `GH_APP_ID` | **설정됨** | git push, PR, merge (우선) |
+| `GH_APP_PRIVATE_KEY` | **설정됨** | git push, PR, merge (우선) |
 | `SLACK_WEBHOOK_URL` | 권장 | 실패·LLM 비용 알림 |
 
 `MY_PAT` = GitHub Personal Access Token. repo Secret으로 저장되며 워크플로에서 `GH_TOKEN`으로 쓰임. 만료 시 자동 포스팅·머지가 멈춤.

@@ -1,0 +1,35 @@
+name: Notify Slack failure
+description: Post workflow failure details to Slack (optional webhook)
+
+inputs:
+  webhook-url:
+    description: Slack incoming webhook URL
+    required: false
+    default: ""
+  title:
+    description: Short failure title
+    required: true
+  failed-step:
+    description: Human-readable failed step name (optional)
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        if [ -z "${{ inputs.webhook-url }}" ]; then
+          echo "SLACK_WEBHOOK_URL not configured, skipping Slack notification."
+          exit 0
+        fi
+        RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        TEXT="❌ ${{ inputs.title }}"
+        if [ -n "${{ inputs.failed-step }}" ]; then
+          TEXT="${TEXT}\nFailed step: ${{ inputs.failed-step }}"
+        fi
+        TEXT="${TEXT}"$'\n'"${RUN_URL}"
+        export TEXT
+        curl -sS -X POST -H 'Content-type: application/json' \
+          --data "$(python3 -c 'import json, os; print(json.dumps({"text": os.environ["TEXT"]}))')" \
+          "${{ inputs.webhook-url }}"

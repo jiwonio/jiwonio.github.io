@@ -11,7 +11,7 @@ tags:
 - AI
 - IDE
 - LLM
-- 코딩도구
+- Coding Tools
 description: This post covers Cursor IDE's core features and setup, and shares experiences
   from applying it to real projects. A senior developer analyzes the pros and clear
   limitations of its AI-based code generation, editing, and chat features.
