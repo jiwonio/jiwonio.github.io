@@ -16,9 +16,22 @@
     margin: 0;
   }
 
+  .pagefind-ui__search-clear {
+    display: none;
+  }
+
   .pagefind-ui__search-input {
     font-weight: 400;
     color: var(--color-text);
+    padding-right: calc(16px * var(--pagefind-ui-scale));
+  }
+
+  .pagefind-ui__filter-panel {
+    display: none;
+  }
+
+  .pagefind-ui__result-tags {
+    display: none;
   }
 
   .pagefind-ui__result-title {
