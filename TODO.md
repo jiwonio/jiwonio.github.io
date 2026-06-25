@@ -125,6 +125,7 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
+| `7fb313d` | 백로그 일괄: deps·폰트 서브셋·sys.path 정리·E2E·LLM 예산 $75 |
 | `9b8c4bf` | AI 뉴스 격식체, RSS MIME/리다이렉트, UI·Pagefind 개선 |
 | `8412740` | 태그 아카이브 언어 전환: 존재하는 페이지만 링크, `tag_slug_translations` 매핑 |
 | `8c6331a` | TODO.md 추가, README 정리 |
@@ -162,6 +163,8 @@ cd e2e && npm ci && npx playwright test
 - [x] Actions 버전 일괄 업데이트 (checkout v7, setup-python v6 등, 2026-06-25)
 - [x] `dependabot_automerge.yml`에 GitHub App 토큰 적용 (2026-06-25)
 - [x] Jekyll 4.4.1 / jekyll-archives 2.3.0 Gemfile 반영 (2026-06-25)
+- [ ] `7fb313d` push 후 `jekyll.yml` CI green 확인 (Actions 업그레이드·폰트 변경 검증)
+- [ ] pip Dependabot (feedparser, google-genai, pillow, pyyaml) — patch/minor 머지
 - [ ] `openai>=2.x` Dependabot PR — `llm_client.py` 호환 검증 후 별도 머지
 
 ---
@@ -189,7 +192,8 @@ cd e2e && npm ci && npx playwright test
 ### 성능·에셋
 
 - [x] Noto Sans KR woff2 서브셋: 124개 → 7개 (`download_noto_font.py --subset-from-site`, 2026-06-25)
-- [ ] 신규 글자 등장 시 폰트 재생성: `python scripts/download_noto_font.py --family Noto+Sans+KR --subset-from-site --prune`
+- [ ] 신규 글자 등장 시 KR 폰트 재생성: `python scripts/download_noto_font.py --family Noto+Sans+KR --subset-from-site --prune`
+- [ ] (선택) Noto Sans JP/SC도 동일 서브셋 적용 — KR만 완료
 - [ ] Lighthouse(`lighthouse.yml`) 성능 80 미만 시 개선
 - [ ] Pagefind lazy load Core Web Vitals 영향 측정
 
