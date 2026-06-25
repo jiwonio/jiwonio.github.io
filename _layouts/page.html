@@ -1,8 +1,16 @@
 ---
 layout: default
 ---
+{% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
+{% assign lang_meta = site.data.languages[current_lang] %}
+{% case page.page_key %}
+  {% when 'search' %}
+    {% assign page_heading = lang_meta.search_title %}
+  {% else %}
+    {% assign page_heading = page.title %}
+{% endcase %}
 
 <article class="page">
-    <h1 class="page-title">{{ page.title }}</h1>
+    <h1 class="page-title">{{ page_heading }}</h1>
     {{ content | replace: '<!--more-->', '' }}
 </article>

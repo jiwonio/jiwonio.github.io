@@ -11,6 +11,14 @@
   flex-shrink: 0;
 }
 
+.icon--stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .masthead {
   padding-top: 2rem;
   padding-bottom: 2rem;
@@ -80,8 +88,8 @@
         transition: color 0.15s ease;
 
         .icon:not(.lang-switcher__caret) {
-          width: .9em;
-          height: .9em;
+          width: 1em;
+          height: 1em;
         }
 
         &::-webkit-details-marker {

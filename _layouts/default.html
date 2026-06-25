@@ -61,9 +61,9 @@
                     </li>
                     <li>
                         {% if current_lang == site.default_lang %}
-                            <a href="{{ '/rss' | absolute_url }}" title="{{ lang_meta.footer.rss }}">{{ lang_meta.footer.rss }}</a>
+                            <a href="{{ '/rss.xml' | absolute_url }}" title="{{ lang_meta.footer.rss }}">{{ lang_meta.footer.rss }}</a>
                         {% else %}
-                            <a href="{{ '/' | append: current_lang | append: '/rss' | absolute_url }}" title="{{ lang_meta.footer.rss }}">{{ lang_meta.footer.rss }}</a>
+                            <a href="{{ '/' | append: current_lang | append: '/rss.xml' | absolute_url }}" title="{{ lang_meta.footer.rss }}">{{ lang_meta.footer.rss }}</a>
                         {% endif %}
                     </li>
                 </ul>

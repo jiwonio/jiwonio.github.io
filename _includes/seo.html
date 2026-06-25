@@ -45,6 +45,9 @@
   {%- comment -%} jekyll-archives 태그 아카이브 {%- endcomment -%}
   {%- assign seo_og_type = "website" -%}
   {%- assign seo_title = page.title | append: " | " | append: lang_meta.archive_title | append: " | " | append: site.title -%}
+{%- elsif page.page_key == 'search' -%}
+  {%- assign seo_og_type = "website" -%}
+  {%- assign seo_title = lang_meta.search_title | append: " | " | append: site.title -%}
 {%- else -%}
   {%- assign seo_og_type = "website" -%}
   {%- assign seo_title = page.title | append: " | " | append: site.title -%}

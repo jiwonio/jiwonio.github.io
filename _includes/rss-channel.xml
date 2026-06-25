@@ -2,9 +2,9 @@
 {%- assign feed_meta = site.data.languages[feed_lang] -%}
 {%- assign feed_posts = site.posts_by_lang[feed_lang] -%}
 {%- if feed_lang == site.default_lang -%}
-{%- assign feed_self = '/rss' -%}
+{%- assign feed_self = '/rss.xml' -%}
 {%- else -%}
-{%- assign feed_self = '/' | append: feed_lang | append: '/rss' -%}
+{%- assign feed_self = '/' | append: feed_lang | append: '/rss.xml' -%}
 {%- endif -%}
     <channel>
         <title>{{ site.title }}</title>
