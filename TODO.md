@@ -9,17 +9,16 @@
 
 ### 다음 작업 (2026-06-26 기준)
 
-인프라·배포 핵심은 완료. 남은 일은 **운영 점검 → Dependabot → 모니터링 → 성능** 순.
+운영·의존성·모니터링 점검 완료. **남은 핵심: Lighthouse 성능(현재 66%)**.
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **높음** | Secret 3종 점검 (`MY_PAT` 만료, Slack, LLM API 4키) | GitHub UI·Slack 수동 확인 |
-| **높음** | pip Dependabot patch/minor PR 머지 | `dependabot_automerge` 활용 |
-| **높음** | `openai>=2.x` PR — `llm_client.py` 호환 검증 후 별도 머지 | major 업그레이드 |
-| **중간** | 주간 워크플로 알림 확인 (LLM 비용, 번역 감사, watchdog, 썸네일) | Slack 수신 여부 |
-| **중간** | Lighthouse 80 미만 시 성능 개선 | 일요일 06:00 UTC 자동 실행 |
-| **낮음** | E2E·url_check 주간 결과, IndexNow 색인, (선택) JP/SC 폰트 | 지속 모니터링 |
-| **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 2~4주 후 |
+| **중간** | Lighthouse 성능 80 미만 개선 | 2026-06-26 측정 66% — LCP·폰트·JS 지연 등 |
+| **낮음** | Pagefind lazy load Core Web Vitals 측정 | Lighthouse 개선과 연계 |
+| **낮음** | IndexNow 색인 반영 모니터링 | 배포 시 자동 제출 중 |
+| **낮음** | 신규 한글 등장 시 KR 폰트 재생성 | 필요 시 `--subset-from-site --prune` |
+| **선택** | Noto JP/SC 폰트 서브셋, Windows devcontainer | |
+| **나중** | (선택) `MY_PAT` Secret 제거 | Classic PAT 무기한 — App 안정화 2~4주 후 |
 
 ---
 
@@ -139,6 +138,8 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
+| `14db9ef` | pip openai 2.x·google-genai 2.x, Actions 잔여 bump, dependabot automerge `GITHUB_TOKEN` 수정 — Deploy #202 green |
+| `5dbd9ab` | TODO: Deploy #201 green 체크, 다음 작업 표 |
 | `937fc57` | TODO 갱신, post-deploy 점검 반영 |
 | `7fb313d` | 백로그 일괄: deps·폰트 서브셋·sys.path 정리·E2E·LLM 예산 $75 — Deploy #201 green |
 | `9b8c4bf` | AI 뉴스 격식체, RSS MIME/리다이렉트, UI·Pagefind 개선 |
@@ -169,18 +170,19 @@ cd e2e && npm ci && npx playwright test
 
 ### 운영 Secret 점검 (GitHub UI에서 수동 확인)
 
-- [ ] `MY_PAT` 만료일 확인 (App 폴백용 유지)
-- [ ] `SLACK_WEBHOOK_URL` 설정·알림 수신 확인
-- [ ] LLM API 키 4종 동작 확인 (`GEMINI`, `ANTHROPIC`, `OPENAI`, `XAI`)
+- [x] `MY_PAT` 만료일 확인 — Classic PAT, **만료 없음** (2026-06-26)
+- [x] `SLACK_WEBHOOK_URL` 설정·알림 수신 확인 — `llm_usage_weekly` workflow_dispatch success (2026-06-26)
+- [x] LLM API 키 4종 동작 확인 — deep-dive health check: gemini/anthropic/openai/xai (2026-06-26)
 
 ### CI·의존성
 
 - [x] Actions 버전 일괄 업데이트 (checkout v7, setup-python v6 등, 2026-06-25)
-- [x] `dependabot_automerge.yml`에 GitHub App 토큰 적용 (2026-06-25)
+- [x] `dependabot_automerge.yml` — Dependabot PR은 repo Secret 미제공 → `GITHUB_TOKEN`으로 automerge (2026-06-26)
 - [x] Jekyll 4.4.1 / jekyll-archives 2.3.0 Gemfile 반영 (2026-06-25)
 - [x] `7fb313d` push 후 `jekyll.yml` CI green 확인 — Deploy Jekyll site to Pages #201 (2026-06-26)
-- [ ] pip Dependabot (feedparser, google-genai, pillow, pyyaml) — patch/minor 머지
-- [ ] `openai>=2.x` Dependabot PR — `llm_client.py` 호환 검증 후 별도 머지
+- [x] pip Dependabot (feedparser, google-genai, pillow, pyyaml) — `14db9ef` 직접 반영, PR #29–33 닫음 (2026-06-26)
+- [x] `openai>=2.x` + `google-genai>=2.x` — unittest 69 pass, Deploy #202 green (2026-06-26)
+- [x] Actions 잔여 bump (setup-node v6, upload-artifact v7, fetch-metadata v3) — `14db9ef`, PR #37–39 닫음 (2026-06-26)
 
 ---
 
@@ -199,17 +201,17 @@ cd e2e && npm ci && npx playwright test
 ### 자동화 모니터링
 
 - [x] `pre-merge-validate` 실패 시 Slack — `notify-slack-failure` (2026-06-25)
-- [ ] `llm_usage_weekly.yml` Slack 요약 수신 확인
-- [ ] `translation_audit.yml` 주간 결과 모니터링
-- [ ] `schedule_watchdog.yml` — AI 포스팅 8일 이상 누락 시 알림 확인
-- [ ] `thumbnail_check.yml` 자동 생성 PR 정상 머지 확인
+- [x] `llm_usage_weekly.yml` Slack 요약 수신 확인 — workflow_dispatch run 28222404516 success (2026-06-26)
+- [x] `translation_audit.yml` 주간 결과 모니터링 — run 28222411124 success (2026-06-26)
+- [x] `schedule_watchdog.yml` — AI 포스팅 8일 이상 누락 시 알림 확인 — run 28222411341 success (2026-06-26)
+- [x] `thumbnail_check.yml` 자동 생성 PR 정상 머지 확인 — run 28222411246 success (2026-06-26)
 
 ### 성능·에셋
 
 - [x] Noto Sans KR woff2 서브셋: 124개 → 7개 (`download_noto_font.py --subset-from-site`, 2026-06-25)
 - [ ] 신규 글자 등장 시 KR 폰트 재생성: `python scripts/download_noto_font.py --family Noto+Sans+KR --subset-from-site --prune`
 - [ ] (선택) Noto Sans JP/SC도 동일 서브셋 적용 — KR만 완료
-- [ ] Lighthouse(`lighthouse.yml`) 성능 80 미만 시 개선
+- [ ] Lighthouse(`lighthouse.yml`) 성능 80 미만 시 개선 — **현재 66%** (run 28222404674, 2026-06-26)
 - [ ] Pagefind lazy load Core Web Vitals 영향 측정
 
 ### 콘텐츠·SEO
@@ -231,8 +233,8 @@ cd e2e && npm ci && npx playwright test
 ### 테스트·품질
 
 - [x] E2E RSS·태그·페이지네이션 스모크 추가/수정 (2026-06-25)
-- [ ] E2E(`e2e.yml`) CI 주간 결과 확인
-- [ ] `url_check.yml` 주기적 실패 URL 정리
+- [x] E2E(`e2e.yml`) CI 주간 결과 확인 — run 28222404559 success (2026-06-26)
+- [x] `url_check.yml` 주기적 실패 URL 정리 — run 28222411297 success (2026-06-26)
 
 ### 정리·문서
 
@@ -256,6 +258,7 @@ cd e2e && npm ci && npx playwright test
 - [x] GitHub App용 action 스캐폴딩 (Secret만 넣으면 활성화)
 - [x] 태그 아카이브 언어 전환 깨진 링크 수정 (`tag_slug`, `tag_slug_translations`) — `8412740`
 - [x] Actions·Gemfile·폰트 서브셋 백로그 일괄 + `jekyll.yml` Deploy #201 통과 — `7fb313d` (2026-06-26)
+- [x] 운영 Secret·Dependabot·주간 워크플로 일괄 점검 — `14db9ef`, Deploy #202 (2026-06-26)
 
 ---
 
@@ -280,13 +283,13 @@ TODO.md "알려진 이슈"와 전체 코드베이스를 보고 답해줘:
 
 | Secret | 상태 | 용도 |
 |--------|------|------|
-| `GEMINI_API_KEY` | 필요 | deep-dive, 이미지, 번역 |
-| `ANTHROPIC_API_KEY` | 필요 | ai-news, 폴백 |
-| `OPENAI_API_KEY` | 필요 | ai-news, 폴백 |
-| `XAI_API_KEY` | 필요 | ai-news, 폴백, 이미지 |
-| `MY_PAT` | 폴백 | App 미동작 시 git push, PR, merge |
+| `GEMINI_API_KEY` | **설정됨** | deep-dive, 이미지, 번역 |
+| `ANTHROPIC_API_KEY` | **설정됨** | ai-news, 폴백 |
+| `OPENAI_API_KEY` | **설정됨** | ai-news, 폴백 |
+| `XAI_API_KEY` | **설정됨** | ai-news, 폴백, 이미지 |
+| `MY_PAT` | 폴백 (Classic, **만료 없음**) | App 미동작 시 git push, PR, merge |
 | `GH_APP_ID` | **설정됨** | git push, PR, merge (우선) |
 | `GH_APP_PRIVATE_KEY` | **설정됨** | git push, PR, merge (우선) |
-| `SLACK_WEBHOOK_URL` | 권장 | 실패·LLM 비용 알림 |
+| `SLACK_WEBHOOK_URL` | **설정됨** | 실패·LLM 비용 알림 |
 
-`MY_PAT` = GitHub Personal Access Token. repo Secret으로 저장되며 워크플로에서 `GH_TOKEN`으로 쓰임. 만료 시 자동 포스팅·머지가 멈춤.
+`MY_PAT` = GitHub Personal Access Token (classic). repo Secret으로 저장되며 워크플로에서 `GH_TOKEN`으로 쓰임. 현재 만료일 없음.
