@@ -56,10 +56,10 @@ _posts/
 
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
-| `jekyll.yml` | push/PR → `gh-pages` | test → validate → site.js·폰트 검증 → build → htmlproofer → Pagefind → 배포 → Lighthouse |
+| `jekyll.yml` | push/PR → `gh-pages` | test → validate → site.js·폰트 검증 → build → htmlproofer → Pagefind → 배포 |
 | `scheduled_ai_post.yml` | 월·목 00:00 | 월=deep-dive, 목=ai-news (검증 통과 시 자동 머지) |
 | `url_check.yml` | 일 04:00 | 참고문헌·본문 외부 URL HEAD 검증 (3회 재시도) |
-| `lighthouse.yml` | 일 06:00 | 홈페이지 Lighthouse 성능 점검 (80% 미만 경고) |
+| `lighthouse.yml` | 일 06:00 | 홈페이지 Lighthouse 성능 점검 (80% 미만 Slack 경고) |
 | `indexnow_audit.yml` | 월 04:00 | IndexNow 키 파일·최근 URL 재제출 |
 | `llm_usage_weekly.yml` | 월 07:00 | 최근 7일 LLM 사용량·비용 Slack 요약 |
 | `sync_maintenance.yml` | 수 05:00 | `sync_post_images`·`sync_translation_dates` → PR (자동 머지) |

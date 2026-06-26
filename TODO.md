@@ -13,7 +13,7 @@
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **중간** | Lighthouse 80% 달성 확인 | 3차: async 폰트 CSS, weight 400 단일, CDN 워밍업 |
+| **중간** | Lighthouse 80% 달성 확인 | 4차: inline @font-face, optional, preload, 주간 측정만 |
 | **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 2~4주 후 |
 
 ---
@@ -195,7 +195,7 @@ cd e2e && npm ci && npx playwright test
 - [x] 신규 글자 시 폰트 자동 재생성 — `check_font_subset.py --fix` (AI 포스트·sync_maintenance, 2026-06-26)
 - [x] Cloudflare `email-decode` 제거 (2026-06-26)
 - [x] Pagefind lazy load — `pagefind-search.html` IntersectionObserver (2026-06-26)
-- [ ] Lighthouse 80% 달성 — deploy job 자동 측정·Slack 경고 (2026-06-26)
+- [ ] Lighthouse 80% 달성 — `lighthouse.yml` 주간 측정·Slack (deploy 직후 측정 제거, 2026-06-26)
 
 ### 콘텐츠·SEO
 

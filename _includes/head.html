@@ -34,13 +34,7 @@
     {% include structured-data.html %}
 
     {% include critical-css.html %}
-    {% if current_lang == 'ko' %}
-    {% include async-stylesheet.html href="/assets/vendor/noto-sans-kr/noto-sans-kr.css" %}
-    {% elsif current_lang == 'ja' %}
-    {% include async-stylesheet.html href="/assets/vendor/noto-sans-jp/noto-sans-jp.css" %}
-    {% elsif current_lang == 'zh' %}
-    {% include async-stylesheet.html href="/assets/vendor/noto-sans-sc/noto-sans-sc.css" %}
-    {% endif %}
+    {% include noto-font.html %}
     <link rel="stylesheet" href="/styles.css">
 
     <link rel="icon" href="/favicon.ico" sizes="48x48">

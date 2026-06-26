@@ -18,3 +18,16 @@ if rb and rb.get("details"):
     items = rb["details"].get("items", [])
     for item in items[:10]:
         print(f"  {item.get('url', item)}")
+
+for aid in ("layout-shifts", "cls-culprits-insight", "largest-contentful-paint-element", "lcp-breakdown-insight"):
+    a = r["audits"].get(aid)
+    if not a:
+        continue
+    print(f"\n{aid}:")
+    print(f"  {a.get('displayValue', a.get('title'))}")
+    items = (a.get("details") or {}).get("items") or []
+    for item in items[:5]:
+        if isinstance(item, dict):
+            print(f"  - {item.get('node', {}).get('snippet', item)}")
+        else:
+            print(f"  - {item}")

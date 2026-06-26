@@ -121,7 +121,7 @@ def build_single_file_css(
         f"  font-family: '{display_name}';\n"
         "  font-style: normal;\n"
         f"  font-weight: {weight};\n"
-        "  font-display: swap;\n"
+        "  font-display: optional;\n"
         f"  src: url({woff2_filename}) format('woff2');\n"
         "}\n"
     )

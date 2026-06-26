@@ -12,8 +12,11 @@ jobs:
   lighthouse:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
 
       - name: Run Lighthouse on homepage
         run: |
@@ -24,11 +27,19 @@ jobs:
             --only-categories=performance
 
       - name: Check performance score
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           PERF=$(python -c "import json; print(int(json.load(open('lighthouse-report.json'))['categories']['performance']['score']*100))")
           echo "Lighthouse performance score: ${PERF}%"
           if [ "$PERF" -lt 80 ]; then
             echo "::warning::Lighthouse performance ${PERF}% is below threshold (80)"
+            if [ -n "$SLACK_WEBHOOK_URL" ]; then
+              RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              curl -sS -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"⚠️ Weekly Lighthouse ${PERF}% (target 80%)\n${RUN_URL}\"}" \
+                "$SLACK_WEBHOOK_URL"
+            fi
           fi
 
       - name: Upload Lighthouse report
@@ -47,16 +58,8 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          if [ -z "$SLACK_WEBHOOK_URL" ]; then
-            echo "SLACK_WEBHOOK_URL not configured, skipping Slack notification."
-            exit 0
-          fi
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then exit 0; fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -sS -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"❌ Weekly Lighthouse audit failed\n${RUN_URL}\"}" \
             "$SLACK_WEBHOOK_URL"
-
-      - name: Print failure summary
-        run: |
-          echo "::error::Weekly Lighthouse audit failed."
-          echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

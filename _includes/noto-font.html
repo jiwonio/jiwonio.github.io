@@ -1,0 +1,23 @@
+{%- comment -%}
+  Inline @font-face + preload. system-ui paints first; Noto loads without CLS (optional).
+{%- endcomment -%}
+{%- assign font_preloads = site.data.noto_preload[current_lang] -%}
+{%- if font_preloads -%}
+{%- case current_lang -%}
+{%- when 'ko' -%}
+<style>
+@font-face{font-family:'Noto Sans KR';font-style:normal;font-weight:400;font-display:optional;src:url(/assets/vendor/noto-sans-kr/noto-sans-kr.woff2) format('woff2')}
+</style>
+{%- when 'ja' -%}
+<style>
+@font-face{font-family:'Noto Sans JP';font-style:normal;font-weight:400;font-display:optional;src:url(/assets/vendor/noto-sans-jp/noto-sans-jp.woff2) format('woff2')}
+</style>
+{%- when 'zh' -%}
+<style>
+@font-face{font-family:'Noto Sans SC';font-style:normal;font-weight:400;font-display:optional;src:url(/assets/vendor/noto-sans-sc/noto-sans-sc.woff2) format('woff2')}
+</style>
+{%- endcase -%}
+{%- for href in font_preloads -%}
+<link rel="preload" href="{{ href }}" as="font" type="font/woff2" crossorigin>
+{%- endfor -%}
+{%- endif -%}
