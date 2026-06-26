@@ -1,0 +1,18 @@
+{
+  "name": "blog.jiwon.io",
+  "image": "mcr.microsoft.com/devcontainers/ruby:3.3",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.11" },
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  },
+  "postCreateCommand": "bundle install && pip install -r scripts/requirements.txt && pip install -e ./scripts",
+  "customizations": {
+    "vscode": {
+      "extensions": ["shopify.ruby-lsp", "ms-python.python"]
+    }
+  },
+  "forwardPorts": [4000],
+  "portsAttributes": {
+    "4000": { "label": "Jekyll", "onAutoForward": "openBrowser" }
+  }
+}

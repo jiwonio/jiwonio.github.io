@@ -211,6 +211,11 @@ def subset_variable_font(
         subprocess.run(command, check=True)
 
 
+def save_subset_fingerprint(out_dir: Path, subset_text: str) -> None:
+    digest = hashlib.sha256(subset_text.encode("utf-8")).hexdigest()
+    (out_dir / ".subset-sha256").write_text(digest + "\n", encoding="utf-8")
+
+
 def download_family_single_file(
     family_key: str,
     preload_map: dict[str, str],
@@ -240,6 +245,7 @@ def download_family_single_file(
         if removed:
             print(f"pruned {removed} unused woff2 files from {out_dir}")
 
+    save_subset_fingerprint(out_dir, subset_text)
     preload_map[config["lang"]] = [
         f"/assets/vendor/{config['dir']}/{woff2_name}"
     ]

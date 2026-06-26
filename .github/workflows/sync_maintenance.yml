@@ -49,6 +49,8 @@ jobs:
         run: |
           python scripts/sync_post_images.py
           python scripts/sync_translation_dates.py
+          python scripts/build_site_js.py
+          python scripts/check_font_subset.py --fix
 
       - name: Pre-merge validation
         id: pre_merge
@@ -66,7 +68,7 @@ jobs:
           git config --local user.email "min@jiwon.io"
           git config --local user.name "jwjp"
 
-          git add _posts/
+          git add _posts/ assets/vendor/ _data/noto_preload.yml assets/js/site.js
           if git diff --cached --quiet; then
             echo "No sync changes to commit."
             exit 0

@@ -22,6 +22,14 @@ runs:
         python scripts/sync_post_images.py --dry-run
         python scripts/sync_translation_dates.py --dry-run
 
+    - name: Build site JS bundle
+      shell: bash
+      run: python scripts/build_site_js.py
+
+    - name: Verify font subsets
+      shell: bash
+      run: python scripts/check_font_subset.py
+
     - name: Build Jekyll
       shell: bash
       env:

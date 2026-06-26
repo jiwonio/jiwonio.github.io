@@ -59,7 +59,7 @@ Some posts and thumbnails may be created, translated, or edited using third-part
 ## 8. Contact
 
 - Operator: Jiwon Min
-- Email: <a class="email-obfuscated" data-email-user="min" data-email-domain="jiwon.io">min@jiwon.io</a>
+- Email: <a class="email-obfuscated" href="#" data-email-user="min" data-email-domain="jiwon.io">min@jiwon.io</a>
 
 ## 9. Changes
 

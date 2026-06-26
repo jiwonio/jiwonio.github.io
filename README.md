@@ -29,6 +29,9 @@ _posts/
 | `scripts/api_monitor.py` | LLM 호출 로깅 (`llm-usage.jsonl`, Actions notice) |
 | `scripts/usage_report.py` | LLM 사용량·비용 요약 (jsonl 또는 Actions 로그) |
 | `scripts/submit_indexnow.py` | 배포·변경 포스트 URL IndexNow 제출 (번역 그룹 포함) |
+| `scripts/indexnow_audit.py` | IndexNow 키 파일 검증 + 최근 URL 재제출 |
+| `scripts/check_font_subset.py` | 사이트 글자 변경 시 Noto 폰트 자동 재생성 |
+| `scripts/build_site_js.py` | `site.js` 번들 생성 (icons·theme·consent 등) |
 | `scripts/sync_translation_dates.py` | 번역본 날짜를 ko 원문과 동기화 |
 | `scripts/tests/` | Python 단위 테스트 |
 
@@ -53,10 +56,11 @@ _posts/
 
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
-| `jekyll.yml` | push/PR → `gh-pages` | test → validate → build → htmlproofer → Pagefind → 배포 (PR은 빌드만) |
+| `jekyll.yml` | push/PR → `gh-pages` | test → validate → site.js·폰트 검증 → build → htmlproofer → Pagefind → 배포 → Lighthouse |
 | `scheduled_ai_post.yml` | 월·목 00:00 | 월=deep-dive, 목=ai-news (검증 통과 시 자동 머지) |
 | `url_check.yml` | 일 04:00 | 참고문헌·본문 외부 URL HEAD 검증 (3회 재시도) |
 | `lighthouse.yml` | 일 06:00 | 홈페이지 Lighthouse 성능 점검 (80% 미만 경고) |
+| `indexnow_audit.yml` | 월 04:00 | IndexNow 키 파일·최근 URL 재제출 |
 | `llm_usage_weekly.yml` | 월 07:00 | 최근 7일 LLM 사용량·비용 Slack 요약 |
 | `sync_maintenance.yml` | 수 05:00 | `sync_post_images`·`sync_translation_dates` → PR (자동 머지) |
 | `ai_news_health_check.yml` | 수 06:00 | 단위 테스트 + ai-news RSS `--dry-run --strict` 사전 점검 |
@@ -127,6 +131,8 @@ App을 새로 만들 때는 [github.com/settings/apps/new](https://github.com/se
 ## 로컬 개발
 
 ### Jekyll 사이트 실행
+
+**권장:** VS Code/Cursor **Dev Containers** — `.devcontainer/` (Ruby 3.3 + Python 3.11 + Node 22)
 
 1. [RubyInstaller](https://rubyinstaller.org/downloads/)로 Ruby+Devkit 설치 후 `ridk install`에서 MSYS2 toolchain 선택
 2. `gem install jekyll bundler`

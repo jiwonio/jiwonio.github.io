@@ -180,6 +180,12 @@ jobs:
 
           python "$SCRIPT" "${EXTRA_ARGS[@]}"
 
+      - name: Refresh derived assets
+        if: env.RUN_GENERATION == 'true'
+        run: |
+          python scripts/build_site_js.py
+          python scripts/check_font_subset.py --fix
+
       - name: Pre-merge validation
         if: env.RUN_GENERATION == 'true'
         id: pre_merge
@@ -199,7 +205,7 @@ jobs:
           git config --local user.email "min@jiwon.io"
           git config --local user.name "jwjp"
 
-          git add _posts/ uploads/
+          git add _posts/ uploads/ assets/vendor/ _data/noto_preload.yml assets/js/site.js
 
           if ! git diff-index --quiet HEAD; then
             BEFORE_SHA=$(git rev-parse HEAD)

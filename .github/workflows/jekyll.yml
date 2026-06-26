@@ -63,6 +63,10 @@ jobs:
         run: python scripts/sync_post_images.py --dry-run
       - name: Sync translation dates (dry-run)
         run: python scripts/sync_translation_dates.py --dry-run
+      - name: Build site JS bundle
+        run: python scripts/build_site_js.py
+      - name: Verify font subsets
+        run: python scripts/check_font_subset.py
       - name: Build with Jekyll
         if: github.event_name == 'pull_request'
         run: bundle exec jekyll build --baseurl ""
@@ -102,6 +106,10 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
       - name: Notify IndexNow of new posts
         if: github.event_name == 'push'
         env:
@@ -116,6 +124,34 @@ jobs:
         run: |
           curl -fsS https://blog.jiwon.io/
           curl -fsS https://blog.jiwon.io/posts/ollama-self-hosted-language-model-runner/
+
+      - name: Lighthouse performance check
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          npx --yes lighthouse@12 https://blog.jiwon.io/ \
+            --output=json \
+            --output-path=./lighthouse-report.json \
+            --chrome-flags="--headless --no-sandbox" \
+            --only-categories=performance
+          PERF=$(python -c "import json; print(int(json.load(open('lighthouse-report.json'))['categories']['performance']['score']*100))")
+          echo "Lighthouse performance: ${PERF}%"
+          if [ "$PERF" -lt 80 ]; then
+            echo "::warning::Lighthouse performance ${PERF}% is below threshold (80)"
+            if [ -n "$SLACK_WEBHOOK_URL" ]; then
+              RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              curl -sS -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"⚠️ Lighthouse ${PERF}% after deploy (target 80%)\n${RUN_URL}\"}" \
+                "$SLACK_WEBHOOK_URL"
+            fi
+          fi
+
+      - name: Upload Lighthouse report
+        uses: actions/upload-artifact@v7
+        with:
+          name: lighthouse-report-deploy
+          path: lighthouse-report.json
+          retention-days: 30
 
   notify-failure:
     runs-on: ubuntu-latest

@@ -9,16 +9,13 @@
 
 ### 다음 작업 (2026-06-26 기준)
 
-Lighthouse 2차 개선 배포 후 CI 재측정 대기 (1차 후 50~66% 변동).
+배포 성공 후 Lighthouse 80% 자동 측정·Slack 알림 대기 (deploy job에서 실행).
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **중간** | Lighthouse 80% 달성 확인 — `lighthouse.yml` workflow_dispatch | 2차(KR 단일 woff2·email-decode 제거) 배포 후 |
-| **낮음** | Pagefind lazy load Core Web Vitals 측정 | Lighthouse 개선과 연계 |
-| **낮음** | IndexNow 색인 반영 모니터링 | 배포 시 자동 제출 중 |
-| **낮음** | 신규 한글 등장 시 KR 폰트 재생성 | 필요 시 `--subset-from-site --prune` |
-| **선택** | Noto JP/SC 폰트 서브셋, Windows devcontainer | |
-| **나중** | (선택) `MY_PAT` Secret 제거 | Classic PAT 무기한 — App 안정화 2~4주 후 |
+| **중간** | Lighthouse 80% 달성 확인 | `jekyll.yml` deploy job이 배포 직후 자동 측정 |
+| **낮음** | Lighthouse 80% 미달 시 3차 최적화 | Slack 경고 수신 시 |
+| **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 2~4주 후 |
 
 ---
 
@@ -84,7 +81,7 @@ bundle exec htmlproofer ./_site --disable-external --allow-hash-href --ignore-em
 cd e2e && npm ci && npx playwright test
 ```
 
-**Windows 참고:** `htmlproofer`가 libcurl 오류로 실패할 수 있음 → CI 결과를 신뢰. PowerShell에서 `;` 명령 연결 대신 명령을 나눠 실행.
+**Windows:** VS Code/Cursor **Dev Containers** (`.devcontainer/`) 권장. 로컬 `htmlproofer` libcurl 오류 가능 → CI가 정본.
 
 ---
 
@@ -130,7 +127,8 @@ cd e2e && npm ci && npx playwright test
 | 자동 포스팅 | `.github/workflows/scheduled_ai_post.yml` |
 | UI 문구·SEO 메타 | `_data/languages.yml` |
 | E2E | `e2e/tests/smoke.spec.ts` |
-| 폰트 서브셋 | `scripts/download_noto_font.py` |
+| 폰트 서브셋 | `scripts/download_noto_font.py`, `scripts/check_font_subset.py` |
+| IndexNow | `scripts/submit_indexnow.py`, `scripts/indexnow_audit.py` |
 
 ---
 
@@ -138,30 +136,18 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
-| `b059f9e` | perf 2차: KR 단일 woff2(`--single-file`), Cloudflare email-decode 제거, fonttools |
-| `dbcd6cf` | usage_report unittest 노이즈 필터 |
-| `72b5655` | async CSS·과다 preload 롤백 (CLS 개선) |
-| `c42b589` | perf 1차: GA consent 지연, critical CSS, site.js, usage_report 파서 |
-| `14db9ef` | pip openai 2.x·google-genai 2.x, Actions 잔여 bump, dependabot automerge `GITHUB_TOKEN` 수정 — Deploy #202 green |
-| `5dbd9ab` | TODO: Deploy #201 green 체크, 다음 작업 표 |
-
-| `937fc57` | TODO 갱신, post-deploy 점검 반영 |
-| `7fb313d` | 백로그 일괄: deps·폰트 서브셋·sys.path 정리·E2E·LLM 예산 $75 — Deploy #201 green |
-| `9b8c4bf` | AI 뉴스 격식체, RSS MIME/리다이렉트, UI·Pagefind 개선 |
-| `8412740` | 태그 아카이브 언어 전환: 존재하는 페이지만 링크, `tag_slug_translations` 매핑 |
-| `8c6331a` | TODO.md 추가, README 정리 |
-| `1526fd5` | GitHub App 스캐폴딩, auto-merge, ai-news i18n |
-| `ec38946` | consent, Pagefind i18n, SEO, Python 파이프라인, CI 확장 |
+| (이번) | htmlproofer 수정, JP/SC 단일 woff2, 폰트·Lighthouse·IndexNow 자동화 |
+| `b059f9e` | perf 2차: KR 단일 woff2, Cloudflare email-decode 제거 |
+| `12fce6b` | TODO 갱신 (Deploy #212–213 htmlproofer 실패) |
+| `14db9ef` | pip openai 2.x·google-genai 2.x — Deploy #202 green |
+| `7fb313d` | 백로그 일괄 — Deploy #201 green |
 
 ---
 
 ## 알려진 이슈 · 검토 필요
 
-- [x] `8412740` 이후 `jekyll.yml` htmlproofer CI 통과 확인 (2026-06-25)
-- [x] 중복 태그 slug / 번역본 태그 언어 혼용 정리 (2026-06-25)
-- [x] `tag_slug_translations` 단위 테스트 — `scripts/tests/test_i18n_tags.py` (2026-06-25)
-- [x] `_config.yml` `exclude`에 `e2e/`, `TODO.md` 추가 (2026-06-25)
-- [ ] Windows 로컬 `htmlproofer` libcurl 미설치로 실패 가능 — CI가 정본
+- [x] Deploy #212–213 htmlproofer 실패 — 이메일 링크 `href="#"` 추가 (2026-06-26)
+- [ ] Windows 로컬 `htmlproofer` libcurl 미설치로 실패 가능 — CI·devcontainer가 정본
 
 ---
 
@@ -176,18 +162,13 @@ cd e2e && npm ci && npx playwright test
 ### 운영 Secret 점검 (GitHub UI에서 수동 확인)
 
 - [x] `MY_PAT` 만료일 확인 — Classic PAT, **만료 없음** (2026-06-26)
-- [x] `SLACK_WEBHOOK_URL` 설정·알림 수신 확인 — `llm_usage_weekly` workflow_dispatch success (2026-06-26)
-- [x] LLM API 키 4종 동작 확인 — deep-dive health check: gemini/anthropic/openai/xai (2026-06-26)
+- [x] `SLACK_WEBHOOK_URL` 설정·알림 수신 확인 (2026-06-26)
+- [x] LLM API 키 4종 동작 확인 (2026-06-26)
 
 ### CI·의존성
 
-- [x] Actions 버전 일괄 업데이트 (checkout v7, setup-python v6 등, 2026-06-25)
-- [x] `dependabot_automerge.yml` — Dependabot PR은 repo Secret 미제공 → `GITHUB_TOKEN`으로 automerge (2026-06-26)
-- [x] Jekyll 4.4.1 / jekyll-archives 2.3.0 Gemfile 반영 (2026-06-25)
-- [x] `7fb313d` push 후 `jekyll.yml` CI green 확인 — Deploy Jekyll site to Pages #201 (2026-06-26)
-- [x] pip Dependabot (feedparser, google-genai, pillow, pyyaml) — `14db9ef` 직접 반영, PR #29–33 닫음 (2026-06-26)
-- [x] `openai>=2.x` + `google-genai>=2.x` — unittest 69 pass, Deploy #202 green (2026-06-26)
-- [x] Actions 잔여 bump (setup-node v6, upload-artifact v7, fetch-metadata v3) — `14db9ef`, PR #37–39 닫음 (2026-06-26)
+- [x] Actions·Gemfile·pip 의존성 일괄 업데이트 (2026-06-26)
+- [x] Deploy #202 green (2026-06-26)
 
 ---
 
@@ -202,30 +183,26 @@ cd e2e && npm ci && npx playwright test
 
 - [x] `_config.yml` `exclude`에 `e2e/`, `TODO.md` (2026-06-25)
 - [x] `_site` git 미추적 확인, `.gitignore`에 `.venv/` 추가 (2026-06-25)
+- [x] CI에서 `build_site_js.py`·`check_font_subset.py` 검증 (2026-06-26)
 
 ### 자동화 모니터링
 
-- [x] `pre-merge-validate` 실패 시 Slack — `notify-slack-failure` (2026-06-25)
-- [x] `llm_usage_weekly.yml` Slack 요약 수신 확인 — workflow_dispatch run 28222404516 success (2026-06-26)
-- [x] `translation_audit.yml` 주간 결과 모니터링 — run 28222411124 success (2026-06-26)
-- [x] `schedule_watchdog.yml` — AI 포스팅 8일 이상 누락 시 알림 확인 — run 28222411341 success (2026-06-26)
-- [x] `thumbnail_check.yml` 자동 생성 PR 정상 머지 확인 — run 28222411246 success (2026-06-26)
+- [x] `pre-merge-validate` 실패 시 Slack (2026-06-25)
+- [x] 주간 워크플로 일괄 점검 green (2026-06-26)
 
 ### 성능·에셋
 
-- [x] Noto Sans KR woff2 서브셋: 124개 → 7개 (`download_noto_font.py --subset-from-site`, 2026-06-25)
-- [x] Noto Sans KR woff2 단일화: 7개 → 1개 (`--subset-from-site --single-file --prune`, 2026-06-26)
-- [ ] 신규 글자 등장 시 KR 폰트 재생성: `python scripts/download_noto_font.py --family Noto+Sans+KR --subset-from-site --single-file --prune`
-- [ ] (선택) Noto Sans JP/SC도 `--single-file` 서브셋 적용 — KR만 완료
-- [x] Cloudflare `email-decode.min.js` 제거: masthead·privacy mailto → `data-email-*` + `email-link.js` (2026-06-26)
-- [ ] Lighthouse(`lighthouse.yml`) 성능 80% 달성 — 2차 배포 후 CI 재측정 필요 (1차 후 50~66% 변동)
-- [ ] Pagefind lazy load Core Web Vitals 영향 측정
+- [x] Noto Sans KR/JP/SC 단일 woff2 (`--single-file --prune`, 2026-06-26)
+- [x] 신규 글자 시 폰트 자동 재생성 — `check_font_subset.py --fix` (AI 포스트·sync_maintenance, 2026-06-26)
+- [x] Cloudflare `email-decode` 제거 (2026-06-26)
+- [x] Pagefind lazy load — `pagefind-search.html` IntersectionObserver (2026-06-26)
+- [ ] Lighthouse 80% 달성 — deploy job 자동 측정·Slack 경고 (2026-06-26)
 
 ### 콘텐츠·SEO
 
-- [x] 레거시 ai-news ja/zh 백필 (`ai-news-2026-06-23`, 2026-06-25)
-- [x] `AI_NEWS_FULL_I18N_START = "2026-06-24"` 유지 (2026-06-25)
-- [ ] IndexNow 제출(`submit_indexnow.py`) 실제 색인 반영 모니터링
+- [x] 레거시 ai-news ja/zh 백필 (2026-06-25)
+- [x] IndexNow 배포 시 자동 제출 (기존)
+- [x] IndexNow 주간 감사 — `indexnow_audit.yml` (2026-06-26)
 
 ---
 
@@ -233,56 +210,30 @@ cd e2e && npm ci && npx playwright test
 
 ### 개발 환경
 
-- [x] `scripts/pyproject.toml` + `pip install -e ./scripts` (2026-06-25)
-- [x] `sys.path.insert` 제거, CI·README에 editable install 반영 (2026-06-25)
-- [ ] Windows 로컬 Jekyll·htmlproofer 원클릭 셋업 (또는 devcontainer)
+- [x] `scripts/pyproject.toml` + editable install (2026-06-25)
+- [x] Windows devcontainer — `.devcontainer/devcontainer.json` (2026-06-26)
 
 ### 테스트·품질
 
-- [x] E2E RSS·태그·페이지네이션 스모크 추가/수정 (2026-06-25)
-- [x] E2E(`e2e.yml`) CI 주간 결과 확인 — run 28222404559 success (2026-06-26)
-- [x] `url_check.yml` 주기적 실패 URL 정리 — run 28222411297 success (2026-06-26)
+- [x] E2E·url_check 주간 green (2026-06-26)
 
 ### 정리·문서
 
-- [x] README에 `e2e.yml` 워크플로 표 추가 (2026-06-25)
-- [x] LLM 예산 `$75` (`models_config.LLM_MONTHLY_BUDGET_USD`, 2026-06-25)
-- [x] GitHub App 전환 후 README MY_PAT 폴백 설명 축소 (2026-06-25)
-- [ ] README 워크플로 표와 TODO 동기화 유지 (지속)
+- [x] README 워크플로 표 갱신 (2026-06-26)
+- [x] LLM 예산 `$75` (2026-06-25)
 
 ---
 
 ## 완료된 항목 (참고)
 
 - [x] 쿠키 동의 + 테마 연동 (2026-06)
-- [x] Pagefind 언어별 검색
+- [x] Pagefind 언어별 검색 + lazy load
 - [x] SEO/hreflang/접근성 대량 개선
 - [x] Python 파이프라인 (atomic publish, LLM 폴백, 비용 로깅)
-- [x] CI/CD 확장 (url_check, sync, e2e, lighthouse, watchdog 등)
+- [x] CI/CD 확장 (url_check, sync, e2e, lighthouse, watchdog, indexnow_audit)
 - [x] 수동 검수 제거 → pre-merge 자동 검증 + auto-merge
-- [x] Font Awesome 제거 → SVG 아이콘
-- [x] ai-news 신규 글(2026-06-24~) en/ja/zh 자동 번역
-- [x] GitHub App용 action 스캐폴딩 (Secret만 넣으면 활성화)
-- [x] 태그 아카이브 언어 전환 깨진 링크 수정 (`tag_slug`, `tag_slug_translations`) — `8412740`
-- [x] Actions·Gemfile·폰트 서브셋 백로그 일괄 + `jekyll.yml` Deploy #201 통과 — `7fb313d` (2026-06-26)
-- [x] 운영 Secret·Dependabot·주간 워크플로 일괄 점검 — `14db9ef`, Deploy #202 (2026-06-26)
-
----
-
-## Grok에게 물어볼 질문 (리뷰용)
-
-```
-TODO.md "알려진 이슈"와 전체 코드베이스를 보고 답해줘:
-
-1. TODO.md에 빠진 작업이 뭐가 있어?
-2. 지금 구조에서 깨지기 쉬운 부분은?
-3. 자동화(ai-news, backfill, auto-merge) 리스크는?
-4. i18n(태그·hreflang·번역)에서 추가로 손봐야 할 곳은?
-5. CI/CD·Secrets·모니터링에서 빈 구멍은?
-6. 우선순위 높음/중간/낮음으로 정리해줘.
-
-제약: GitHub App 우선, MY_PAT는 폴백으로 유지.
-```
+- [x] GitHub App용 action 스캐폴딩
+- [x] perf 1차·2차 (critical CSS, site.js, KR/JP/SC 단일 woff2)
 
 ---
 
@@ -297,6 +248,6 @@ TODO.md "알려진 이슈"와 전체 코드베이스를 보고 답해줘:
 | `MY_PAT` | 폴백 (Classic, **만료 없음**) | App 미동작 시 git push, PR, merge |
 | `GH_APP_ID` | **설정됨** | git push, PR, merge (우선) |
 | `GH_APP_PRIVATE_KEY` | **설정됨** | git push, PR, merge (우선) |
-| `SLACK_WEBHOOK_URL` | **설정됨** | 실패·LLM 비용 알림 |
+| `SLACK_WEBHOOK_URL` | **설정됨** | 실패·LLM 비용·Lighthouse 알림 |
 
 `MY_PAT` = GitHub Personal Access Token (classic). repo Secret으로 저장되며 워크플로에서 `GH_TOKEN`으로 쓰임. 현재 만료일 없음.
