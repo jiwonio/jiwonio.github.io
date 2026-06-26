@@ -93,7 +93,7 @@ _posts/
 
 ### LLM 사용량 모니터링
 
-- 각 API 호출은 `::notice::llm_usage=` JSON으로 Actions 로그에 기록됩니다.
+- 각 API 호출은 `llm_usage=` JSON notice로 Actions 로그에 기록됩니다 (`usage_report.py`가 파싱).
 - 로컬/CI 실행 시 `llm-usage.jsonl`에 JSONL로 누적됩니다 (`LLM_USAGE_LOG`로 경로 변경 가능).
 - `python scripts/usage_report.py llm-usage.jsonl` — 로컬 요약
 - `python scripts/usage_report.py --from-actions --days 7 --slack` — Actions 로그 파싱 + Slack

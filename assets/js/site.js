@@ -1,4 +1,156 @@
 (function () {
+  var ICONS = {
+    adjust:
+      '<svg class="icon" aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8V20z"/></svg>',
+    sun:
+      '<svg class="icon icon--stroke icon--theme" aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="12" cy="12" r="3.5"/><line x1="12" y1="2" x2="12" y2="5.5"/><line x1="12" y1="18.5" x2="12" y2="22"/><line x1="2" y1="12" x2="5.5" y2="12"/><line x1="18.5" y1="12" x2="22" y2="12"/></svg>',
+    moon:
+      '<svg class="icon icon--theme" aria-hidden="true" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+  };
+
+  function setIcon(element, name) {
+    if (!element || !ICONS[name]) {
+      return;
+    }
+    element.innerHTML = ICONS[name];
+  }
+
+  window.SiteIcons = {
+    set: setIcon,
+    names: Object.keys(ICONS),
+  };
+})();
+
+(function () {
+  var STORAGE_KEY = "theme-preference";
+  var CYCLE = ["system", "light", "dark"];
+
+  var LABELS = {
+    system: "시스템 설정",
+    light: "라이트 모드",
+    dark: "다크 모드",
+  };
+
+  var ICONS = {
+    system: "adjust",
+    light: "sun",
+    dark: "moon",
+  };
+
+  function getStored() {
+    try {
+      return localStorage.getItem(STORAGE_KEY);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function applyTheme(preference) {
+    var root = document.documentElement;
+    if (preference === "light" || preference === "dark") {
+      root.setAttribute("data-theme", preference);
+      return;
+    }
+    root.removeAttribute("data-theme");
+  }
+
+  function resolveLabels() {
+    if (window.SITE_I18N && window.SITE_I18N.theme) {
+      return Object.assign({}, LABELS, window.SITE_I18N.theme);
+    }
+    return LABELS;
+  }
+
+  function clickToChangeSuffix(labels) {
+    return labels.click_to_change ? " (" + labels.click_to_change + ")" : "";
+  }
+
+  function updateToggle(button, preference) {
+    var labels = resolveLabels();
+    var icon = button.querySelector("[data-icon]");
+    if (icon && window.SiteIcons) {
+      window.SiteIcons.set(icon, ICONS[preference]);
+    }
+    button.dataset.themePreference = preference;
+    button.setAttribute("aria-label", labels[preference] + clickToChangeSuffix(labels));
+    button.setAttribute("title", labels[preference]);
+  }
+
+  function nextPreference(current) {
+    var index = CYCLE.indexOf(current);
+    return CYCLE[(index + 1) % CYCLE.length];
+  }
+
+  function init() {
+    var button = document.getElementById("theme-toggle");
+    if (!button) {
+      return;
+    }
+
+    var preference = getStored() || "system";
+    applyTheme(preference);
+    updateToggle(button, preference);
+
+    button.addEventListener("click", function () {
+      preference = nextPreference(preference);
+      try {
+        localStorage.setItem(STORAGE_KEY, preference);
+      } catch (error) {
+        // ignore private browsing quota errors
+      }
+      applyTheme(preference);
+      updateToggle(button, preference);
+    });
+
+    var media = window.matchMedia("(prefers-color-scheme: dark)");
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", function () {
+        if ((getStored() || "system") === "system") {
+          applyTheme("system");
+        }
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+(function () {
+  function init() {
+    var details = document.querySelector(".lang-switcher__details");
+    if (!details) {
+      return;
+    }
+
+    document.addEventListener("click", function (event) {
+      if (!details.open) {
+        return;
+      }
+      if (!details.contains(event.target)) {
+        details.open = false;
+      }
+    });
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && details.open) {
+        details.open = false;
+        details.querySelector(".lang-switcher__trigger").focus();
+      }
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+
+(function () {
   var STORAGE_KEY = "blog-consent-v1";
   var banner = document.getElementById("cookie-consent");
   if (!banner) {

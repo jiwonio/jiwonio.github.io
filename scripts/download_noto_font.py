@@ -70,15 +70,22 @@ def local_font_filename(url: str) -> str:
     return f"noto-{digest}.woff2"
 
 
-def first_preload_face(css: str) -> str | None:
+def preload_faces(css: str, limit: int = 3) -> list[str]:
+    """Return up to `limit` unique woff2 paths for weight-400 faces (above-the-fold)."""
+    seen: list[str] = []
     blocks = re.findall(r"@font-face\s*\{([^}]+)\}", css, flags=re.DOTALL)
     for block in blocks:
         if "font-weight: 400" not in block:
             continue
-        url_match = re.search(r"url\(([^)]+)\)", block)
-        if url_match:
-            return url_match.group(1)
-    return None
+        url_match = re.search(r"url\(([^)]+\.woff2)\)", block)
+        if not url_match:
+            continue
+        face = url_match.group(1)
+        if face not in seen:
+            seen.append(face)
+        if len(seen) >= limit:
+            break
+    return seen
 
 
 def collect_site_characters(root: Path = ROOT) -> str:
@@ -168,9 +175,11 @@ def download_family(
         if removed:
             print(f"pruned {removed} unused woff2 files from {out_dir}")
 
-    preload_face = first_preload_face(rewritten)
-    if preload_face:
-        preload_map[config["lang"]] = f"/assets/vendor/{config['dir']}/{preload_face}"
+    faces = preload_faces(rewritten)
+    if faces:
+        preload_map[config["lang"]] = [
+            f"/assets/vendor/{config['dir']}/{face}" for face in faces
+        ]
 
 
 def main() -> None:

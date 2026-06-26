@@ -33,18 +33,22 @@
     {% include seo.html %}
     {% include structured-data.html %}
 
-    {% assign noto_preload = site.data.noto_preload[current_lang] %}
+    {% include critical-css.html %}
+    {% assign font_preloads = site.data.noto_preload[current_lang] %}
+    {% if font_preloads %}
+    {% for href in font_preloads %}
+    <link rel="preload" href="{{ href }}" as="font" type="font/woff2" crossorigin>
+    {% endfor %}
+    {% endif %}
     {% if current_lang == 'ko' %}
-    {% if noto_preload %}<link rel="preload" href="{{ noto_preload }}" as="font" type="font/woff2" crossorigin>{% endif %}
     <link rel="stylesheet" href="/assets/vendor/noto-sans-kr/noto-sans-kr.css">
     {% elsif current_lang == 'ja' %}
-    {% if noto_preload %}<link rel="preload" href="{{ noto_preload }}" as="font" type="font/woff2" crossorigin>{% endif %}
     <link rel="stylesheet" href="/assets/vendor/noto-sans-jp/noto-sans-jp.css">
     {% elsif current_lang == 'zh' %}
-    {% if noto_preload %}<link rel="preload" href="{{ noto_preload }}" as="font" type="font/woff2" crossorigin>{% endif %}
     <link rel="stylesheet" href="/assets/vendor/noto-sans-sc/noto-sans-sc.css">
     {% endif %}
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/styles.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/styles.css"></noscript>
 
     <link rel="icon" href="/favicon.ico" sizes="48x48">
     <link rel="shortcut icon" href="/favicon.ico">

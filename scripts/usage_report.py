@@ -17,8 +17,26 @@ from models_config import LLM_MONTHLY_BUDGET_USD
 
 SITE_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_LOG = SITE_ROOT / "llm-usage.jsonl"
-LLM_USAGE_NOTICE_RE = re.compile(r"::notice::llm_usage=(.+)$")
-ACTION_WORKFLOWS = ("scheduled_ai_post.yml", "backfill_translations.yml")
+LLM_USAGE_MARKER = "llm_usage="
+ACTION_WORKFLOWS = (
+    "scheduled_ai_post.yml",
+    "backfill_translations.yml",
+    "sync_maintenance.yml",
+    "thumbnail_check.yml",
+)
+
+
+def parse_llm_usage_line(line: str) -> dict | None:
+    """Parse llm_usage JSON from local (::notice::) or Actions (##[notice]) log lines."""
+    index = line.find(LLM_USAGE_MARKER)
+    if index < 0:
+        return None
+    payload = line[index + len(LLM_USAGE_MARKER) :].strip()
+    try:
+        record = json.loads(payload)
+    except json.JSONDecodeError:
+        return None
+    return record if isinstance(record, dict) else None
 
 
 def parse_jsonl(path: Path) -> list[dict]:
@@ -87,18 +105,26 @@ def format_summary(summary: dict) -> str:
         "",
         "By provider:",
     ]
-    for provider, stats in sorted(summary["by_provider"].items()):
-        calls = int(stats["calls"])
-        rate = int(stats["success"]) / calls * 100 if calls else 0
-        lines.append(
-            f"  {provider}: {calls} calls, {rate:.0f}% success, ${stats['cost']:.4f}"
-        )
+    if summary["by_provider"]:
+        for provider, stats in sorted(summary["by_provider"].items()):
+            calls = int(stats["calls"])
+            rate = int(stats["success"]) / calls * 100 if calls else 0
+            lines.append(
+                f"  {provider}: {calls} calls, {rate:.0f}% success, ${stats['cost']:.4f}"
+            )
+    else:
+        lines.append("  (none)")
     lines.append("")
     lines.append("By model:")
-    for model, stats in sorted(summary["by_model"].items()):
-        calls = int(stats["calls"])
-        rate = int(stats["success"]) / calls * 100 if calls else 0
-        lines.append(f"  {model}: {calls} calls, {rate:.0f}% success, ${stats['cost']:.4f}")
+    if summary["by_model"]:
+        for model, stats in sorted(summary["by_model"].items()):
+            calls = int(stats["calls"])
+            rate = int(stats["success"]) / calls * 100 if calls else 0
+            lines.append(
+                f"  {model}: {calls} calls, {rate:.0f}% success, ${stats['cost']:.4f}"
+            )
+    else:
+        lines.append("  (none)")
     return "\n".join(lines)
 
 
@@ -178,13 +204,9 @@ def fetch_from_actions(days: int) -> list[dict]:
                 continue
 
             for line in log_result.stdout.splitlines():
-                match = LLM_USAGE_NOTICE_RE.search(line)
-                if not match:
-                    continue
-                try:
-                    records.append(json.loads(match.group(1)))
-                except json.JSONDecodeError:
-                    continue
+                record = parse_llm_usage_line(line)
+                if record:
+                    records.append(record)
 
     return records
 

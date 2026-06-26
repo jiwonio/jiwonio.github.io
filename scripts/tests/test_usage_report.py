@@ -3,7 +3,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from usage_report import check_budget, format_summary, parse_jsonl, summarize
+from usage_report import (
+    check_budget,
+    format_summary,
+    parse_jsonl,
+    parse_llm_usage_line,
+    summarize,
+)
 
 class UsageReportTests(unittest.TestCase):
     def test_summarize_counts_calls_and_cost(self):
@@ -61,6 +67,19 @@ class UsageReportTests(unittest.TestCase):
     def test_check_budget_passes_when_under_threshold(self):
         summary = {"total_calls": 10, "total_cost_usd": 20.0}
         self.assertTrue(check_budget(summary, 50.0))
+
+    def test_parse_llm_usage_line_accepts_actions_log_format(self):
+        line = (
+            'build##[notice]llm_usage={"provider": "gemini", "model": "m", '
+            '"success": true, "estimated_cost_usd": 0.01}'
+        )
+        record = parse_llm_usage_line(line)
+        self.assertIsNotNone(record)
+        self.assertEqual(record["provider"], "gemini")
+
+    def test_format_summary_shows_none_when_empty(self):
+        text = format_summary(summarize([]))
+        self.assertIn("(none)", text)
 
 if __name__ == "__main__":
     unittest.main()

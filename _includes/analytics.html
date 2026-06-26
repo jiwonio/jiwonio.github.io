@@ -1,23 +1,4 @@
 {%- comment -%}
-  분석 스크립트
-
-  _config.yml의 analytics.* ID가 비어 있으면 아무것도 출력하지 않습니다.
-  Google Analytics는 consent 기본값만 설정하고, Naver는 consent.js에서 로드합니다.
+  Analytics IDs are passed via SITE_I18N.analytics in default.html.
+  Scripts load only after cookie consent (see assets/js/consent.js).
 {%- endcomment -%}
-
-{%- if site.analytics.google_analytics_id != "" -%}
-<script async src="https://www.googletagmanager.com/gtag/js?id={{ site.analytics.google_analytics_id }}"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag() { dataLayer.push(arguments); }
-  gtag("consent", "default", {
-    ad_storage: "denied",
-    ad_user_data: "denied",
-    ad_personalization: "denied",
-    analytics_storage: "denied",
-    wait_for_update: 500,
-  });
-  gtag("js", new Date());
-  gtag("config", "{{ site.analytics.google_analytics_id }}");
-</script>
-{%- endif -%}

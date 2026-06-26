@@ -9,11 +9,11 @@
 
 ### 다음 작업 (2026-06-26 기준)
 
-운영·의존성·모니터링 점검 완료. **남은 핵심: Lighthouse 성능(현재 66%)**.
+성능 1차 개선 배포 후 Lighthouse 재측정 대기 (이전 66%).
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **중간** | Lighthouse 성능 80 미만 개선 | 2026-06-26 측정 66% — LCP·폰트·JS 지연 등 |
+| **중간** | Lighthouse 80% 달성 확인 | GA 지연·critical CSS·폰트 preload·site.js 번들 적용 후 |
 | **낮음** | Pagefind lazy load Core Web Vitals 측정 | Lighthouse 개선과 연계 |
 | **낮음** | IndexNow 색인 반영 모니터링 | 배포 시 자동 제출 중 |
 | **낮음** | 신규 한글 등장 시 KR 폰트 재생성 | 필요 시 `--subset-from-site --prune` |
@@ -140,6 +140,7 @@ cd e2e && npm ci && npx playwright test
 |------|------|
 | `14db9ef` | pip openai 2.x·google-genai 2.x, Actions 잔여 bump, dependabot automerge `GITHUB_TOKEN` 수정 — Deploy #202 green |
 | `5dbd9ab` | TODO: Deploy #201 green 체크, 다음 작업 표 |
+| (pending) | perf: GA consent 지연, critical CSS, 폰트 preload×3, site.js, usage_report 파서 수정 |
 | `937fc57` | TODO 갱신, post-deploy 점검 반영 |
 | `7fb313d` | 백로그 일괄: deps·폰트 서브셋·sys.path 정리·E2E·LLM 예산 $75 — Deploy #201 green |
 | `9b8c4bf` | AI 뉴스 격식체, RSS MIME/리다이렉트, UI·Pagefind 개선 |
@@ -211,7 +212,7 @@ cd e2e && npm ci && npx playwright test
 - [x] Noto Sans KR woff2 서브셋: 124개 → 7개 (`download_noto_font.py --subset-from-site`, 2026-06-25)
 - [ ] 신규 글자 등장 시 KR 폰트 재생성: `python scripts/download_noto_font.py --family Noto+Sans+KR --subset-from-site --prune`
 - [ ] (선택) Noto Sans JP/SC도 동일 서브셋 적용 — KR만 완료
-- [ ] Lighthouse(`lighthouse.yml`) 성능 80 미만 시 개선 — **현재 66%** (run 28222404674, 2026-06-26)
+- [ ] Lighthouse(`lighthouse.yml`) 성능 80% 달성 확인 — 1차 개선 적용, 재측정 필요 (baseline 66%, 2026-06-26)
 - [ ] Pagefind lazy load Core Web Vitals 영향 측정
 
 ### 콘텐츠·SEO

@@ -39,7 +39,10 @@
             </main>
 
             <footer class="footer">
-                <img src="https://www.gravatar.com/avatar/8b77c02d2acf93b8d9089ce7ce249ce8?s=160" alt="{{ site.author.name }}">
+                <img src="https://www.gravatar.com/avatar/8b77c02d2acf93b8d9089ce7ce249ce8?s=80&amp;d=mp"
+                     alt="{{ site.author.name }}"
+                     width="80" height="80"
+                     loading="lazy" decoding="async">
                 <ul>
                     <li>{{ lang_meta.footer.made_with }} <a href="https://jekyllrb.com/" title="Jekyll" target="_blank" rel="noopener noreferrer">Jekyll</a></li>
                     <li>{{ lang_meta.footer.location }}</li>
@@ -76,6 +79,7 @@
             window.SITE_I18N.consent = {{ lang_meta.consent | jsonify }};
             window.SITE_I18N.share = {{ lang_meta.share | jsonify }};
             window.SITE_I18N.analytics = {
+                googleId: {{ site.analytics.google_analytics_id | default: '' | jsonify }},
                 naverId: {{ site.analytics.naver_analytics_id | default: '' | jsonify }}
             };
             window.SITE_I18N.ads = {
@@ -89,11 +93,8 @@
             };
             {% endif %}
         </script>
-        <script src="/assets/js/icons.js" defer></script>
-        <script src="/assets/js/theme.js" defer></script>
-        <script src="/assets/js/lang-switcher.js" defer></script>
         {% include consent-banner.html %}
-        <script src="/assets/js/consent.js" defer></script>
+        <script src="/assets/js/site.js" defer></script>
         {% if page.layout == "post" %}
         <script src="/assets/js/share.js" defer></script>
         {% endif %}
