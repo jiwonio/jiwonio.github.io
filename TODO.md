@@ -88,7 +88,7 @@ cd e2e && npm ci && npx playwright test
 | 항목 | 내용 |
 |------|------|
 | 사이트 | Jekyll 4 다국어 기술 블로그 (ko 기본, en/ja/zh) |
-| AI 글 | 월=deep-dive, 목=ai-news (`scheduled_ai_post.yml`) |
+| AI 글 | 월·수=deep-dive, 금=ai-news (`scheduled_ai_post.yml`) |
 | 번역 묶음 | front matter `translation_key` |
 | 인증 | GitHub App 우선 (`setup-git-auth`), `MY_PAT` 폴백 |
 | 머지 | `pre-merge-validate` 통과 시 auto-merge (수동 검수 없음) |

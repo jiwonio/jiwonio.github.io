@@ -2,7 +2,7 @@ name: AI News RSS Health Check
 
 on:
   schedule:
-    - cron: '0 6 * * 3'
+    - cron: '0 6 * * 4'
   workflow_dispatch:
 
 jobs:

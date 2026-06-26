@@ -31,8 +31,8 @@ jobs:
           AGE_DAYS=$(( (NOW_EPOCH - LAST_EPOCH) / 86400 ))
           echo "Age: ${AGE_DAYS} day(s)"
 
-          if [ "$AGE_DAYS" -gt 8 ]; then
-            echo "::error::Last successful scheduled_ai_post run is older than 8 days."
+          if [ "$AGE_DAYS" -gt 4 ]; then
+            echo "::error::Last successful scheduled_ai_post run is older than 4 days."
             exit 1
           fi
 
@@ -53,7 +53,7 @@ jobs:
           fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -sS -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"⚠️ Scheduled AI post watchdog: no successful run within 8 days\n${RUN_URL}\"}" \
+            --data "{\"text\":\"⚠️ Scheduled AI post watchdog: no successful run within 4 days\n${RUN_URL}\"}" \
             "$SLACK_WEBHOOK_URL"
 
       - name: Print failure summary

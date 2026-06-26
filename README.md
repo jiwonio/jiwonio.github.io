@@ -20,8 +20,8 @@ _posts/
 | 구성 요소 | 역할 |
 |-----------|------|
 | `_plugins/i18n.rb` | 언어 감지, permalink, 번역 스위처, `site.posts_by_lang` |
-| `scripts/generate_post.py` | 월요일 심층 기술 글(deep-dive) 자동 생성 |
-| `scripts/generate_ai_news.py` | 목요일 AI 뉴스 다이제스트(ai-news) 자동 생성 |
+| `scripts/generate_post.py` | 월·수 심층 기술 글(deep-dive) 자동 생성 |
+| `scripts/generate_ai_news.py` | 금요일 AI 뉴스 다이제스트(ai-news) 자동 생성 |
 | `scripts/backfill_translations.py` | 기존 원문의 누락 번역 백필 |
 | `scripts/validate_posts.py` | 배포 전 front matter·이미지·번역 완전성·내부 링크·언어 품질 검증 |
 | `scripts/models_config.py` | LLM provider·모델·라우팅·비용 추정 설정 |
@@ -57,17 +57,20 @@ _posts/
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
 | `jekyll.yml` | push/PR → `gh-pages` | test → validate → site.js·폰트 검증 → build → htmlproofer → Pagefind → 배포 |
-| `scheduled_ai_post.yml` | 월·목 00:00 | 월=deep-dive, 목=ai-news (검증 통과 시 자동 머지) |
+| `scheduled_ai_post.yml` | 월·수·금 00:00 | 월·수=deep-dive, 금=ai-news (검증 통과 시 자동 머지) |
 | `url_check.yml` | 일 04:00 | 참고문헌·본문 외부 URL HEAD 검증 (3회 재시도) |
 | `lighthouse.yml` | 일 06:00 | 홈페이지 Lighthouse 성능 점검 (80% 미만 Slack 경고) |
-| `indexnow_audit.yml` | 월 04:00 | IndexNow 키 파일·최근 URL 재제출 |
-| `llm_usage_weekly.yml` | 월 07:00 | 최근 7일 LLM 사용량·비용 Slack 요약 |
+| `indexnow_audit.yml` | 토 05:00 | IndexNow 키 파일·최근 URL 재제출 |
+| `llm_usage_weekly.yml` | 토 07:00 | 최근 7일 LLM 사용량·비용 Slack 요약 |
+| `llm_usage_daily.yml` | 매일 08:00 | 일일 LLM 예산 점검 (초과 시 Slack) |
+| `ops_digest_weekly.yml` | 토 08:00 | 주간 Ops·파이프라인·URL·콘텐츠 전략 Slack 요약 |
 | `sync_maintenance.yml` | 수 05:00 | `sync_post_images`·`sync_translation_dates` → PR (자동 머지) |
-| `ai_news_health_check.yml` | 수 06:00 | 단위 테스트 + ai-news RSS `--dry-run --strict` 사전 점검 |
-| `deep_dive_health_check.yml` | 일 06:00 | 단위 테스트 + deep-dive `--dry-run` 사전 점검 |
+| `ai_news_health_check.yml` | 목 06:00 | 단위 테스트 + ai-news RSS `--dry-run --strict` (금요일 포스팅 전) |
+| `deep_dive_health_check.yml` | 일·화 06:00 | 단위 테스트 + deep-dive `--dry-run` (월·수 포스팅 전) |
 | `thumbnail_check.yml` | 화 07:00 | 누락 썸네일 `--dry-run` 점검·자동 생성 |
 | `translation_audit.yml` | 일 05:00 | deep-dive en/ja/zh 번역 완전성 주간 감사 |
-| `schedule_watchdog.yml` | 매일 08:00 | `scheduled_ai_post` 최근 8일 내 성공 실행 여부 감시 |
+| `content_quality_audit.yml` | 토 06:00 | 콘텐츠 품질·발견성 주간 감사 |
+| `schedule_watchdog.yml` | 매일 08:00 | `scheduled_ai_post` 최근 4일 내 성공 실행 여부 감시 |
 | `backfill_translations.yml` | 수동 | 누락 번역 백필 → PR (자동 머지) |
 | `e2e.yml` | 토 08:00 | 프로덕션 스모크 테스트 (Playwright, 실패 시 Slack) |
 | `dependabot_automerge.yml` | Dependabot PR | patch/minor actions·pip 업데이트 CI 통과 시 자동 머지 |
@@ -195,7 +198,7 @@ Actions 탭 → **Backfill Post Translations** → Run workflow
 
 ### 수동 AI 글 생성 (Actions)
 
-Actions 탭 → **Bi-weekly AI Post Generation** → Run workflow
+Actions 탭 → **Scheduled AI Post Generation** → Run workflow
 
 | 입력 | 권장값 |
 |------|--------|

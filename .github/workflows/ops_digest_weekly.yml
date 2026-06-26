@@ -2,7 +2,7 @@ name: Weekly Ops Digest
 
 on:
   schedule:
-    - cron: '0 8 * * 1'
+    - cron: '0 8 * * 6'
   workflow_dispatch:
     inputs:
       days:

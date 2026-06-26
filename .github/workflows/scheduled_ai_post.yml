@@ -1,9 +1,10 @@
-name: Bi-weekly AI Post Generation
+name: Scheduled AI Post Generation
 
 on:
   schedule:
     - cron: '0 0 * * 1'
-    - cron: '0 0 * * 4'
+    - cron: '0 0 * * 3'
+    - cron: '0 0 * * 5'
   workflow_dispatch:
     inputs:
       post_type:
@@ -132,12 +133,12 @@ jobs:
             PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
             COMMIT_MSG="Add auto-generated ai-news digest"
             echo "POST_TYPE=ai-news" >> "$GITHUB_ENV"
-          elif [ "$DOW" = "1" ]; then
+          elif [ "$DOW" = "1" ] || [ "$DOW" = "3" ]; then
             SCRIPT="scripts/generate_post.py"
             PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
             COMMIT_MSG="Add auto-generated deep-dive post"
             echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
-          elif [ "$DOW" = "4" ]; then
+          elif [ "$DOW" = "5" ]; then
             SCRIPT="scripts/generate_ai_news.py"
             PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
             COMMIT_MSG="Add auto-generated ai-news digest"
@@ -272,5 +273,5 @@ jobs:
         uses: ./.github/actions/notify-slack-failure
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          title: Bi-weekly AI Post Generation failed
+          title: Scheduled AI Post Generation failed
           failed-step: ${{ steps.pre_merge.outcome == 'failure' && 'pre-merge validation (tests, validate_posts, Jekyll, htmlproofer)' || steps.generate.outcome == 'failure' && 'post generation (LLM pipeline)' || 'see Actions log' }}

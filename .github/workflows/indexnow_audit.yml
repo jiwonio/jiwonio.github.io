@@ -2,7 +2,7 @@ name: Weekly IndexNow Audit
 
 on:
   schedule:
-    - cron: '0 4 * * 1'
+    - cron: '0 5 * * 6'
   workflow_dispatch:
 
 env:
