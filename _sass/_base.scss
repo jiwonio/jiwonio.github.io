@@ -25,7 +25,8 @@ html {
 }
 
 html.html-lang-ko {
-  font-family: "Noto Sans KR", system-ui, sans-serif;
+  font-family: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-synthesis: weight;
 }
 
 html.html-lang-en {
@@ -33,11 +34,13 @@ html.html-lang-en {
 }
 
 html.html-lang-ja {
-  font-family: "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+  font-family: "Hiragino Sans", "Yu Gothic UI", system-ui, "Noto Sans JP", sans-serif;
+  font-synthesis: weight;
 }
 
 html.html-lang-zh {
-  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, "Noto Sans SC", sans-serif;
+  font-synthesis: weight;
 }
 
 body {

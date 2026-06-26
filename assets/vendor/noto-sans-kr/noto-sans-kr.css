@@ -1,7 +1,7 @@
 @font-face {
   font-family: 'Noto Sans KR';
   font-style: normal;
-  font-weight: 400 700;
+  font-weight: 400;
   font-display: swap;
   src: url(noto-sans-kr.woff2) format('woff2');
 }

@@ -109,17 +109,44 @@ def preload_faces(css: str, limit: int = 1) -> list[str]:
     return seen
 
 
-def build_single_file_css(display_name: str, woff2_filename: str) -> str:
-    """Minimal variable-font CSS: one request for weights 400–700."""
+def build_single_file_css(
+    display_name: str,
+    woff2_filename: str,
+    *,
+    weight: int = 400,
+) -> str:
+    """Minimal @font-face CSS for a single woff2 file."""
     return (
         "@font-face {\n"
         f"  font-family: '{display_name}';\n"
         "  font-style: normal;\n"
-        "  font-weight: 400 700;\n"
+        f"  font-weight: {weight};\n"
         "  font-display: swap;\n"
         f"  src: url({woff2_filename}) format('woff2');\n"
         "}\n"
     )
+
+
+def instance_static_weight(ttf_bytes: bytes, weight: int) -> bytes:
+    """Pin a variable TTF to one weight (smaller woff2 after subsetting)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+        source = tmp_dir / "source.ttf"
+        instanced = tmp_dir / "static.ttf"
+        source.write_bytes(ttf_bytes)
+        subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "fontTools.varLib.instancer",
+                str(source),
+                f"wght={weight}",
+                "-o",
+                str(instanced),
+            ],
+            check=True,
+        )
+        return instanced.read_bytes()
 
 
 def collect_site_characters(root: Path = ROOT) -> str:
@@ -222,6 +249,7 @@ def download_family_single_file(
     *,
     subset_text: str,
     prune: bool = False,
+    static_weight: int = 400,
 ) -> None:
     config = FAMILIES[family_key]
     out_dir = ROOT / "assets" / "vendor" / config["dir"]
@@ -232,10 +260,15 @@ def download_family_single_file(
     ttf_url = config["variable_ttf_url"]
 
     print(f"downloading variable TTF for {family_key}")
-    subset_variable_font(fetch(ttf_url), subset_text, destination)
+    ttf_bytes = instance_static_weight(fetch(ttf_url), static_weight)
+    subset_variable_font(ttf_bytes, subset_text, destination)
     print(f"wrote {destination} ({destination.stat().st_size} bytes)")
 
-    css_text = build_single_file_css(config["display_name"], woff2_name)
+    css_text = build_single_file_css(
+        config["display_name"],
+        woff2_name,
+        weight=static_weight,
+    )
     css_path = out_dir / config["css_name"]
     css_path.write_text(css_text, encoding="utf-8")
     print(f"wrote {css_path} (1 file)")
@@ -258,6 +291,7 @@ def download_family(
     subset_text: str | None = None,
     prune: bool = False,
     single_file: bool = False,
+    static_weight: int = 400,
 ) -> None:
     if single_file:
         if not subset_text:
@@ -267,6 +301,7 @@ def download_family(
             preload_map,
             subset_text=subset_text,
             prune=prune,
+            static_weight=static_weight,
         )
         return
 
@@ -329,6 +364,12 @@ def main() -> None:
         action="store_true",
         help="Delete woff2 files in the vendor dir that are not referenced by CSS.",
     )
+    parser.add_argument(
+        "--static-weight",
+        type=int,
+        default=400,
+        help="Pin variable TTF to one weight before subsetting (default: 400).",
+    )
     args = parser.parse_args()
     families = args.family or sorted(FAMILIES)
 
@@ -347,6 +388,7 @@ def main() -> None:
             subset_text=subset_text,
             prune=args.prune,
             single_file=args.single_file,
+            static_weight=args.static_weight,
         )
 
     PRELOAD_DATA.parent.mkdir(parents=True, exist_ok=True)

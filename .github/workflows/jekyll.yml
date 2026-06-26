@@ -129,6 +129,8 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
+          for i in 1 2 3; do curl -fsS https://blog.jiwon.io/ > /dev/null || true; done
+          sleep 5
           npx --yes lighthouse@12 https://blog.jiwon.io/ \
             --output=json \
             --output-path=./lighthouse-report.json \

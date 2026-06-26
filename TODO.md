@@ -13,8 +13,7 @@
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **중간** | Lighthouse 80% 달성 확인 | `jekyll.yml` deploy job이 배포 직후 자동 측정 |
-| **낮음** | Lighthouse 80% 미달 시 3차 최적화 | Slack 경고 수신 시 |
+| **중간** | Lighthouse 80% 달성 확인 | 3차: async 폰트 CSS, weight 400 단일, CDN 워밍업 |
 | **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 2~4주 후 |
 
 ---

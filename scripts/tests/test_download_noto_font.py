@@ -26,7 +26,7 @@ class DownloadNotoFontTests(unittest.TestCase):
     def test_build_single_file_css_references_one_woff2(self) -> None:
         css = build_single_file_css("Noto Sans KR", "noto-sans-kr.woff2")
         self.assertIn("font-family: 'Noto Sans KR'", css)
-        self.assertIn("font-weight: 400 700", css)
+        self.assertIn("font-weight: 400;", css)
         self.assertIn("url(noto-sans-kr.woff2)", css)
         self.assertEqual(css.count("@font-face"), 1)
 

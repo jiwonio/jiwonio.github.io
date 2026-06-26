@@ -34,20 +34,13 @@
     {% include structured-data.html %}
 
     {% include critical-css.html %}
-    {% assign font_preloads = site.data.noto_preload[current_lang] %}
-    {% if font_preloads %}
-    {% for href in font_preloads %}
-    <link rel="preload" href="{{ href }}" as="font" type="font/woff2" crossorigin>
-    {% endfor %}
-    {% endif %}
     {% if current_lang == 'ko' %}
-    <link rel="stylesheet" href="/assets/vendor/noto-sans-kr/noto-sans-kr.css">
+    {% include async-stylesheet.html href="/assets/vendor/noto-sans-kr/noto-sans-kr.css" %}
     {% elsif current_lang == 'ja' %}
-    <link rel="stylesheet" href="/assets/vendor/noto-sans-jp/noto-sans-jp.css">
+    {% include async-stylesheet.html href="/assets/vendor/noto-sans-jp/noto-sans-jp.css" %}
     {% elsif current_lang == 'zh' %}
-    <link rel="stylesheet" href="/assets/vendor/noto-sans-sc/noto-sans-sc.css">
+    {% include async-stylesheet.html href="/assets/vendor/noto-sans-sc/noto-sans-sc.css" %}
     {% endif %}
-    <link rel="preload" href="/styles.css" as="style">
     <link rel="stylesheet" href="/styles.css">
 
     <link rel="icon" href="/favicon.ico" sizes="48x48">

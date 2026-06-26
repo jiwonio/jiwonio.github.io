@@ -7,6 +7,7 @@
 
 # Basic Jekyll gitignores (synchronize to Jekyll.gitignore)
 _site/
+lighthouse-report.json
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
