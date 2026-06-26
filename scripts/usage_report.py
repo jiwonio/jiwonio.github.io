@@ -28,10 +28,17 @@ ACTION_WORKFLOWS = (
 
 def is_production_llm_record(record: dict) -> bool:
     """Skip unittest/dry-run notices that share the same workflow logs."""
+    source = str(record.get("source", "production")).strip().casefold()
+    if source and source != "production":
+        return False
+
     operation = str(record.get("operation", ""))
-    slug = str(record.get("slug", ""))
+    slug = str(record.get("slug", "")).strip()
     input_chars = int(record.get("input_chars", 0) or 0)
-    if operation == "generate_post" and slug in {"", "demo"} and input_chars == 0:
+
+    if operation == "generate_post" and slug in {"", "demo"}:
+        return False
+    if operation in {"generate_post", "generate_thumbnail"} and not slug:
         return False
     return True
 

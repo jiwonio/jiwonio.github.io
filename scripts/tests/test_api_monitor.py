@@ -53,7 +53,11 @@ class ApiMonitorTests(unittest.TestCase):
     def test_notify_llm_usage_writes_jsonl_log(self, mock_urlopen):
         with tempfile.TemporaryDirectory() as tmp:
             log_path = Path(tmp) / "usage.jsonl"
-            with patch.dict("os.environ", {"LLM_USAGE_LOG": str(log_path)}, clear=True):
+            with patch.dict(
+                "os.environ",
+                {"LLM_USAGE_LOG": str(log_path), "LLM_USAGE_SOURCE": "unittest"},
+                clear=True,
+            ):
                 notify_llm_usage(
                     provider="gemini",
                     model="gemini-2.5-pro",
@@ -66,7 +70,27 @@ class ApiMonitorTests(unittest.TestCase):
             self.assertEqual(len(lines), 1)
             record = json.loads(lines[0])
             self.assertEqual(record["input_chars"], 1000)
+            self.assertEqual(record["source"], "unittest")
             self.assertGreater(record["estimated_cost_usd"], 0)
+
+    @patch("api_monitor.notify_llm_usage")
+    def test_log_thumbnail_usage_records_image_operation(self, mock_notify):
+        from api_monitor import log_thumbnail_usage
+
+        log_thumbnail_usage(
+            provider="gemini",
+            model="gemini-3.1-flash-image",
+            slug="my-post",
+            prompt="Modern tech blog thumbnail",
+            thumbnail=b"\x00" * 2048,
+            success=True,
+        )
+        mock_notify.assert_called_once()
+        kwargs = mock_notify.call_args.kwargs
+        self.assertEqual(kwargs["operation"], "generate_thumbnail")
+        self.assertEqual(kwargs["slug"], "my-post")
+        self.assertEqual(kwargs["input_chars"], len("Modern tech blog thumbnail"))
+        self.assertEqual(kwargs["output_chars"], 2048)
 
 if __name__ == "__main__":
     unittest.main()

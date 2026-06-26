@@ -678,7 +678,27 @@ def publish_post(
             thumbnail, image_provider, image_model = generate_thumbnail(image_prompt)
             print(f"  이미지 provider: {image_provider} ({image_model})")
             public_image_path, image_md = save_thumbnail(slug, thumbnail, raw_title)
+            from api_monitor import log_thumbnail_usage
+
+            log_thumbnail_usage(
+                provider=image_provider,
+                model=image_model,
+                slug=slug,
+                prompt=image_prompt,
+                thumbnail=thumbnail,
+                success=True,
+            )
         except Exception as exc:
+            from api_monitor import log_thumbnail_usage
+
+            log_thumbnail_usage(
+                provider="unknown",
+                model="unknown",
+                slug=slug,
+                prompt=image_prompt,
+                success=False,
+                error=str(exc),
+            )
             print(f"⚠️ 이미지 생성 실패, 기본 썸네일로 대체합니다: {exc}")
             public_image_path, image_md = copy_default_thumbnail(slug, raw_title)
 

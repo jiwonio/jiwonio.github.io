@@ -85,12 +85,38 @@ class UsageReportTests(unittest.TestCase):
     def test_is_production_llm_record_skips_unittest_notices(self):
         self.assertFalse(
             is_production_llm_record(
+                {"source": "unittest", "operation": "generate_post", "slug": "real-slug", "input_chars": 5000}
+            )
+        )
+        self.assertFalse(
+            is_production_llm_record(
                 {"operation": "generate_post", "slug": "demo", "input_chars": 0}
+            )
+        )
+        self.assertFalse(
+            is_production_llm_record(
+                {"operation": "generate_post", "slug": "", "input_chars": 1000, "output_chars": 2000}
+            )
+        )
+        self.assertFalse(
+            is_production_llm_record(
+                {"operation": "generate_thumbnail", "slug": "", "input_chars": 120}
             )
         )
         self.assertTrue(
             is_production_llm_record(
                 {"operation": "translate_en", "slug": "ai-news-2026-06-25", "input_chars": 100}
+            )
+        )
+        self.assertTrue(
+            is_production_llm_record(
+                {
+                    "source": "production",
+                    "operation": "generate_thumbnail",
+                    "slug": "my-post",
+                    "input_chars": 120,
+                    "output_chars": 4096,
+                }
             )
         )
 
@@ -106,6 +132,10 @@ class UsageReportTests(unittest.TestCase):
         self.assertEqual(
             infer_record_category({"operation": "generate_post", "slug": "ai-news-2026-06-25"}),
             "ai-news",
+        )
+        self.assertEqual(
+            infer_record_category({"operation": "generate_thumbnail", "slug": "my-post"}),
+            "image",
         )
 
     def test_format_markdown_includes_tables(self):

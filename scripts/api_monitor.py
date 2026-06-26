@@ -14,6 +14,11 @@ from post_schema import sanitize_error_for_slack
 
 SLACK_TIMEOUT = 8
 SITE_ROOT = Path(__file__).resolve().parent.parent
+IMAGE_OUTPUT_CHAR_PROXY = 4096
+
+
+def usage_record_source() -> str:
+    return os.environ.get("LLM_USAGE_SOURCE", "production").strip() or "production"
 
 
 def estimate_cost_usd(model: str, input_chars: int, output_chars: int) -> float:
@@ -49,6 +54,7 @@ def notify_llm_usage(
 
     payload = {
         "ts": datetime.now(timezone.utc).isoformat(),
+        "source": usage_record_source(),
         "provider": provider,
         "model": model,
         "attempt": attempt,
@@ -98,6 +104,30 @@ def notify_llm_usage(
             pass
     except URLError as exc:
         print(f"::warning::slack_notification_failed={exc}")
+
+
+def log_thumbnail_usage(
+    *,
+    provider: str,
+    model: str,
+    slug: str,
+    prompt: str,
+    thumbnail: bytes | None = None,
+    success: bool = True,
+    error: str | None = None,
+) -> None:
+    """Record thumbnail/image API usage for cost dashboards."""
+    notify_llm_usage(
+        provider=provider,
+        model=model,
+        attempt=1,
+        operation="generate_thumbnail",
+        slug=slug,
+        success=success,
+        error=error,
+        input_chars=len(prompt),
+        output_chars=len(thumbnail) if thumbnail else IMAGE_OUTPUT_CHAR_PROXY if success else 0,
+    )
 
 
 # 하위 호환 alias
