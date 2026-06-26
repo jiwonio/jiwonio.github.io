@@ -225,7 +225,8 @@ jobs:
 
           ## Automated checks (all passed)
           - Python unit tests
-          - `validate_posts.py` (metadata, links, language)
+          - `validate_posts.py` (metadata, links, language, translation structure)
+          - Changed-post reference URL HEAD checks
           - Translation completeness audit
           - Sync drift dry-run (images, dates)
           - Jekyll build + Pagefind + htmlproofer

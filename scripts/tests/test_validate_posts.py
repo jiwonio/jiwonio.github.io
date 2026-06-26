@@ -108,5 +108,28 @@ class ValidatePostsTests(unittest.TestCase):
         errors = validate_posts(self.posts, site_root=self.root)
         self.assertTrue(any("broken internal link" in error for error in errors))
 
+    def test_translation_structure_mismatch_is_reported(self):
+        ko_prose = KO_PROSE + "\n## 첫 번째 섹션\n\n## 두 번째 섹션\n"
+        en_prose = """English intro for the translation group test with enough words.
+
+<!--more-->
+
+English body only.
+"""
+        for lang, prose in (
+            ("ko", ko_prose),
+            ("en", en_prose),
+            ("ja", JA_PROSE),
+            ("zh", ZH_PROSE),
+        ):
+            write_post(
+                self.posts,
+                f"{lang}/2026/2026-06-01-sample-post.md",
+                make_post(lang, "sample-post", "deep-dive", prose),
+            )
+
+        errors = validate_posts(self.posts, site_root=self.root)
+        self.assertTrue(any("translation structure mismatch" in error for error in errors))
+
 if __name__ == "__main__":
     unittest.main()

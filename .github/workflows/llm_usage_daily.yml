@@ -1,20 +1,15 @@
-name: Weekly LLM Usage Report
+name: Daily LLM Budget Check
 
 on:
   schedule:
-    - cron: '0 7 * * 1'
+    - cron: '0 8 * * *'
   workflow_dispatch:
-    inputs:
-      days:
-        description: 'Lookback days'
-        required: false
-        default: '7'
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  report:
+  budget-check:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -35,30 +30,29 @@ jobs:
           pip install -r scripts/requirements.txt
           pip install -e ./scripts
 
-      - name: Summarize LLM usage from Actions logs
+      - name: Check daily LLM budget projection
         env:
           GH_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          DAYS="${{ github.event.inputs.days || '7' }}"
-          python scripts/usage_report.py --from-actions --days "$DAYS" --slack --warn-budget 75
-          python scripts/usage_report.py --from-actions --days "$DAYS" --markdown --output reports/llm-usage-weekly.md
+          python scripts/usage_report.py --from-actions --days 1 --warn-budget 75 --slack-on-warn
+          python scripts/usage_report.py --from-actions --days 1 --markdown --output reports/llm-usage-daily.md
           {
-            echo "### Weekly LLM Usage"
-            echo "**Lookback:** ${DAYS} day(s)"
-            echo "**Dashboard:** reports/llm-usage-weekly.md"
+            echo "### Daily LLM Budget"
+            echo "Lookback: 1 day"
+            echo "Report: reports/llm-usage-daily.md"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload weekly LLM dashboard
+      - name: Upload daily LLM dashboard
         uses: actions/upload-artifact@v4
         with:
-          name: llm-usage-weekly
-          path: reports/llm-usage-weekly.md
+          name: llm-usage-daily
+          path: reports/llm-usage-daily.md
           if-no-files-found: ignore
 
   notify-failure:
     runs-on: ubuntu-latest
-    needs: report
+    needs: budget-check
     if: failure()
     steps:
       - name: Notify Slack
@@ -71,10 +65,5 @@ jobs:
           fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -sS -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"❌ Weekly LLM usage report failed\n${RUN_URL}\"}" \
+            --data "{\"text\":\"❌ Daily LLM budget check failed\n${RUN_URL}\"}" \
             "$SLACK_WEBHOOK_URL"
-
-      - name: Print failure summary
-        run: |
-          echo "::error::Weekly LLM usage report failed."
-          echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

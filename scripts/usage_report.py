@@ -64,7 +64,21 @@ def parse_jsonl(path: Path) -> list[dict]:
     return records
 
 
-def summarize(records: list[dict]) -> dict:
+def infer_record_category(record: dict) -> str:
+    operation = str(record.get("operation", "")).strip()
+    slug = str(record.get("slug", "")).strip().casefold()
+    if "image" in operation or "thumbnail" in operation:
+        return "image"
+    if operation.startswith("translate"):
+        return "translation"
+    if "ai-news" in slug or operation in {"generate_ai_news", "repair_ai_news"}:
+        return "ai-news"
+    if operation in {"generate_post", "generate_deep_dive"}:
+        return "deep-dive"
+    return "other"
+
+
+def summarize(records: list[dict], *, period_days: int = 7) -> dict:
     total = len(records)
     successes = sum(1 for record in records if record.get("success", True))
     by_provider: dict[str, dict[str, float | int]] = defaultdict(
@@ -73,45 +87,81 @@ def summarize(records: list[dict]) -> dict:
     by_model: dict[str, dict[str, float | int]] = defaultdict(
         lambda: {"calls": 0, "cost": 0.0, "success": 0}
     )
+    by_operation: dict[str, dict[str, float | int]] = defaultdict(
+        lambda: {"calls": 0, "cost": 0.0, "success": 0}
+    )
+    by_category: dict[str, dict[str, float | int]] = defaultdict(
+        lambda: {"calls": 0, "cost": 0.0, "success": 0}
+    )
     total_cost = 0.0
 
     for record in records:
         provider = str(record.get("provider", "unknown"))
         model = str(record.get("model", "unknown"))
+        operation = str(record.get("operation", "unknown"))
+        category = infer_record_category(record)
         cost = float(record.get("estimated_cost_usd", 0) or 0)
         success = bool(record.get("success", True))
 
-        by_provider[provider]["calls"] += 1
-        by_provider[provider]["cost"] += cost
-        if success:
-            by_provider[provider]["success"] += 1
-
-        by_model[model]["calls"] += 1
-        by_model[model]["cost"] += cost
-        if success:
-            by_model[model]["success"] += 1
+        for bucket, key in (
+            (by_provider, provider),
+            (by_model, model),
+            (by_operation, operation),
+            (by_category, category),
+        ):
+            bucket[key]["calls"] += 1
+            bucket[key]["cost"] += cost
+            if success:
+                bucket[key]["success"] += 1
 
         total_cost += cost
+
+    days = max(period_days, 1)
+    daily_avg = total_cost / days if total else 0.0
+    monthly_estimate = round(daily_avg * 30, 4)
 
     return {
         "total_calls": total,
         "successes": successes,
         "success_rate": (successes / total * 100) if total else 0.0,
         "total_cost_usd": round(total_cost, 4),
+        "period_days": days,
+        "daily_avg_cost_usd": round(daily_avg, 4),
+        "monthly_estimate_usd": monthly_estimate,
         "by_provider": {key: dict(value) for key, value in by_provider.items()},
         "by_model": {key: dict(value) for key, value in by_model.items()},
+        "by_operation": {key: dict(value) for key, value in by_operation.items()},
+        "by_category": {key: dict(value) for key, value in by_category.items()},
     }
+
+
+def _format_bucket_lines(summary: dict, bucket_key: str, title: str) -> list[str]:
+    lines = ["", title]
+    bucket = summary.get(bucket_key) or {}
+    if bucket:
+        for name, stats in sorted(bucket.items()):
+            calls = int(stats["calls"])
+            rate = int(stats["success"]) / calls * 100 if calls else 0
+            lines.append(
+                f"  {name}: {calls} calls, {rate:.0f}% success, ${stats['cost']:.4f}"
+            )
+    else:
+        lines.append("  (none)")
+    return lines
 
 
 def format_summary(summary: dict) -> str:
     lines = [
         "LLM Usage Summary",
+        f"Period: {summary.get('period_days', '?')} day(s)",
         f"Total calls: {summary['total_calls']}",
         (
             f"Success rate: {summary['success_rate']:.1f}% "
             f"({summary['successes']}/{summary['total_calls']})"
         ),
         f"Estimated cost: ${summary['total_cost_usd']:.4f}",
+        f"Daily average: ${summary.get('daily_avg_cost_usd', 0):.4f}",
+        f"Monthly estimate: ${summary.get('monthly_estimate_usd', 0):.4f}",
         "",
         "By provider:",
     ]
@@ -135,6 +185,59 @@ def format_summary(summary: dict) -> str:
             )
     else:
         lines.append("  (none)")
+    lines.extend(_format_bucket_lines(summary, "by_category", "By category:"))
+    lines.extend(_format_bucket_lines(summary, "by_operation", "By operation:"))
+    return "\n".join(lines)
+
+
+def format_markdown(summary: dict) -> str:
+    lines = [
+        "# LLM Usage Dashboard",
+        "",
+        f"- **Period:** {summary.get('period_days', '?')} day(s)",
+        f"- **Total calls:** {summary['total_calls']}",
+        (
+            f"- **Success rate:** {summary['success_rate']:.1f}% "
+            f"({summary['successes']}/{summary['total_calls']})"
+        ),
+        f"- **Estimated cost:** ${summary['total_cost_usd']:.4f}",
+        f"- **Daily average:** ${summary.get('daily_avg_cost_usd', 0):.4f}",
+        f"- **Monthly estimate:** ${summary.get('monthly_estimate_usd', 0):.4f}",
+        "",
+        "## By provider",
+        "",
+        "| Provider | Calls | Success % | Cost (USD) |",
+        "| --- | ---: | ---: | ---: |",
+    ]
+    for provider, stats in sorted((summary.get("by_provider") or {}).items()):
+        calls = int(stats["calls"])
+        rate = int(stats["success"]) / calls * 100 if calls else 0
+        lines.append(
+            f"| {provider} | {calls} | {rate:.0f}% | ${stats['cost']:.4f} |"
+        )
+    if not summary.get("by_provider"):
+        lines.append("| (none) | 0 | 0% | $0.0000 |")
+
+    lines.extend(["", "## By category", "", "| Category | Calls | Success % | Cost (USD) |", "| --- | ---: | ---: | ---: |"])
+    for category, stats in sorted((summary.get("by_category") or {}).items()):
+        calls = int(stats["calls"])
+        rate = int(stats["success"]) / calls * 100 if calls else 0
+        lines.append(
+            f"| {category} | {calls} | {rate:.0f}% | ${stats['cost']:.4f} |"
+        )
+    if not summary.get("by_category"):
+        lines.append("| (none) | 0 | 0% | $0.0000 |")
+
+    lines.extend(["", "## By operation", "", "| Operation | Calls | Success % | Cost (USD) |", "| --- | ---: | ---: | ---: |"])
+    for operation, stats in sorted((summary.get("by_operation") or {}).items()):
+        calls = int(stats["calls"])
+        rate = int(stats["success"]) / calls * 100 if calls else 0
+        lines.append(
+            f"| {operation} | {calls} | {rate:.0f}% | ${stats['cost']:.4f} |"
+        )
+    if not summary.get("by_operation"):
+        lines.append("| (none) | 0 | 0% | $0.0000 |")
+
     return "\n".join(lines)
 
 
@@ -222,12 +325,10 @@ def fetch_from_actions(days: int) -> list[dict]:
 
 
 def check_budget(summary: dict, budget: float) -> bool:
-    total_calls = summary["total_calls"]
-    if total_calls == 0:
+    if summary["total_calls"] == 0:
         return True
 
-    avg_cost = summary["total_cost_usd"] / total_calls
-    monthly_estimate = avg_cost * total_calls
+    monthly_estimate = float(summary.get("monthly_estimate_usd", 0) or 0)
     if monthly_estimate > budget:
         print(
             f"::warning::LLM monthly estimate ${monthly_estimate:.2f} "
@@ -243,6 +344,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--from-actions", action="store_true")
     parser.add_argument("--days", type=int, default=7)
     parser.add_argument("--slack", action="store_true")
+    parser.add_argument(
+        "--slack-on-warn",
+        action="store_true",
+        help="Post to Slack only when monthly estimate exceeds --warn-budget",
+    )
+    parser.add_argument("--markdown", action="store_true", help="Emit markdown dashboard")
+    parser.add_argument("--output", type=Path, help="Write report text to this file")
     parser.add_argument("--warn-budget", type=float, default=LLM_MONTHLY_BUDGET_USD)
     args = parser.parse_args(argv)
 
@@ -251,13 +359,24 @@ def main(argv: list[str] | None = None) -> int:
     else:
         records = parse_jsonl(args.log_file)
 
-    summary = summarize(records)
-    text = format_summary(summary)
+    summary = summarize(records, period_days=args.days)
+    text = format_markdown(summary) if args.markdown else format_summary(summary)
     print(text)
-    check_budget(summary, args.warn_budget)
+    within_budget = check_budget(summary, args.warn_budget)
+
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(text + "\n", encoding="utf-8")
 
     if args.slack:
         post_slack(text)
+    elif args.slack_on_warn and not within_budget:
+        post_slack(
+            "LLM budget warning\n"
+            f"Monthly estimate: ${summary.get('monthly_estimate_usd', 0):.2f} "
+            f"(budget ${args.warn_budget:.2f})\n"
+            f"Period cost: ${summary['total_cost_usd']:.4f} over {args.days} day(s)"
+        )
 
     return 0
 

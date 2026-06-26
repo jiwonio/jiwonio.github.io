@@ -5,7 +5,9 @@ from pathlib import Path
 
 from usage_report import (
     check_budget,
+    format_markdown,
     format_summary,
+    infer_record_category,
     is_production_llm_record,
     parse_jsonl,
     parse_llm_usage_line,
@@ -28,12 +30,14 @@ class UsageReportTests(unittest.TestCase):
                 "estimated_cost_usd": 0.02,
             },
         ]
-        summary = summarize(records)
+        summary = summarize(records, period_days=7)
         self.assertEqual(summary["total_calls"], 2)
         self.assertEqual(summary["successes"], 1)
         self.assertAlmostEqual(summary["success_rate"], 50.0)
         self.assertAlmostEqual(summary["total_cost_usd"], 0.03)
         self.assertEqual(summary["by_provider"]["gemini"]["calls"], 1)
+        self.assertIn("by_category", summary)
+        self.assertIn("monthly_estimate_usd", summary)
 
     def test_parse_jsonl_skips_invalid_lines(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -62,11 +66,11 @@ class UsageReportTests(unittest.TestCase):
         self.assertIn("gpt-4.1", text)
 
     def test_check_budget_warns_when_over_threshold(self):
-        summary = {"total_calls": 10, "total_cost_usd": 60.0}
+        summary = {"total_calls": 10, "total_cost_usd": 60.0, "monthly_estimate_usd": 60.0}
         self.assertFalse(check_budget(summary, 50.0))
 
     def test_check_budget_passes_when_under_threshold(self):
-        summary = {"total_calls": 10, "total_cost_usd": 20.0}
+        summary = {"total_calls": 10, "total_cost_usd": 20.0, "monthly_estimate_usd": 20.0}
         self.assertTrue(check_budget(summary, 50.0))
 
     def test_parse_llm_usage_line_accepts_actions_log_format(self):
@@ -93,6 +97,34 @@ class UsageReportTests(unittest.TestCase):
     def test_format_summary_shows_none_when_empty(self):
         text = format_summary(summarize([]))
         self.assertIn("(none)", text)
+
+    def test_infer_record_category(self):
+        self.assertEqual(
+            infer_record_category({"operation": "translate_en", "slug": "demo"}),
+            "translation",
+        )
+        self.assertEqual(
+            infer_record_category({"operation": "generate_post", "slug": "ai-news-2026-06-25"}),
+            "ai-news",
+        )
+
+    def test_format_markdown_includes_tables(self):
+        summary = summarize(
+            [
+                {
+                    "provider": "gemini",
+                    "model": "gemini-2.5-pro",
+                    "operation": "generate_post",
+                    "slug": "demo",
+                    "success": True,
+                    "estimated_cost_usd": 0.1,
+                }
+            ],
+            period_days=1,
+        )
+        text = format_markdown(summary)
+        self.assertIn("# LLM Usage Dashboard", text)
+        self.assertIn("| gemini |", text)
 
 if __name__ == "__main__":
     unittest.main()

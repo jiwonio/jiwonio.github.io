@@ -10,6 +10,12 @@ from urllib.request import Request, urlopen
 import yaml
 
 from blog_i18n import DEFAULT_LANG, resolve_effective_date, translation_langs_for_metadata
+from post_analysis import (
+    count_markdown_h2,
+    extract_reference_urls as analysis_extract_reference_urls,
+    get_changed_post_paths,
+    prose_body,
+)
 from post_common import find_invalid_internal_post_slugs, get_existing_ko_slugs
 from post_schema import (
     CODE_BLOCK_PATTERN,
@@ -34,6 +40,8 @@ MIN_JA_CHARS = 20
 MIN_ZH_CHARS = 20
 MAX_EN_KO_CHARS = 120
 REF_CHECK_TIMEOUT = 8
+H2_COUNT_TOLERANCE = 3
+REF_URL_COUNT_TOLERANCE = 2
 # Hosts that block automated HEAD/GET checks but serve valid pages in browsers.
 REF_URL_SKIP_HOSTS = frozenset({
     "marketplace.visualstudio.com",
@@ -63,28 +71,64 @@ def find_unexpected_scripts(content):
     return sorted(set(UNEXPECTED_SCRIPT_PATTERN.findall(prose)))
 
 
-def prose_body(content: str) -> str:
-    match = FRONT_MATTER_PATTERN.match(content)
-    body = content[match.end() :] if match else content
-    return CODE_BLOCK_PATTERN.sub("", body)
-
-
 def extract_body_external_urls(content: str) -> list[str]:
     prose = prose_body(content)
     return BODY_EXTERNAL_LINK_PATTERN.findall(prose)
 
 
 def extract_reference_urls(content: str) -> list[str]:
-    refs_start = content.find("### 참고문헌")
-    if refs_start < 0:
-        for heading in ("### References", "### 参考", "### 参考文獻", "### 参考资料", "### 参考文献"):
-            refs_start = content.find(heading)
-            if refs_start >= 0:
-                break
-    if refs_start < 0:
-        return []
-    section = content[refs_start:]
-    return REFERENCE_URL_PATTERN.findall(section)
+    return analysis_extract_reference_urls(content)
+
+
+def validate_translation_structure(translation_groups: dict) -> list[str]:
+    """Compare H2 and reference URL counts across translation_key groups."""
+    errors: list[str] = []
+
+    for key, langs in translation_groups.items():
+        source = langs.get(DEFAULT_LANG)
+        if not source or len(langs) < 2:
+            continue
+
+        source_path, _source_meta = source
+        try:
+            source_content = source_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            errors.append(f"{source_path}: cannot read source for structure check: {exc}")
+            continue
+
+        source_h2 = count_markdown_h2(source_content)
+        source_refs = len(extract_reference_urls(source_content))
+
+        for lang, (path, _metadata) in langs.items():
+            if lang == DEFAULT_LANG:
+                continue
+            try:
+                content = path.read_text(encoding="utf-8")
+            except OSError as exc:
+                errors.append(f"{path}: cannot read translation for structure check: {exc}")
+                continue
+
+            h2_count = count_markdown_h2(content)
+            ref_count = len(extract_reference_urls(content))
+
+            if source_h2 > 0:
+                min_h2 = max(1, source_h2 - H2_COUNT_TOLERANCE)
+                max_h2 = source_h2 + H2_COUNT_TOLERANCE
+                if not (min_h2 <= h2_count <= max_h2):
+                    errors.append(
+                        f"translation structure mismatch for '{key}': "
+                        f"{DEFAULT_LANG} has {source_h2} H2 sections but {lang} has {h2_count} "
+                        f"(expected {min_h2}~{max_h2}, {path})"
+                    )
+
+            if source_refs > 0 and abs(ref_count - source_refs) > REF_URL_COUNT_TOLERANCE:
+                errors.append(
+                    f"translation reference count mismatch for '{key}': "
+                    f"{DEFAULT_LANG} has {source_refs} reference URLs but {lang} has {ref_count} "
+                    f"(tolerance ±{REF_URL_COUNT_TOLERANCE}, {path})"
+                )
+
+    return errors
 
 
 def validate_language_content(lang: str, content: str) -> str | None:
@@ -203,6 +247,8 @@ def validate_posts(
     *,
     check_ref_urls: bool = False,
     check_external_urls: bool = False,
+    changed_only: bool = False,
+    changed_base_ref: str = "HEAD",
 ):
     errors = []
     tag_spellings = defaultdict(set)
@@ -212,8 +258,30 @@ def validate_posts(
         site_root = posts_dir.parent
 
     checked_reference_urls: dict[str, str | None] = {}
+    changed_paths: set[Path] | None = None
+    if changed_only:
+        changed_paths = set(get_changed_post_paths(posts_dir, base_ref=changed_base_ref))
+        if not changed_paths:
+            print("No changed posts detected; skipping validation.")
+            return []
 
-    for path in sorted(posts_dir.rglob("*.md")):
+    all_paths = sorted(posts_dir.rglob("*.md"))
+    for path in all_paths:
+        try:
+            _, metadata = load_post(path)
+        except (OSError, UnicodeError, yaml.YAMLError, ValueError):
+            continue
+        lang = detect_lang(path, metadata)
+        slug = metadata.get("slug") or path.stem[11:]
+        normalized_slug = re.sub(r"[^a-z0-9]+", "-", str(slug).lower()).strip("-")
+        translation_key = metadata.get("translation_key") or normalized_slug
+        translation_groups[translation_key][lang] = (path, metadata)
+
+    paths_to_scan = all_paths
+    if changed_paths is not None:
+        paths_to_scan = [path for path in all_paths if path in changed_paths]
+
+    for path in paths_to_scan:
         try:
             content, metadata = load_post(path)
             validate_image_file(metadata["image"], site_root)
@@ -235,9 +303,6 @@ def validate_posts(
         slug = metadata.get("slug") or path.stem[11:]
         normalized_slug = re.sub(r"[^a-z0-9]+", "-", str(slug).lower()).strip("-")
         output_paths[(lang, normalized_slug)].append(path)
-
-        translation_key = metadata.get("translation_key") or normalized_slug
-        translation_groups[translation_key][lang] = (path, metadata)
 
         if not has_standalone_line(content, "<!--more-->"):
             errors.append(f"{path}: missing standalone <!--more--> excerpt separator")
@@ -292,37 +357,53 @@ def validate_posts(
                 + ", ".join(str(path) for path in paths)
             )
 
-    for key, langs in translation_groups.items():
-        source = langs.get(DEFAULT_LANG)
-        if not source:
-            continue
-
-        source_path, source_meta = source
-        expected_langs = set(translation_langs_for_metadata(source_meta))
-        present_langs = set(langs)
-        missing_langs = sorted(expected_langs - present_langs)
-        if missing_langs:
-            errors.append(
-                f"missing translations for '{key}' ({source_path.name}): "
-                + ", ".join(missing_langs)
-            )
-
-        if len(langs) < 2:
-            continue
-
-        source_date = resolve_effective_date(source_path, source_meta)
-        for lang, (path, metadata) in langs.items():
-            if lang == DEFAULT_LANG:
+    if changed_paths is None:
+        for key, langs in translation_groups.items():
+            source = langs.get(DEFAULT_LANG)
+            if not source:
                 continue
-            post_date = resolve_effective_date(path, metadata)
-            if post_date != source_date:
+
+            source_path, source_meta = source
+            expected_langs = set(translation_langs_for_metadata(source_meta))
+            present_langs = set(langs)
+            missing_langs = sorted(expected_langs - present_langs)
+            if missing_langs:
                 errors.append(
-                    f"translation date mismatch for '{key}': "
-                    f"{DEFAULT_LANG}={source_date}, {lang}={post_date} ({path})"
+                    f"missing translations for '{key}' ({source_path.name}): "
+                    + ", ".join(missing_langs)
                 )
 
+            if len(langs) < 2:
+                continue
+
+            source_date = resolve_effective_date(source_path, source_meta)
+            for lang, (path, metadata) in langs.items():
+                if lang == DEFAULT_LANG:
+                    continue
+                post_date = resolve_effective_date(path, metadata)
+                if post_date != source_date:
+                    errors.append(
+                        f"translation date mismatch for '{key}': "
+                        f"{DEFAULT_LANG}={source_date}, {lang}={post_date} ({path})"
+                    )
+        errors.extend(validate_translation_structure(translation_groups))
+    else:
+        affected_keys: set[str] = set()
+        for path in changed_paths:
+            langs = translation_groups
+            for key, group in langs.items():
+                if any(item_path == path for item_path, _meta in group.values()):
+                    affected_keys.add(key)
+        partial_groups = {
+            key: translation_groups[key]
+            for key in affected_keys
+            if key in translation_groups
+        }
+        errors.extend(validate_translation_structure(partial_groups))
+
     ko_slug_set = set(get_existing_ko_slugs())
-    for path in sorted(posts_dir.rglob("*.md")):
+    internal_link_scan = paths_to_scan if changed_paths is not None else sorted(posts_dir.rglob("*.md"))
+    for path in internal_link_scan:
         try:
             content, metadata = load_post(path)
         except (OSError, UnicodeError, yaml.YAMLError, ValueError):
@@ -400,6 +481,16 @@ def main():
         action="store_true",
         help="Audit deep-dive translation completeness only (legacy alias)",
     )
+    parser.add_argument(
+        "--changed-only",
+        action="store_true",
+        help="Validate only git-changed or untracked posts under --posts-dir",
+    )
+    parser.add_argument(
+        "--changed-base-ref",
+        default="HEAD",
+        help="Git base ref for --changed-only (default: HEAD)",
+    )
     args = parser.parse_args()
 
     if args.audit_translations:
@@ -423,6 +514,8 @@ def main():
         args.posts_dir,
         check_ref_urls=args.check_ref_urls,
         check_external_urls=args.check_external_urls,
+        changed_only=args.changed_only,
+        changed_base_ref=args.changed_base_ref,
     )
     if errors:
         for error in errors:

@@ -1,0 +1,95 @@
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+from post_analysis import (
+    count_markdown_h2,
+    extract_reference_urls,
+    find_informal_ko_lines,
+    title_similarity,
+    tokenize,
+)
+
+
+class PostAnalysisTests(unittest.TestCase):
+    def test_count_markdown_h2_ignores_code_blocks(self):
+        content = """---
+title: t
+---
+Intro
+
+<!--more-->
+
+## Section A
+
+```md
+## not counted
+```
+
+## Section B
+"""
+        self.assertEqual(count_markdown_h2(content), 2)
+
+    def test_extract_reference_urls_supports_english_heading(self):
+        content = """---
+title: t
+---
+Body
+
+## References
+- [Example](https://example.com/docs)
+- https://example.com/plain
+"""
+        self.assertEqual(
+            extract_reference_urls(content),
+            ["https://example.com/docs", "https://example.com/plain"],
+        )
+
+    def test_title_similarity_detects_overlap(self):
+        score = title_similarity(
+            "Cursor IDE real world review",
+            "Real world Cursor IDE adaptation",
+        )
+        self.assertGreaterEqual(score, 0.4)
+
+    def test_tokenize_removes_stop_words(self):
+        tokens = tokenize("Building production guide with docker")
+        self.assertNotIn("with", tokens)
+        self.assertIn("docker", tokens)
+
+    def test_find_informal_ko_lines(self):
+        content = """---
+title: t
+---
+정상적인 문장입니다.
+
+<!--more-->
+
+이건 해요. 그리고 또 하나예요.
+"""
+        hits = find_informal_ko_lines(content)
+        self.assertTrue(any("해요" in line for line in hits))
+
+    def test_get_changed_post_paths_uses_git(self):
+        from post_analysis import get_changed_post_paths
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            posts = root / "_posts" / "ko" / "2026"
+            posts.mkdir(parents=True)
+            changed = posts / "2026-06-01-demo.md"
+            changed.write_text("---\nlayout: post\n---\n", encoding="utf-8")
+
+            with mock.patch("post_analysis.subprocess.run") as run_mock:
+                run_mock.return_value = mock.Mock(
+                    returncode=0,
+                    stdout=f"_posts/ko/2026/{changed.name}\n",
+                )
+                paths = get_changed_post_paths(root / "_posts")
+            self.assertEqual(len(paths), 1)
+            self.assertTrue(str(paths[0]).endswith("2026-06-01-demo.md"))
+
+
+if __name__ == "__main__":
+    unittest.main()

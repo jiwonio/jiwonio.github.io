@@ -12,6 +12,10 @@ runs:
       shell: bash
       run: python scripts/validate_posts.py
 
+    - name: Validate changed post reference URLs
+      shell: bash
+      run: python scripts/validate_posts.py --check-ref-urls --changed-only
+
     - name: Audit translation completeness
       shell: bash
       run: python scripts/validate_posts.py --audit-translations
