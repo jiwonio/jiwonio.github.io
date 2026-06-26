@@ -32,6 +32,11 @@ jobs:
         run: |
           PERF=$(python -c "import json; print(int(json.load(open('lighthouse-report.json'))['categories']['performance']['score']*100))")
           echo "Lighthouse performance score: ${PERF}%"
+          {
+            echo "### Lighthouse Performance"
+            echo "**Score:** ${PERF}% (threshold 80%)"
+            echo "**URL:** https://blog.jiwon.io/"
+          } >> "$GITHUB_STEP_SUMMARY"
           if [ "$PERF" -lt 80 ]; then
             echo "::warning::Lighthouse performance ${PERF}% is below threshold (80)"
             if [ -n "$SLACK_WEBHOOK_URL" ]; then

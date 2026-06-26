@@ -9,12 +9,11 @@
 
 ### 다음 작업 (2026-06-26 기준)
 
-배포 성공 후 Lighthouse 80% 자동 측정·Slack 알림 대기 (deploy job에서 실행).
+**미완료:** 선택 항목만 남음. 주간 Lighthouse·배포 CI는 정상.
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **중간** | Lighthouse 80% 달성 확인 | 4차: inline @font-face, optional, preload, 주간 측정만 |
-| **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 2~4주 후 |
+| **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 2~4주 후 (~2026-07 말) |
 
 ---
 
@@ -135,18 +134,19 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
-| (이번) | htmlproofer 수정, JP/SC 단일 woff2, 폰트·Lighthouse·IndexNow 자동화 |
+| `89e6ac7` | perf 4차: inline @font-face, optional, preload — Lighthouse 주간만, Deploy #216 green |
+| `fa67f37` | perf 3차 (회귀 61%) — async font CSS, deploy 직후 Lighthouse (이후 롤백) |
+| `8dcd011` | htmlproofer 수정, JP/SC 단일 woff2, 폰트·IndexNow 자동화, devcontainer |
 | `b059f9e` | perf 2차: KR 단일 woff2, Cloudflare email-decode 제거 |
 | `12fce6b` | TODO 갱신 (Deploy #212–213 htmlproofer 실패) |
 | `14db9ef` | pip openai 2.x·google-genai 2.x — Deploy #202 green |
-| `7fb313d` | 백로그 일괄 — Deploy #201 green |
 
 ---
 
 ## 알려진 이슈 · 검토 필요
 
 - [x] Deploy #212–213 htmlproofer 실패 — 이메일 링크 `href="#"` 추가 (2026-06-26)
-- [ ] Windows 로컬 `htmlproofer` libcurl 미설치로 실패 가능 — CI·devcontainer가 정본
+- [x] Windows 로컬 `htmlproofer` libcurl 미설치로 실패 가능 — CI·devcontainer가 정본 (수용, 2026-06-26)
 
 ---
 
@@ -168,6 +168,7 @@ cd e2e && npm ci && npx playwright test
 
 - [x] Actions·Gemfile·pip 의존성 일괄 업데이트 (2026-06-26)
 - [x] Deploy #202 green (2026-06-26)
+- [x] Deploy #216 green — perf 4차 후 배포 (2026-06-26)
 
 ---
 
@@ -195,7 +196,7 @@ cd e2e && npm ci && npx playwright test
 - [x] 신규 글자 시 폰트 자동 재생성 — `check_font_subset.py --fix` (AI 포스트·sync_maintenance, 2026-06-26)
 - [x] Cloudflare `email-decode` 제거 (2026-06-26)
 - [x] Pagefind lazy load — `pagefind-search.html` IntersectionObserver (2026-06-26)
-- [ ] Lighthouse 80% 달성 — `lighthouse.yml` 주간 측정·Slack (deploy 직후 측정 제거, 2026-06-26)
+- [x] Lighthouse 80% 달성 — 4차 검증 run #28235201791 ≥80% (Slack 없음), `lighthouse.yml` 주간 측정·Slack (2026-06-26)
 
 ### 콘텐츠·SEO
 
@@ -233,6 +234,7 @@ cd e2e && npm ci && npx playwright test
 - [x] 수동 검수 제거 → pre-merge 자동 검증 + auto-merge
 - [x] GitHub App용 action 스캐폴딩
 - [x] perf 1차·2차 (critical CSS, site.js, KR/JP/SC 단일 woff2)
+- [x] perf 4차 (inline @font-face, optional, preload, Lighthouse 주간 전환)
 
 ---
 
