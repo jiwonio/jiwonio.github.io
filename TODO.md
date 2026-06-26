@@ -1,11 +1,25 @@
 # TODO — blog.jiwon.io
 
-> **마지막 갱신:** 2026-06-25  
+> **마지막 갱신:** 2026-06-26
 > **브랜치:** `gh-pages` (배포·개발 모두 이 브랜치)  
 > **저장소:** https://github.com/jwjp/jwjp.github.io  
 > **사이트:** https://blog.jiwon.io
 
 나중에 Grok 등으로 이어서 작업할 항목입니다. 완료되면 `- [x]` 체크하고 날짜를 적어 주세요.
+
+### 다음 작업 (2026-06-26 기준)
+
+인프라·배포 핵심은 완료. 남은 일은 **운영 점검 → Dependabot → 모니터링 → 성능** 순.
+
+| 우선순위 | 할 일 | 비고 |
+|----------|--------|------|
+| **높음** | Secret 3종 점검 (`MY_PAT` 만료, Slack, LLM API 4키) | GitHub UI·Slack 수동 확인 |
+| **높음** | pip Dependabot patch/minor PR 머지 | `dependabot_automerge` 활용 |
+| **높음** | `openai>=2.x` PR — `llm_client.py` 호환 검증 후 별도 머지 | major 업그레이드 |
+| **중간** | 주간 워크플로 알림 확인 (LLM 비용, 번역 감사, watchdog, 썸네일) | Slack 수신 여부 |
+| **중간** | Lighthouse 80 미만 시 성능 개선 | 일요일 06:00 UTC 자동 실행 |
+| **낮음** | E2E·url_check 주간 결과, IndexNow 색인, (선택) JP/SC 폰트 | 지속 모니터링 |
+| **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 2~4주 후 |
 
 ---
 
@@ -125,7 +139,8 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
-| `7fb313d` | 백로그 일괄: deps·폰트 서브셋·sys.path 정리·E2E·LLM 예산 $75 |
+| `937fc57` | TODO 갱신, post-deploy 점검 반영 |
+| `7fb313d` | 백로그 일괄: deps·폰트 서브셋·sys.path 정리·E2E·LLM 예산 $75 — Deploy #201 green |
 | `9b8c4bf` | AI 뉴스 격식체, RSS MIME/리다이렉트, UI·Pagefind 개선 |
 | `8412740` | 태그 아카이브 언어 전환: 존재하는 페이지만 링크, `tag_slug_translations` 매핑 |
 | `8c6331a` | TODO.md 추가, README 정리 |
@@ -163,7 +178,7 @@ cd e2e && npm ci && npx playwright test
 - [x] Actions 버전 일괄 업데이트 (checkout v7, setup-python v6 등, 2026-06-25)
 - [x] `dependabot_automerge.yml`에 GitHub App 토큰 적용 (2026-06-25)
 - [x] Jekyll 4.4.1 / jekyll-archives 2.3.0 Gemfile 반영 (2026-06-25)
-- [ ] `7fb313d` push 후 `jekyll.yml` CI green 확인 (Actions 업그레이드·폰트 변경 검증)
+- [x] `7fb313d` push 후 `jekyll.yml` CI green 확인 — Deploy Jekyll site to Pages #201 (2026-06-26)
 - [ ] pip Dependabot (feedparser, google-genai, pillow, pyyaml) — patch/minor 머지
 - [ ] `openai>=2.x` Dependabot PR — `llm_client.py` 호환 검증 후 별도 머지
 
@@ -240,6 +255,7 @@ cd e2e && npm ci && npx playwright test
 - [x] ai-news 신규 글(2026-06-24~) en/ja/zh 자동 번역
 - [x] GitHub App용 action 스캐폴딩 (Secret만 넣으면 활성화)
 - [x] 태그 아카이브 언어 전환 깨진 링크 수정 (`tag_slug`, `tag_slug_translations`) — `8412740`
+- [x] Actions·Gemfile·폰트 서브셋 백로그 일괄 + `jekyll.yml` Deploy #201 통과 — `7fb313d` (2026-06-26)
 
 ---
 
