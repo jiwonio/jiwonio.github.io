@@ -55,6 +55,28 @@ def audit_pagefind(site_dir: Path) -> list[str]:
     return warnings
 
 
+def collect_link_health(posts_dir: Path, *, hub_limit: int = 5) -> dict:
+    inbound, slug_paths = build_internal_link_graph(posts_dir)
+    orphans: list[dict[str, str]] = []
+    for slug, path in sorted(slug_paths.items()):
+        sources = inbound.get(slug, set())
+        if len(sources) < MIN_INBOUND_LINKS:
+            orphans.append({"slug": slug, "file": path.name})
+
+    hubs = sorted(
+        ((slug, len(inbound.get(slug, set()))) for slug in slug_paths),
+        key=lambda item: item[1],
+        reverse=True,
+    )[:hub_limit]
+
+    return {
+        "total_posts": len(slug_paths),
+        "orphan_count": len(orphans),
+        "orphans_sample": orphans[:8],
+        "top_hubs": [{"slug": slug, "inbound": count} for slug, count in hubs if count > 0],
+    }
+
+
 def audit_internal_links(posts_dir: Path) -> list[str]:
     warnings: list[str] = []
     inbound, slug_paths = build_internal_link_graph(posts_dir)
@@ -66,13 +88,11 @@ def audit_internal_links(posts_dir: Path) -> list[str]:
                 f"orphan post (no inbound /posts/ links): {slug} ({path.name})"
             )
 
-    hub_candidates = sorted(
-        ((slug, len(sources)) for slug, sources in inbound.items()),
-        key=lambda item: item[1],
-        reverse=True,
-    )[:5]
-    if hub_candidates:
-        summary = ", ".join(f"{slug}({count})" for slug, count in hub_candidates)
+    health = collect_link_health(posts_dir)
+    if health["top_hubs"]:
+        summary = ", ".join(
+            f"{hub['slug']}({hub['inbound']})" for hub in health["top_hubs"]
+        )
         print(f"Top linked posts: {summary}")
 
     return warnings

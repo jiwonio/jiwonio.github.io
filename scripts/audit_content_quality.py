@@ -154,6 +154,25 @@ def audit_slug_token_overlap(posts: list[tuple[Path, dict, str]]) -> list[str]:
     return warnings
 
 
+def collect_content_warnings(
+    posts_dir: Path,
+    *,
+    skip_url_check: bool = False,
+) -> dict[str, list[str] | int]:
+    posts = load_ko_posts(posts_dir)
+    similarity = audit_title_similarity(posts)
+    informal = audit_informal_style(posts)
+    tokens = audit_slug_token_overlap(posts)
+    ai_news_urls = [] if skip_url_check else audit_ai_news_urls(posts)
+    return {
+        "similarity": similarity,
+        "informal_style": informal,
+        "overused_tokens": tokens,
+        "ai_news_urls": ai_news_urls,
+        "total_warnings": len(similarity) + len(informal) + len(tokens) + len(ai_news_urls),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Audit AI content quality signals")
     parser.add_argument("--posts-dir", type=Path, default=POSTS_DIR)
@@ -169,13 +188,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    posts = load_ko_posts(args.posts_dir)
+    collected = collect_content_warnings(args.posts_dir, skip_url_check=args.skip_url_check)
     warnings: list[str] = []
-    warnings.extend(audit_title_similarity(posts))
-    warnings.extend(audit_informal_style(posts))
-    warnings.extend(audit_slug_token_overlap(posts))
-    if not args.skip_url_check:
-        warnings.extend(audit_ai_news_urls(posts))
+    for key in ("similarity", "informal_style", "overused_tokens", "ai_news_urls"):
+        warnings.extend(collected[key])
 
     if warnings:
         for warning in warnings:
