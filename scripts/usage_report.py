@@ -26,6 +26,16 @@ ACTION_WORKFLOWS = (
 )
 
 
+def is_production_llm_record(record: dict) -> bool:
+    """Skip unittest/dry-run notices that share the same workflow logs."""
+    operation = str(record.get("operation", ""))
+    slug = str(record.get("slug", ""))
+    input_chars = int(record.get("input_chars", 0) or 0)
+    if operation == "generate_post" and slug in {"", "demo"} and input_chars == 0:
+        return False
+    return True
+
+
 def parse_llm_usage_line(line: str) -> dict | None:
     """Parse llm_usage JSON from local (::notice::) or Actions (##[notice]) log lines."""
     index = line.find(LLM_USAGE_MARKER)
@@ -205,7 +215,7 @@ def fetch_from_actions(days: int) -> list[dict]:
 
             for line in log_result.stdout.splitlines():
                 record = parse_llm_usage_line(line)
-                if record:
+                if record and is_production_llm_record(record):
                     records.append(record)
 
     return records

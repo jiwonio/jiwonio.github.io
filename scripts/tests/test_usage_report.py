@@ -6,6 +6,7 @@ from pathlib import Path
 from usage_report import (
     check_budget,
     format_summary,
+    is_production_llm_record,
     parse_jsonl,
     parse_llm_usage_line,
     summarize,
@@ -76,6 +77,18 @@ class UsageReportTests(unittest.TestCase):
         record = parse_llm_usage_line(line)
         self.assertIsNotNone(record)
         self.assertEqual(record["provider"], "gemini")
+
+    def test_is_production_llm_record_skips_unittest_notices(self):
+        self.assertFalse(
+            is_production_llm_record(
+                {"operation": "generate_post", "slug": "demo", "input_chars": 0}
+            )
+        )
+        self.assertTrue(
+            is_production_llm_record(
+                {"operation": "translate_en", "slug": "ai-news-2026-06-25", "input_chars": 100}
+            )
+        )
 
     def test_format_summary_shows_none_when_empty(self):
         text = format_summary(summarize([]))
