@@ -70,7 +70,7 @@ def local_font_filename(url: str) -> str:
     return f"noto-{digest}.woff2"
 
 
-def preload_faces(css: str, limit: int = 3) -> list[str]:
+def preload_faces(css: str, limit: int = 1) -> list[str]:
     """Return up to `limit` unique woff2 paths for weight-400 faces (above-the-fold)."""
     seen: list[str] = []
     blocks = re.findall(r"@font-face\s*\{([^}]+)\}", css, flags=re.DOTALL)
