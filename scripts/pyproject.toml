@@ -8,12 +8,12 @@ version = "0.1.0"
 description = "Automation scripts for blog.jiwon.io"
 requires-python = ">=3.11"
 dependencies = [
-    "PyYAML>=6.0,<7",
-    "google-genai>=1.0,<2",
+    "PyYAML>=6.0.3,<7",
+    "google-genai>=2.10.0,<3",
     "anthropic>=0.40,<1",
-    "openai>=1.50,<2",
-    "Pillow>=10.0,<13",
-    "feedparser>=6.0,<7",
+    "openai>=2.43.0,<3",
+    "Pillow>=12.2.0,<13",
+    "feedparser>=6.0.12,<7",
 ]
 
 [project.optional-dependencies]
