@@ -20,7 +20,7 @@ class GenerateWithRetryTests(unittest.TestCase):
     ):
         prompts: list[str] = []
 
-        def fake_generate(*, prompt, provider, model):
+        def fake_generate(*, prompt, provider, model, system_prompt=None):
             prompts.append(prompt)
             if len(prompts) == 1:
                 return TextGenerationResult("draft without marker", len(prompt), 20)

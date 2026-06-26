@@ -9,6 +9,7 @@ from pathlib import Path
 from llm_client import list_available_providers
 from post_common import (
     FORBIDDEN_REPEAT_COUNT,
+    body_after_more,
     count_token_frequency,
     format_repeated_tokens,
     generate_with_retry,
@@ -22,11 +23,25 @@ from post_common import (
     validate_base_content,
     validate_tag_consistency,
 )
+from prompt_config import DEEP_DIVE_SYSTEM_PROMPT
 
 AI_CODING_TOOLS = (
     "OpenAI Codex", "Claude Code", "Grok Build", "Antigravity CLI",
     "Cursor", "GitHub Copilot", "Copilot", "Junie AI", "JetBrains AI Assistant",
     "ChatGPT", "OpenAI", "Anthropic", "Gemini", "Ollama", "LM Studio",
+)
+
+BANNED_TITLE_PHRASES = (
+    "완벽 가이드", "완벽한", "프로덕션급", "Ultimate Guide", "ultimate guide",
+    "완전 정복", "마스터하기",
+)
+
+POST_ANGLES = (
+    "Before/After: 도입 전·후 워크플로 비교",
+    "실패 사례: 잘못 쓰면 생기는 문제 + 재현 가능한 증상",
+    "의사결정: A vs B 선택 기준표",
+    "숨은 비용: API·토큰·CI·인지 부하 등 간과되는 비용",
+    "팀 도입: 1인 → 3인 → 10인 팀에서 바뀌는 설정·규칙",
 )
 
 
@@ -78,7 +93,25 @@ def validate_deep_dive_content(content: str) -> tuple[dict, str]:
         )
 
     check_title_not_repetitive(metadata["title"], get_recent_titles(50), get_recent_slugs(50))
+
+    title_lower = str(metadata["title"]).casefold()
+    for phrase in BANNED_TITLE_PHRASES:
+        if phrase.casefold() in title_lower:
+            raise ValueError(f"제목에 금지된 포괄 표현이 있습니다: {phrase}")
+
+    if not has_application_table(content):
+        raise ValueError(
+            "결론에 적용 조건 표가 필요합니다. | 상황 | 추천 | 이유 | 형식의 마크다운 표를 포함하세요."
+        )
+
     return metadata, slug
+
+
+def has_application_table(content: str) -> bool:
+    body = body_after_more(content).split("### 참고문헌", 1)[0]
+    if "|" not in body:
+        return False
+    return ("상황" in body and "추천" in body and "이유" in body)
 
 
 def build_generation_prompt(recent_titles: list[str], recent_slugs: list[str], current_time: str) -> str:
@@ -91,8 +124,10 @@ def build_generation_prompt(recent_titles: list[str], recent_slugs: list[str], c
     forbidden_str = ", ".join(sorted(find_forbidden_tokens(token_counts))) or "없음"
     repeated_str = ", ".join(format_repeated_tokens(token_counts)) or "아직 뚜렷한 반복 패턴 없음"
 
+    angles_str = "\n".join(f"- {angle}" for angle in POST_ANGLES)
+
     return f"""
-당신은 시니어 풀스택 웹 개발자입니다. 이 블로그는 **AI 코딩 도구와 LLM 활용**을 주력 주제로 다룹니다.
+이 블로그는 **AI 코딩 도구와 LLM 활용**을 주력 주제로 다룹니다.
 아래 도구·서비스 중 하나를 중심으로, 실무에서 바로 쓸 수 있는 포스트를 작성하세요.
 
 **[핵심 주제: AI 코딩 도구 & LLM]**
@@ -102,11 +137,24 @@ def build_generation_prompt(recent_titles: list[str], recent_slugs: list[str], c
 - 로컬 LLM: Ollama, LM Studio
 - 공통 실무: 프롬프트 설계, 컨텍스트 관리, MCP/tool calling, 코드 리뷰·테스트 보조, 워크플로 비교
 
+**[글 각도 — 매 글 하나만 선택, 제목에 반영]**
+{angles_str}
+
 **[주제 선정 — 반드시 지킬 것]**
 - 매 글마다 {tools} 중 **아직 다루지 않은 도구**를 우선 선택하세요.
 - 제목·slug·태그 중 하나에는 선택한 도구명을 반드시 그대로 포함하세요. 없으면 자동으로 거부됩니다.
 - RAG, AWS, Kubernetes 등은 선택한 AI 도구와 직접 연결될 때만 보조로 언급하세요.
-- 설정 방법, 동작 원리, 트레이드오프, 실패 사례 중심으로 쓰세요.
+- 설정 나열만 하지 말고, 선택한 각도에 맞는 비교·실패·비용·팀 도입 관점을 유지하세요.
+
+**[제목 패턴 — 아래 중 하나]**
+- "{{도구}}로 {{문제}} 줄이기: {{방법 한 줄}}"
+- "{{도구}} {{기능}} 써 봤을 때 생긴 {{실수/비용}}"
+- "팀에 {{도구}} 도입할 때 {{역할}}이 먼저 정해야 할 것"
+"완벽 가이드", "프로덕션급", "완전 정복" 같은 포괄 표현 금지
+
+**[도입부 필수]**
+- 첫 2문단: 구체적 상황 1개 (PR 리뷰 밀림, 레거시 수정, 온콜 중 장애, 토큰 비용 폭증 등)
+- 세 번째 문단: 이 글을 읽으면 해결되는 한 가지를 명시
 
 **[최근 제목 — 주제·표현 모두 참고]**
 {recent_titles_str}
@@ -122,10 +170,14 @@ def build_generation_prompt(recent_titles: list[str], recent_slugs: list[str], c
 **[글쓰기 스타일]**
 - 블로그 주인이 직접 쓰는 1인칭 기술 글 (자기소개·직함 나열로 시작하지 않기)
 - 문장 끝은 '~습니다·입니다' 체로 자연스럽게 통일. '~요', '~해요', '~다' 체 금지
-- 짧고 명확한 문장. 불필요한 형용사·부사 최소화.
+- 짧고 명확한 문장. 불필요한 형용사·부사·마케팅 문구 최소화
 - 구조: 문제 → 원리 → 코드/설정 → 주의점 → 결론
 - 코드: 의미 있는 이름, 짧은 단위, 필요한 주석만(왜 하는지)
 - Secret은 플레이스홀더만 (`<YOUR_API_KEY>`)
+
+**[결론 필수]**
+| 상황 | 추천 | 이유 |
+형식의 마크다운 표를 포함하세요. 최소 3행(1인 사이드, 스타트업 5인, 레거시 많음 등).
 
 아래는 출력 순서를 안내하는 지침입니다. 번호와 설명("Front Matter", "도입부" 등)은
 지침일 뿐이며 결과물에 그대로 옮겨 쓰면 안 됩니다. 마크다운 글 본문 외 다른 설명은 출력하지 마세요.
@@ -176,6 +228,7 @@ def generate_blog_post(*, text_provider: str | None = None, translation_provider
         validate,
         post_type="deep-dive",
         text_provider=text_provider,
+        system_prompt=DEEP_DIVE_SYSTEM_PROMPT,
     )
 
     clean_english_topic = slug.replace("-", " ")

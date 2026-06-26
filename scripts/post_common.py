@@ -525,6 +525,7 @@ def generate_with_retry(
     *,
     post_type: str = "deep-dive",
     text_provider: str | None = None,
+    system_prompt: str | None = None,
     max_retries: int = 5,
     retry_backoff_seconds: int = 15,
 ) -> tuple[str, dict, str]:
@@ -539,7 +540,12 @@ def generate_with_retry(
                 f"🔄 AI 글쓰기 API 요청 중... "
                 f"({provider}/{model}, 시도 {attempt}/{max_retries})"
             )
-            result = llm_generate_text(prompt=current_prompt, provider=provider, model=model)
+            result = llm_generate_text(
+                prompt=current_prompt,
+                provider=provider,
+                model=model,
+                system_prompt=system_prompt,
+            )
             content = sanitize_generated_content(
                 strip_preamble(strip_code_fence(result.text))
             )

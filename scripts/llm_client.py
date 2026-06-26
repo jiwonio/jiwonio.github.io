@@ -174,7 +174,7 @@ def _read_url_with_size_cap(url: str, *, max_bytes: int = MAX_IMAGE_BYTES) -> by
         return b"".join(chunks)
 
 
-def _generate_gemini_text(prompt: str, model: str) -> str:
+def _generate_gemini_text(prompt: str, model: str, *, system_prompt: str | None = None) -> str:
     from google import genai
     from google.genai import types
 
@@ -184,30 +184,38 @@ def _generate_gemini_text(prompt: str, model: str) -> str:
     )
 
     def _call() -> str:
-        response = client.models.generate_content(model=model, contents=prompt)
+        config = None
+        if system_prompt:
+            config = types.GenerateContentConfig(system_instruction=system_prompt)
+        response = client.models.generate_content(model=model, contents=prompt, config=config)
         return response.text or ""
 
     return with_transport_retry(_call)
 
 
-def _generate_anthropic_text(prompt: str, model: str) -> str:
+def _generate_anthropic_text(prompt: str, model: str, *, system_prompt: str | None = None) -> str:
     from anthropic import Anthropic
 
     client = Anthropic(api_key=get_api_key("anthropic"), timeout=HTTP_TIMEOUT)
 
     def _call() -> str:
-        message = client.messages.create(
-            model=model,
-            max_tokens=MAX_OUTPUT_TOKENS,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        kwargs: dict = {
+            "model": model,
+            "max_tokens": MAX_OUTPUT_TOKENS,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        if system_prompt:
+            kwargs["system"] = system_prompt
+        message = client.messages.create(**kwargs)
         parts = [block.text for block in message.content if hasattr(block, "text")]
         return "\n".join(parts).strip()
 
     return with_transport_retry(_call)
 
 
-def _generate_openai_compatible_text(prompt: str, model: str, *, provider: str) -> str:
+def _generate_openai_compatible_text(
+    prompt: str, model: str, *, provider: str, system_prompt: str | None = None
+) -> str:
     from openai import OpenAI
 
     kwargs = {"api_key": get_api_key(provider), "timeout": HTTP_TIMEOUT}
@@ -216,10 +224,14 @@ def _generate_openai_compatible_text(prompt: str, model: str, *, provider: str) 
     client = OpenAI(**kwargs)
 
     def _call() -> str:
+        messages: list[dict[str, str]] = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
         response = client.chat.completions.create(
             model=model,
             max_tokens=MAX_OUTPUT_TOKENS,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
         )
         return (response.choices[0].message.content or "").strip()
 
@@ -227,19 +239,25 @@ def _generate_openai_compatible_text(prompt: str, model: str, *, provider: str) 
 
 
 def generate_text(
-    *, prompt: str, provider: str, model: str | None = None
+    *,
+    prompt: str,
+    provider: str,
+    model: str | None = None,
+    system_prompt: str | None = None,
 ) -> TextGenerationResult:
     if not is_provider_available(provider):
         raise RuntimeError(f"{provider} API key가 설정되지 않았습니다.")
 
     model = model or get_text_model(provider)
-    input_chars = len(prompt)
+    input_chars = len(prompt) + (len(system_prompt) if system_prompt else 0)
     if provider == "gemini":
-        text = _generate_gemini_text(prompt, model)
+        text = _generate_gemini_text(prompt, model, system_prompt=system_prompt)
     elif provider == "anthropic":
-        text = _generate_anthropic_text(prompt, model)
+        text = _generate_anthropic_text(prompt, model, system_prompt=system_prompt)
     elif provider in {"openai", "xai"}:
-        text = _generate_openai_compatible_text(prompt, model, provider=provider)
+        text = _generate_openai_compatible_text(
+            prompt, model, provider=provider, system_prompt=system_prompt
+        )
     else:
         raise ValueError(f"Unsupported provider: {provider}")
     return TextGenerationResult(text, input_chars, len(text))

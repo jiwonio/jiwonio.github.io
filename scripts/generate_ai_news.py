@@ -20,11 +20,18 @@ from feeds_config import (
     LOW_PRIORITY_KEYWORDS,
     MAX_ITEMS_PER_FEED,
     MAX_TOTAL_CANDIDATES,
+    PRACTICAL_KEYWORDS,
     RSS_DAYS_LOOKBACK_BY_TIER,
     RSS_FETCH_TIMEOUT,
     RSS_FETCH_USER_AGENT,
     TIER_WEIGHTS,
 )
+from llm_client import (
+    get_text_model,
+    pick_provider_for_attempt,
+    resolve_text_providers,
+)
+from prompt_config import AI_NEWS_SYSTEM_PROMPT
 from post_common import (
     body_after_more,
     collect_past_reference_urls,
@@ -51,7 +58,18 @@ MAX_NEWS_SECTIONS = 7
 MIN_SECTION_CHARS = 150
 MIN_INTERNAL_LINKS = 2
 MIN_REFERENCE_URLS = 5
-DEVELOPER_PERSPECTIVE_LABEL = "**개발자 관점:**"
+SECTION_LABELS = (
+    "**누구에게:**",
+    "**실무 영향:**",
+    "**이번 주 판단:**",
+)
+JUDGMENT_KEYWORDS = ("적용", "실험", "관망", "피하기")
+ACTION_VERBS = (
+    "확인", "검토", "도입", "업데이트", "비교", "테스트", "정리", "점검", "설정",
+    "모니터링", "문서화", "축소", "확장", "백업", "마이그레이션", "교체", "보류",
+    "관리", "적용", "배포", "패치", "기록", "공유", "동기화", "제한", "완화",
+)
+HYPE_WORDS = ("혁신", "패러다임", "게임 체인저", "세계 최초", "역사적")
 SUMMARY_SECTIONS = ("이번 주 한 줄 정리",)
 BANNED_INTRO_PHRASES = (
     "시니어 풀스택 개발자이자 기술 블로거",
@@ -102,8 +120,17 @@ def title_similarity(a: str, b: str) -> float:
 def keyword_score(text: str) -> int:
     lowered = text.casefold()
     score = sum(1 for kw in DEVELOPER_KEYWORDS if kw in lowered)
-    score -= sum(2 for kw in LOW_PRIORITY_KEYWORDS if kw in lowered)
+    score += sum(2 for kw in PRACTICAL_KEYWORDS if kw in lowered)
+    score -= sum(3 for kw in LOW_PRIORITY_KEYWORDS if kw in lowered)
     return score
+
+
+def item_relevance_score(item: dict) -> int:
+    return keyword_score(f"{item['title']} {item.get('summary', '')}")
+
+
+def annotate_items_with_ids(items: list[dict]) -> list[dict]:
+    return [{**item, "id": index} for index, item in enumerate(items, start=1)]
 
 
 def filter_ai_relevant_entries(entries: list, feed_name: str) -> list:
@@ -209,7 +236,7 @@ def deduplicate_items(items: list[dict]) -> list[dict]:
         items,
         key=lambda item: (
             -TIER_WEIGHTS.get(item["tier"], 1),
-            -keyword_score(f"{item['title']} {item.get('summary', '')}"),
+            -item_relevance_score(item),
         ),
     )
     kept: list[dict] = []
@@ -270,6 +297,150 @@ def count_internal_links(content: str) -> int:
     return len(INTERNAL_LINK_PATTERN.findall(content))
 
 
+def extract_summary_bullets(content: str) -> list[str]:
+    body = body_after_more(content)
+    bullets: list[str] = []
+    in_summary = False
+    for line in body.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("## ") and "이번 주 한 줄 정리" in stripped:
+            in_summary = True
+            continue
+        if in_summary and stripped.startswith("#"):
+            break
+        if in_summary and stripped.startswith(("- ", "* ")):
+            bullets.append(stripped.lstrip("-* ").strip())
+    return bullets
+
+
+def bullet_has_action_hint(bullet: str) -> bool:
+    lowered = bullet.casefold()
+    return any(verb in lowered for verb in ACTION_VERBS)
+
+
+def parse_selection_json(text: str) -> dict:
+    cleaned = text.strip()
+    fence = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", cleaned, re.DOTALL)
+    if fence:
+        cleaned = fence.group(1)
+    else:
+        start = cleaned.find("{")
+        end = cleaned.rfind("}")
+        if start >= 0 and end > start:
+            cleaned = cleaned[start : end + 1]
+    return json.loads(cleaned)
+
+
+def build_selection_prompt(ranked_items: list[dict]) -> str:
+    items_json = json.dumps(annotate_items_with_ids(ranked_items[:20]), ensure_ascii=False, indent=2)
+    return f"""
+아래 RSS 후보 중 이번 호 AI 뉴스 다이제스트에 넣을 소식을 선별하세요.
+JSON만 출력하세요. 다른 설명은 금지합니다.
+
+**[선별 우선순위]**
+1. 내가 쓰는 도구·스택에 당장 영향 (Copilot, Cursor, API 가격, SDK, 보안)
+2. 팀 정책·보안·컴플라이언스에 영향
+3. 6개월 뒤 트렌드 신호 (모델·에이전트 아키텍처)
+투자·정책·연예인 AI 뉴스는 제외. 같은 주제 2건이면 더 실무적인 쪽만 선택.
+
+**[출력 JSON 스키마]**
+{{
+  "theme_question": "이번 주를 관통하는 질문 한 줄",
+  "primary_reader": "이번 호에 가장 영향 큰 독자 역할 (예: 백엔드, 인프라, 풀스택)",
+  "selected_ids": [1, 2, 3, 4, 5, 6, 7]
+}}
+
+규칙:
+- selected_ids는 {MIN_NEWS_SECTIONS}~{MAX_NEWS_SECTIONS}개
+- id는 아래 후보의 id 필드와 정확히 일치
+
+**[RSS 후보]**
+{items_json}
+"""
+
+
+def fallback_edition_plan(ranked_items: list[dict]) -> tuple[dict, list[dict]]:
+    annotated = annotate_items_with_ids(ranked_items)
+    selected = annotated[:MAX_NEWS_SECTIONS]
+    top_title = selected[0]["title"] if selected else "AI 개발 도구"
+    plan = {
+        "theme_question": f"이번 주 {top_title} 같은 소식이 실무 워크플로에 무엇을 바꾸나요?",
+        "primary_reader": "풀스택",
+        "selected_ids": [item["id"] for item in selected],
+    }
+    return plan, selected
+
+
+def resolve_selected_items(ranked_items: list[dict], plan: dict) -> list[dict]:
+    annotated = annotate_items_with_ids(ranked_items)
+    by_id = {item["id"]: item for item in annotated}
+    selected: list[dict] = []
+    for raw_id in plan.get("selected_ids", []):
+        item = by_id.get(int(raw_id))
+        if item and item["url"] not in {existing["url"] for existing in selected}:
+            selected.append(item)
+    if MIN_NEWS_SECTIONS <= len(selected) <= MAX_NEWS_SECTIONS:
+        return selected
+    return annotated[:MAX_NEWS_SECTIONS]
+
+
+def section_blocks(content: str) -> list[str]:
+    body = body_after_more(content)
+    chunks = re.split(r"\n## ", body)
+    blocks: list[str] = []
+    for chunk in chunks[1:]:
+        heading = chunk.splitlines()[0].strip()
+        if heading in SUMMARY_SECTIONS:
+            continue
+        blocks.append(chunk)
+    return blocks
+
+
+def section_has_judgment(block: str) -> bool:
+    if "**이번 주 판단:**" not in block:
+        return False
+    judgment = block.split("**이번 주 판단:**", 1)[1]
+    return any(keyword in judgment for keyword in JUDGMENT_KEYWORDS)
+
+
+def select_edition_plan(
+    ranked_items: list[dict],
+    *,
+    text_provider: str | None = None,
+) -> tuple[dict, list[dict]]:
+    if len(ranked_items) < MIN_NEWS_SECTIONS:
+        raise RuntimeError(f"선별 가능한 RSS 후보가 부족합니다: {len(ranked_items)}건")
+
+    providers = resolve_text_providers("ai-news", text_provider)
+    provider = pick_provider_for_attempt(providers, 1)
+    model = get_text_model(provider)
+    prompt = build_selection_prompt(ranked_items)
+
+    print(f"📋 이번 호 소식 선별 중... ({provider}/{model})")
+    from post_common import strip_code_fence, strip_preamble
+
+    from llm_client import generate_text as llm_generate_text_direct
+
+    result = llm_generate_text_direct(
+        prompt=prompt,
+        provider=provider,
+        model=model,
+        system_prompt=AI_NEWS_SYSTEM_PROMPT,
+    )
+    raw = strip_code_fence(strip_preamble(result.text))
+    try:
+        plan = parse_selection_json(raw)
+        selected = resolve_selected_items(ranked_items, plan)
+        if not (MIN_NEWS_SECTIONS <= len(selected) <= MAX_NEWS_SECTIONS):
+            raise ValueError(f"선별 개수 범위 오류: {len(selected)}")
+        print(f"  ✅ 테마: {plan.get('theme_question', '')[:80]}")
+        print(f"  ✅ 선별 {len(selected)}건")
+        return plan, selected
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        print(f"  ⚠️ 선별 JSON 파싱 실패, 상위 후보로 폴백: {exc}")
+        return fallback_edition_plan(ranked_items)
+
+
 def resolve_edition_datetime(date_override: str | None = None) -> datetime:
     if date_override:
         parsed = datetime.strptime(date_override.strip(), "%Y-%m-%d")
@@ -314,8 +485,26 @@ def validate_ai_news_content(
         if chars < MIN_SECTION_CHARS:
             raise ValueError(f"'{heading}' 섹션이 {MIN_SECTION_CHARS}자 미만입니다: {chars}자")
 
-    if content.count(DEVELOPER_PERSPECTIVE_LABEL) < len(sections):
-        raise ValueError(f"각 소식에 {DEVELOPER_PERSPECTIVE_LABEL} 라벨이 필요합니다.")
+    for label in SECTION_LABELS:
+        if content.count(label) < len(sections):
+            raise ValueError(f"각 소식에 {label} 라벨이 필요합니다.")
+
+    blocks = section_blocks(content)
+    if any(not section_has_judgment(block) for block in blocks):
+        raise ValueError(
+            f"각 소식의 **이번 주 판단:**에 {', '.join(JUDGMENT_KEYWORDS)} 중 하나가 필요합니다."
+        )
+
+    summary_bullets = extract_summary_bullets(content)
+    if not (3 <= len(summary_bullets) <= 4):
+        raise ValueError(
+            f"'이번 주 한 줄 정리' bullet이 3~4개여야 합니다: {len(summary_bullets)}개"
+        )
+    actionable = sum(1 for bullet in summary_bullets if bullet_has_action_hint(bullet))
+    if actionable < 2:
+        raise ValueError(
+            "'이번 주 한 줄 정리' bullet 중 최소 2개는 동사로 시작하는 행동 한 줄이어야 합니다."
+        )
 
     internal_links = count_internal_links(content)
     if internal_links < MIN_INTERNAL_LINKS:
@@ -383,51 +572,63 @@ def build_generation_prompt(
     past_urls: set[str],
     current_time: str,
     today_slug: str,
+    edition_plan: dict,
 ) -> str:
     items_json = json.dumps(rss_items, ensure_ascii=False, indent=2)
     past_urls_str = "\n".join(f"- {url}" for url in sorted(past_urls)[:30]) or "- 없음"
+    theme_question = edition_plan.get("theme_question", "")
+    primary_reader = edition_plan.get("primary_reader", "풀스택")
+    hype_words = ", ".join(HYPE_WORDS)
+    judgment_words = ", ".join(JUDGMENT_KEYWORDS)
 
     return f"""
-아래 RSS 수집 결과를 바탕으로 **개발자 관점 AI 소식 다이제스트**를 작성하세요.
-이 블로그 주인이 직접 쓰는 1인칭 기술 글입니다.
+아래 **선별된 RSS 소식**만 사용해 개발자 관점 AI 소식 다이제스트를 작성하세요.
+이번 호 테마 질문: {theme_question}
+이번 호 핵심 독자: {primary_reader}
+
+**[도입부 필수]**
+- 첫 문단: 위 테마 질문으로 시작하거나 그 질문에 바로 답하는 문장으로 시작
+- 둘째 문단: 이번 호에서 가장 영향 큰 독자({primary_reader})와 그 이유
+- 셋째 문단(선택): 이번 호 전체 흐름 한 줄 요약
 
 **[글쓰기 톤]**
-- 심층 기술 글과 같은 **'~습니다·입니다' 체**로 자연스럽게 작성 (~합니다, ~입니다, ~됩니다, ~었습니다)
+- 심층 기술 글과 같은 **'~습니다·입니다' 체**로 자연스럽게 작성
 - 1인칭 시점의 기술 블로그 글. 딱딱한 번역체나 뉴스 원고 톤은 피하고, 동료에게 설명하듯 읽기 쉽게
-- "~다" 체(~했다, ~이다, ~된다, ~겠다)와 "~요", "~해요" 어미 금지
-- "시니어 풀스택 개발자이자 기술 블로거입니다" 같은 자기소개·직함 나열 금지
-- 도입부 2~3문단: 이번 주 소식 중 무엇이 왜 중요한지 개인적인 관점으로 시작
-- 톤 예시 (나쁨 → 좋음):
-  - 나쁨: "이번 주는 에이전트 인프라가 한 단계 구체화된 한 주였다."
-  - 좋음: "이번 주는 에이전트 인프라가 한 단계 더 구체화된 한 주였습니다."
-  - 나쁨: "Copilot 측에서 내부적으로 필터링해 준다는 건 체감 품질 향상으로 이어질 수 있다."
-  - 좋음: "Copilot이 컨텍스트를 내부적으로 걸러 주면, 체감 품질이 눈에 띄게 좋아질 수 있습니다."
+- "~다" 체와 "~요", "~해요" 어미 금지
+- 자기소개·직함 나열 금지
+- 추상어({hype_words}) 금지. 대신 숫자·기능명·정책명·가격을 쓰세요
+- 각 소식마다 "그래서 뭐가 달라지나?"에 1문장 안에 답할 것
 
 **[금지]**
 - 헤드라인만 나열하는 뉴스 큐레이션
+- 선별 목록 밖의 소식 추가
 - "요약:" 한 줄로 끝나는 항목 (각 항목 최소 150자 이상)
 - 이미 다룬 URL 재사용 (아래 목록)
 - 일반 뉴스 사이트 톤, 투자·정책 중심 나열
-- RSS 원문에 없는 CLI 표기 임의 생성 (예: gh?, git?) — 슬래시 명령어는 /explain, /fix 형식이거나 한글로 설명
+- 같은 벤더 소식 2건이면 하나로 합치고 차이만 비교
+- RSS 원문에 없는 CLI 표기 임의 생성 (예: gh?, git?)
 
 **[필수]**
-- 5~7개 소식 (H2 섹션, "이번 주 한 줄 정리" 제외)
+- 선별 소식 {len(rss_items)}개를 H2 섹션으로 작성 ("이번 주 한 줄 정리" 제외)
 - 각 소식마다 아래 형식:
   ## N. {{소식 제목}}
   **요약:** 1~2문장
-  {DEVELOPER_PERSPECTIVE_LABEL} 2~3문장 (코딩 도구, API, 비용, 보안, 배포 영향)
+  **누구에게:** 역할·팀 규모 1~2문장
+  **실무 영향:** 워크플로·비용·보안·배포 중 1~2개, 2~3문장
+  **이번 주 판단:** {judgment_words} 중 하나를 명시 + 한 줄 근거
   **관련 글:** [제목](/posts/slug/){{:target="_blank"}} (해당 시)
 - 내부 링크 후보에서 관련 글 **2개 이상** 본문에 연결
-- `/posts/` slug는 후보 URL을 **한 글자도 바꾸지 말고** 그대로 복사 (줄임·축약 금지)
+- `/posts/` slug는 후보 URL을 **한 글자도 바꾸지 말고** 그대로 복사
 - 본문(<!--more--> 이후) 1,500자 이상
-- 마지막에 ## 이번 주 한 줄 정리 (bullet 3~4개)
+- 마지막 ## 이번 주 한 줄 정리: bullet 3~4개, 각각 동사로 시작하는 행동 한 줄
+  (Slack에 붙여넣기 좋은 문장 포함)
 - slug: {today_slug} (고정)
 - tags에 AI-News, Developer-Digest, News-Digest 포함
 
 **[이미 다룬 URL — 절대 재사용 금지]**
 {past_urls_str}
 
-**[RSS 수집 결과 — tier 낮을수록 보조]**
+**[선별된 RSS 소식 — 이 목록만 사용]**
 {items_json}
 
 **[내부 링크 후보 — 관련 있으면 2개 이상 삽입]**
@@ -482,16 +683,18 @@ def generate_ai_news_post(
         raise RuntimeError(f"RSS 후보가 부족합니다: {len(ranked)}건 (최소 {MIN_REFERENCE_URLS}건 필요)")
 
     past_urls = collect_past_reference_urls()
-    rss_titles = [item["title"] for item in ranked]
+    edition_plan, selected_items = select_edition_plan(ranked, text_provider=text_provider)
+    rss_titles = [item["title"] for item in selected_items]
     internal_candidates = get_internal_link_candidates(rss_titles)
     internal_links = format_internal_links_for_prompt(internal_candidates)
 
     prompt = build_generation_prompt(
-        ranked,
+        selected_items,
         internal_links,
         past_urls,
         current_time,
         today_slug,
+        edition_plan,
     )
 
     def validate(content: str) -> tuple[dict, str]:
@@ -510,6 +713,7 @@ def generate_ai_news_post(
         validate,
         post_type="ai-news",
         text_provider=text_provider,
+        system_prompt=AI_NEWS_SYSTEM_PROMPT,
     )
 
     image_prompt = (

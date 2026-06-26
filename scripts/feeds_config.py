@@ -58,12 +58,25 @@ DEVELOPER_KEYWORDS = (
     "docker", "kubernetes", "embedding", "vector", "tool calling", "function calling",
     "code", "developer", "dev", "cli", "plugin", "extension", "vscode", "jetbrains",
     "hugging face", "langchain", "openai", "anthropic", "benchmark", "gpu",
+    "workflow", "pricing", "security", "deploy", "deployment", "self-hosted",
+    "on-prem", "breaking", "deprecated", "migration", "context window", "token",
+    "rate limit", "sandbox", "code review", "pull request", "ci/cd", "terraform",
 )
 
-# 투자·정책 위주 기사 감점 키워드
+# 실무 영향 키워드 (추가 가점)
+PRACTICAL_KEYWORDS = (
+    "pricing", "cost", "security", "vulnerability", "policy", "compliance",
+    "breaking change", "migration", "self-hosted", "local", "offline", "latency",
+    "throughput", "quota", "billing", "enterprise", "team", "workspace",
+)
+
+# 투자·정책·연예 위주 기사 감점 키워드
 LOW_PRIORITY_KEYWORDS = (
     "funding", "raises", "billion", "million", "acquisition", "ipo", "lawsuit",
     "regulation", "congress", "senate", "ceo interview", "stock", "market cap",
+    "celebrity", "hollywood", "dating", "divorce", "election", "president",
+    "venture capital", "series a", "series b", "valuation", "investor",
+    "opinion piece", "think piece",
 )
 
 TIER_WEIGHTS = {1: 3, 2: 2, 3: 1}
