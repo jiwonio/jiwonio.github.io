@@ -138,7 +138,7 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
-| `e78ca3d` | perf 2차: KR 단일 woff2(`--single-file`), Cloudflare email-decode 제거, fonttools |
+| `b059f9e` | perf 2차: KR 단일 woff2(`--single-file`), Cloudflare email-decode 제거, fonttools |
 | `dbcd6cf` | usage_report unittest 노이즈 필터 |
 | `72b5655` | async CSS·과다 preload 롤백 (CLS 개선) |
 | `c42b589` | perf 1차: GA consent 지연, critical CSS, site.js, usage_report 파서 |
