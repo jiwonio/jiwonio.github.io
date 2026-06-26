@@ -26,7 +26,8 @@
                     {% endif %}
                     <a class="masthead-nav__link" href="https://x.com/{{ site.author.twitter }}" title="{{ lang_meta.nav.x }}" aria-label="{{ lang_meta.nav.x }}" target="_blank" rel="noopener noreferrer">{{ icon_twitter }}</a>
                     <a class="masthead-nav__link" href="https://github.com/{{ site.author.github }}" title="{{ lang_meta.nav.github }}" aria-label="{{ lang_meta.nav.github }}" target="_blank" rel="noopener noreferrer">{{ icon_github }}</a>
-                    <a class="masthead-nav__link" href="mailto:{{ site.author.email }}" title="{{ lang_meta.nav.email }}" aria-label="{{ lang_meta.nav.email }}">{{ icon_envelope }}</a>
+                    {% assign email_parts = site.author.email | split: '@' %}
+                    <a class="masthead-nav__link email-obfuscated" data-email-user="{{ email_parts[0] }}" data-email-domain="{{ email_parts[1] }}" title="{{ lang_meta.nav.email }}" aria-label="{{ lang_meta.nav.email }}">{{ icon_envelope }}</a>
                     <button type="button" id="theme-toggle" class="theme-toggle masthead-nav__link" data-theme-preference="system" aria-label="{{ lang_meta.theme.system }}" title="{{ lang_meta.theme.system }}">
                         <span class="icon" data-icon="adjust" aria-hidden="true">{{ icon_adjust }}</span>
                     </button>

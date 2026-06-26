@@ -59,7 +59,7 @@ image: /assets/og-default.webp
 ## 8. 联系方式
 
 - 运营者：Jiwon Min
-- 邮箱：[min@jiwon.io](mailto:min@jiwon.io)
+- 邮箱：<a class="email-obfuscated" data-email-user="min" data-email-domain="jiwon.io">min@jiwon.io</a>
 
 ## 9. 变更
 

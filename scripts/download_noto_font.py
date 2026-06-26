@@ -6,6 +6,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import re
+import subprocess
+import sys
+import tempfile
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -26,16 +29,34 @@ FAMILIES: dict[str, dict[str, str]] = {
         "dir": "noto-sans-kr",
         "css_name": "noto-sans-kr.css",
         "lang": "ko",
+        "display_name": "Noto Sans KR",
+        "woff2_name": "noto-sans-kr.woff2",
+        "variable_ttf_url": (
+            "https://github.com/google/fonts/raw/main/ofl/notosanskr/"
+            "NotoSansKR%5Bwght%5D.ttf"
+        ),
     },
     "Noto+Sans+JP": {
         "dir": "noto-sans-jp",
         "css_name": "noto-sans-jp.css",
         "lang": "ja",
+        "display_name": "Noto Sans JP",
+        "woff2_name": "noto-sans-jp.woff2",
+        "variable_ttf_url": (
+            "https://github.com/google/fonts/raw/main/ofl/notosansjp/"
+            "NotoSansJP%5Bwght%5D.ttf"
+        ),
     },
     "Noto+Sans+SC": {
         "dir": "noto-sans-sc",
         "css_name": "noto-sans-sc.css",
         "lang": "zh",
+        "display_name": "Noto Sans SC",
+        "woff2_name": "noto-sans-sc.woff2",
+        "variable_ttf_url": (
+            "https://github.com/google/fonts/raw/main/ofl/notosanssc/"
+            "NotoSansSC%5Bwght%5D.ttf"
+        ),
     },
 }
 
@@ -86,6 +107,19 @@ def preload_faces(css: str, limit: int = 1) -> list[str]:
         if len(seen) >= limit:
             break
     return seen
+
+
+def build_single_file_css(display_name: str, woff2_filename: str) -> str:
+    """Minimal variable-font CSS: one request for weights 400–700."""
+    return (
+        "@font-face {\n"
+        f"  font-family: '{display_name}';\n"
+        "  font-style: normal;\n"
+        "  font-weight: 400 700;\n"
+        "  font-display: swap;\n"
+        f"  src: url({woff2_filename}) format('woff2');\n"
+        "}\n"
+    )
 
 
 def collect_site_characters(root: Path = ROOT) -> str:
@@ -142,13 +176,94 @@ def fetch_family_css(family_key: str, subset_text: str | None = None) -> str:
     return "\n".join(blocks)
 
 
+def subset_variable_font(
+    ttf_bytes: bytes,
+    subset_text: str,
+    destination: Path,
+) -> None:
+    """Subset a variable TTF to a single woff2 using fonttools."""
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_dir = Path(tmp)
+        source = tmp_dir / "source.ttf"
+        text_file = tmp_dir / "chars.txt"
+        source.write_bytes(ttf_bytes)
+        text_file.write_text(subset_text, encoding="utf-8")
+
+        command = [
+            sys.executable,
+            "-m",
+            "fontTools.subset",
+            str(source),
+            f"--text-file={text_file}",
+            "--flavor=woff2",
+            f"--output-file={destination}",
+            "--layout-features=*",
+            "--glyph-names",
+            "--symbol-cmap",
+            "--legacy-cmap",
+            "--notdef-glyph",
+            "--notdef-outline",
+            "--recommended-glyphs",
+            "--name-IDs=*",
+            "--name-legacy",
+            "--name-languages=*",
+        ]
+        subprocess.run(command, check=True)
+
+
+def download_family_single_file(
+    family_key: str,
+    preload_map: dict[str, str],
+    *,
+    subset_text: str,
+    prune: bool = False,
+) -> None:
+    config = FAMILIES[family_key]
+    out_dir = ROOT / "assets" / "vendor" / config["dir"]
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    woff2_name = config["woff2_name"]
+    destination = out_dir / woff2_name
+    ttf_url = config["variable_ttf_url"]
+
+    print(f"downloading variable TTF for {family_key}")
+    subset_variable_font(fetch(ttf_url), subset_text, destination)
+    print(f"wrote {destination} ({destination.stat().st_size} bytes)")
+
+    css_text = build_single_file_css(config["display_name"], woff2_name)
+    css_path = out_dir / config["css_name"]
+    css_path.write_text(css_text, encoding="utf-8")
+    print(f"wrote {css_path} (1 file)")
+
+    if prune:
+        removed = prune_unused_font_files(out_dir, css_text)
+        if removed:
+            print(f"pruned {removed} unused woff2 files from {out_dir}")
+
+    preload_map[config["lang"]] = [
+        f"/assets/vendor/{config['dir']}/{woff2_name}"
+    ]
+
+
 def download_family(
     family_key: str,
     preload_map: dict[str, str],
     *,
     subset_text: str | None = None,
     prune: bool = False,
+    single_file: bool = False,
 ) -> None:
+    if single_file:
+        if not subset_text:
+            raise SystemExit("--single-file requires --subset-from-site")
+        download_family_single_file(
+            family_key,
+            preload_map,
+            subset_text=subset_text,
+            prune=prune,
+        )
+        return
+
     config = FAMILIES[family_key]
     out_dir = ROOT / "assets" / "vendor" / config["dir"]
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -196,6 +311,14 @@ def main() -> None:
         help="Request only glyphs used in site content (smaller woff2 set).",
     )
     parser.add_argument(
+        "--single-file",
+        action="store_true",
+        help=(
+            "Subset a variable TTF locally into one woff2 per family "
+            "(requires --subset-from-site)."
+        ),
+    )
+    parser.add_argument(
         "--prune",
         action="store_true",
         help="Delete woff2 files in the vendor dir that are not referenced by CSS.",
@@ -217,6 +340,7 @@ def main() -> None:
             preload_map,
             subset_text=subset_text,
             prune=args.prune,
+            single_file=args.single_file,
         )
 
     PRELOAD_DATA.parent.mkdir(parents=True, exist_ok=True)

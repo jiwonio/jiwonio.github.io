@@ -11,6 +11,7 @@ SOURCES = [
     ROOT / "assets/js/theme.js",
     ROOT / "assets/js/lang-switcher.js",
     ROOT / "assets/js/consent.js",
+    ROOT / "assets/js/email-link.js",
 ]
 OUTPUT = ROOT / "assets/js/site.js"
 

@@ -9,11 +9,11 @@
 
 ### 다음 작업 (2026-06-26 기준)
 
-성능 1차 개선 배포 후 Lighthouse 재측정 대기 (이전 66%).
+Lighthouse 2차 개선 배포 후 CI 재측정 대기 (1차 후 50~66% 변동).
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **중간** | Lighthouse 80% — 2차: KR woff2 단일화, Cloudflare 스크립트, TBT | 1차(GA·critical CSS·site.js) 배포 완료 |
+| **중간** | Lighthouse 80% 달성 확인 — `lighthouse.yml` workflow_dispatch | 2차(KR 단일 woff2·email-decode 제거) 배포 후 |
 | **낮음** | Pagefind lazy load Core Web Vitals 측정 | Lighthouse 개선과 연계 |
 | **낮음** | IndexNow 색인 반영 모니터링 | 배포 시 자동 제출 중 |
 | **낮음** | 신규 한글 등장 시 KR 폰트 재생성 | 필요 시 `--subset-from-site --prune` |
@@ -138,10 +138,13 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
+| `e78ca3d` | perf 2차: KR 단일 woff2(`--single-file`), Cloudflare email-decode 제거, fonttools |
+| `dbcd6cf` | usage_report unittest 노이즈 필터 |
+| `72b5655` | async CSS·과다 preload 롤백 (CLS 개선) |
+| `c42b589` | perf 1차: GA consent 지연, critical CSS, site.js, usage_report 파서 |
 | `14db9ef` | pip openai 2.x·google-genai 2.x, Actions 잔여 bump, dependabot automerge `GITHUB_TOKEN` 수정 — Deploy #202 green |
 | `5dbd9ab` | TODO: Deploy #201 green 체크, 다음 작업 표 |
-| `c42b589` | perf: GA consent 지연, critical CSS, site.js 번들, usage_report 파서 수정 |
-| `72b5655` | fix: async CSS·과다 preload 롤백 (CLS 개선) |
+
 | `937fc57` | TODO 갱신, post-deploy 점검 반영 |
 | `7fb313d` | 백로그 일괄: deps·폰트 서브셋·sys.path 정리·E2E·LLM 예산 $75 — Deploy #201 green |
 | `9b8c4bf` | AI 뉴스 격식체, RSS MIME/리다이렉트, UI·Pagefind 개선 |
@@ -211,9 +214,11 @@ cd e2e && npm ci && npx playwright test
 ### 성능·에셋
 
 - [x] Noto Sans KR woff2 서브셋: 124개 → 7개 (`download_noto_font.py --subset-from-site`, 2026-06-25)
-- [ ] 신규 글자 등장 시 KR 폰트 재생성: `python scripts/download_noto_font.py --family Noto+Sans+KR --subset-from-site --prune`
-- [ ] (선택) Noto Sans JP/SC도 동일 서브셋 적용 — KR만 완료
-- [ ] Lighthouse(`lighthouse.yml`) 성능 80% 달성 — 1차 개선 후 CI 50~66% 변동, 병목: Noto/CSS blocking·Cloudflare email-decode·TBT (2026-06-26)
+- [x] Noto Sans KR woff2 단일화: 7개 → 1개 (`--subset-from-site --single-file --prune`, 2026-06-26)
+- [ ] 신규 글자 등장 시 KR 폰트 재생성: `python scripts/download_noto_font.py --family Noto+Sans+KR --subset-from-site --single-file --prune`
+- [ ] (선택) Noto Sans JP/SC도 `--single-file` 서브셋 적용 — KR만 완료
+- [x] Cloudflare `email-decode.min.js` 제거: masthead·privacy mailto → `data-email-*` + `email-link.js` (2026-06-26)
+- [ ] Lighthouse(`lighthouse.yml`) 성능 80% 달성 — 2차 배포 후 CI 재측정 필요 (1차 후 50~66% 변동)
 - [ ] Pagefind lazy load Core Web Vitals 영향 측정
 
 ### 콘텐츠·SEO

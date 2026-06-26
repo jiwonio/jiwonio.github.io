@@ -59,7 +59,7 @@ image: /assets/og-default.webp
 ## 8. 문의
 
 - 운영자: Jiwon Min
-- 이메일: [min@jiwon.io](mailto:min@jiwon.io)
+- 이메일: <a class="email-obfuscated" data-email-user="min" data-email-domain="jiwon.io">min@jiwon.io</a>
 
 ## 9. 변경
 
