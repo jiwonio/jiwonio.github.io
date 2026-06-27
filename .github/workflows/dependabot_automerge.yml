@@ -20,16 +20,31 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
+      - name: Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.DEPENDABOT_GH_APP_ID }}
+          private-key: ${{ secrets.DEPENDABOT_GH_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
       - name: Enable auto-merge for all dependency updates
         env:
-          # Dependabot-triggered workflows only receive secrets named DEPENDABOT_*.
-          GH_TOKEN: ${{ secrets.DEPENDABOT_MY_PAT }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          PAT_TOKEN: ${{ secrets.DEPENDABOT_MY_PAT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
         run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::error::Add repository secret DEPENDABOT_MY_PAT (same value as MY_PAT). Dependabot workflows cannot read MY_PAT."
+          if [ -n "$APP_TOKEN" ]; then
+            GH_TOKEN="$APP_TOKEN"
+            echo "Using GitHub App installation token."
+          elif [ -n "$PAT_TOKEN" ]; then
+            GH_TOKEN="$PAT_TOKEN"
+            echo "Using DEPENDABOT_MY_PAT fallback."
+          else
+            echo "::error::Configure DEPENDABOT_GH_APP_ID + DEPENDABOT_GH_APP_PRIVATE_KEY (recommended) or DEPENDABOT_MY_PAT."
             exit 1
           fi
+          export GH_TOKEN
           gh pr merge "$PR_NUMBER" --merge --auto
           echo "Auto-merge enabled for PR #$PR_NUMBER (${UPDATE_TYPE:-unknown})"
