@@ -10,7 +10,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  checks: read
 
 jobs:
   merge:
@@ -20,40 +19,53 @@ jobs:
       github.event.workflow_run.event == 'pull_request' &&
       startsWith(github.event.workflow_run.head_branch, 'dependabot/')
     steps:
-      - name: Create GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v1
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup GitHub App / PAT auth
+        uses: ./.github/actions/setup-git-auth
         with:
           app-id: ${{ secrets.DEPENDABOT_GH_APP_ID }}
           private-key: ${{ secrets.DEPENDABOT_GH_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
+          pat: ${{ secrets.DEPENDABOT_MY_PAT }}
 
-      - name: Merge Dependabot PR after checks pass
+      - name: Merge Dependabot PR after required CI passes
         env:
-          APP_TOKEN: ${{ steps.app-token.outputs.token }}
-          PAT_TOKEN: ${{ secrets.DEPENDABOT_MY_PAT }}
+          CI_RUN_ID: ${{ github.event.workflow_run.id }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
         run: |
-          if [ -n "$APP_TOKEN" ]; then
-            GH_TOKEN="$APP_TOKEN"
-            echo "Using GitHub App installation token."
-          elif [ -n "$PAT_TOKEN" ]; then
-            GH_TOKEN="$PAT_TOKEN"
-            echo "Using DEPENDABOT_MY_PAT fallback."
-          else
-            echo "::error::Configure DEPENDABOT_GH_APP_ID + DEPENDABOT_GH_APP_PRIVATE_KEY or DEPENDABOT_MY_PAT."
-            exit 1
-          fi
-          export GH_TOKEN
+          set -euo pipefail
 
-          PR_NUMBER=$(gh pr list --head "$HEAD_BRANCH" --base gh-pages --state open --json number -q '.[0].number')
+          PR_NUMBER=$(gh api "repos/${REPO}/actions/runs/${CI_RUN_ID}" --jq '.pull_requests[0].number // empty')
           if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
-            echo "No open PR for $HEAD_BRANCH (already merged?)."
+            PR_NUMBER=$(gh pr list --repo "$REPO" --head "${OWNER}:${HEAD_BRANCH}" --base gh-pages --state open --json number -q '.[0].number // empty')
+          fi
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+            echo "No open PR for ${HEAD_BRANCH} (already merged?)."
             exit 0
           fi
 
-          echo "Waiting for PR #$PR_NUMBER checks to finish..."
-          gh pr checks "$PR_NUMBER" --watch --fail-fast --interval 15
+          jekyll_conclusion=$(gh api "repos/${REPO}/actions/workflows/jekyll.yml/runs" \
+            -f head_sha="$HEAD_SHA" -f event=pull_request -f status=completed \
+            --jq '.workflow_runs[0].conclusion // empty')
+          if [ "$jekyll_conclusion" != "success" ]; then
+            echo "Jekyll CI not successful yet for ${HEAD_SHA} (got: ${jekyll_conclusion:-none})."
+            exit 0
+          fi
 
-          gh pr merge "$PR_NUMBER" --merge --delete-branch
-          echo "Merged PR #$PR_NUMBER"
+          if gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename' | grep -q '^e2e/'; then
+            e2e_conclusion=$(gh api "repos/${REPO}/actions/workflows/e2e.yml/runs" \
+              -f head_sha="$HEAD_SHA" -f event=pull_request -f status=completed \
+              --jq '.workflow_runs[0].conclusion // empty')
+            if [ "$e2e_conclusion" != "success" ]; then
+              echo "E2E CI not successful yet for ${HEAD_SHA} (got: ${e2e_conclusion:-none})."
+              exit 0
+            fi
+          fi
+
+          echo "Required CI passed. Merging Dependabot PR #${PR_NUMBER}..."
+          gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --delete-branch
+          echo "Merged PR #${PR_NUMBER} and deleted head branch."
