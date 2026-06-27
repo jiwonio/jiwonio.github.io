@@ -36,7 +36,6 @@ jobs:
           app-id: ${{ secrets.DEPENDABOT_GH_APP_ID }}
           private-key: ${{ secrets.DEPENDABOT_GH_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: ${{ github.event.repository.name }}
 
       - name: Merge Dependabot PR after required CI passes
         env:
@@ -62,6 +61,8 @@ jobs:
             echo "Using GITHUB_TOKEN (ensure repo Actions can approve/merge PRs)."
           fi
           export GH_TOKEN
+          token_login=$(gh api user -q '.login' 2>/dev/null || echo "unknown")
+          echo "Authenticated as: ${token_login}"
 
           if [ -n "${DISPATCH_PR:-}" ]; then
             PR_NUMBER="$DISPATCH_PR"
