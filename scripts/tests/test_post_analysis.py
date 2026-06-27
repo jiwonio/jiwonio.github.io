@@ -46,6 +46,24 @@ Body
             ["https://example.com/docs", "https://example.com/plain"],
         )
 
+    def test_extract_reference_urls_strips_markdown_title_attribute(self):
+        content = """---
+title: t
+---
+Body
+
+## References
+- [Ollama Official Website](https://ollama.com "Ollama"){:target="_blank"}
+- [GitHub](https://github.com/ollama/ollama-python "ollama-python on GitHub")
+"""
+        self.assertEqual(
+            extract_reference_urls(content),
+            [
+                "https://ollama.com",
+                "https://github.com/ollama/ollama-python",
+            ],
+        )
+
     def test_title_similarity_detects_overlap(self):
         score = title_similarity(
             "Cursor IDE real world review",

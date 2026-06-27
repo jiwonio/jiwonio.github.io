@@ -3,6 +3,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
+from http.client import InvalidURL
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
@@ -171,7 +172,7 @@ def fetch_reference_status(url: str) -> int | None:
             if method == "HEAD" and exc.code in {403, 405, 429, 500, 502, 503}:
                 continue
             return exc.code
-        except URLError:
+        except (URLError, InvalidURL, ValueError):
             if method == "HEAD":
                 continue
             return None
@@ -182,7 +183,13 @@ def check_reference_url(url: str) -> str | None:
     url = url.strip().rstrip(")")
     if not url.startswith(("http://", "https://")):
         return "reference URL must start with http:// or https://"
-    host = urlsplit(url).netloc.lower()
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return "reference URL is malformed"
+    host = parts.netloc.lower()
+    if not host or any(ord(char) < 32 for char in host):
+        return "reference URL has invalid host"
     if host in REF_URL_SKIP_HOSTS:
         return None
     status = fetch_reference_status(url)

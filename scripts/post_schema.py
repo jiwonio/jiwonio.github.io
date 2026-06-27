@@ -10,7 +10,7 @@ POSTS_DIR = Path(__file__).resolve().parent.parent / "_posts"
 FRONT_MATTER_PATTERN = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 PROMPT_LEAK_PHRASES = ("Front Matter", "지침일 뿐이며", "결과물에 그대로 옮겨")
 EXTERNAL_IMAGE_PATTERN = re.compile(r"!\[[^\]]*\]\(https?://[^)]+\)")
-REFERENCE_URL_PATTERN = re.compile(r"\[[^\]]+\]\((https?://[^)]+)\)")
+REFERENCE_URL_PATTERN = re.compile(r"\[[^\]]+\]\((https?://[^)\s\"]+)")
 CODE_BLOCK_PATTERN = re.compile(r"```.*?```", re.DOTALL)
 UNEXPECTED_SCRIPT_PATTERN = re.compile(r"[぀-ヿｦ-ﾝ]")
 
