@@ -39,18 +39,24 @@ jobs:
         run: |
           set -euo pipefail
 
-          PR_NUMBER=$(gh api "repos/${REPO}/actions/runs/${CI_RUN_ID}" --jq '.pull_requests[0].number // empty')
-          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
-            PR_NUMBER=$(gh pr list --repo "$REPO" --head "${OWNER}:${HEAD_BRANCH}" --base gh-pages --state open --json number -q '.[0].number // empty')
+          PR_NUMBER=$(gh api "repos/${REPO}/actions/runs/${CI_RUN_ID}" \
+            --jq '(.pull_requests[0].number? // empty)')
+          if [ -z "$PR_NUMBER" ]; then
+            PR_NUMBER=$(gh pr list --repo "$REPO" --head "${OWNER}:${HEAD_BRANCH}" --base gh-pages --state open \
+              --json number -q '(.[0].number? // empty)')
           fi
-          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+          if [ -z "$PR_NUMBER" ]; then
+            PR_NUMBER=$(gh pr view "$HEAD_BRANCH" --repo "$REPO" --json number -q '.number? // empty' 2>/dev/null || true)
+          fi
+          if [ -z "$PR_NUMBER" ]; then
             echo "No open PR for ${HEAD_BRANCH} (already merged?)."
             exit 0
           fi
+          echo "Target PR #${PR_NUMBER} (${HEAD_BRANCH} @ ${HEAD_SHA:0:7})."
 
           jekyll_conclusion=$(gh api "repos/${REPO}/actions/workflows/jekyll.yml/runs" \
             -f head_sha="$HEAD_SHA" -f event=pull_request -f status=completed \
-            --jq '.workflow_runs[0].conclusion // empty')
+            --jq '(.workflow_runs[0].conclusion? // empty)')
           if [ "$jekyll_conclusion" != "success" ]; then
             echo "Jekyll CI not successful yet for ${HEAD_SHA} (got: ${jekyll_conclusion:-none})."
             exit 0
@@ -59,7 +65,7 @@ jobs:
           if gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename' | grep -q '^e2e/'; then
             e2e_conclusion=$(gh api "repos/${REPO}/actions/workflows/e2e.yml/runs" \
               -f head_sha="$HEAD_SHA" -f event=pull_request -f status=completed \
-              --jq '.workflow_runs[0].conclusion // empty')
+              --jq '(.workflow_runs[0].conclusion? // empty)')
             if [ "$e2e_conclusion" != "success" ]; then
               echo "E2E CI not successful yet for ${HEAD_SHA} (got: ${e2e_conclusion:-none})."
               exit 0
