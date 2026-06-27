@@ -1,8 +1,11 @@
 name: Dependabot auto-merge
 
 on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
+  workflow_run:
+    workflows:
+      - Deploy Jekyll site to Pages
+      - E2E Smoke Tests
+    types: [completed]
 
 permissions:
   contents: write
@@ -10,16 +13,13 @@ permissions:
   checks: read
 
 jobs:
-  dependabot:
+  merge:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      startsWith(github.event.workflow_run.head_branch, 'dependabot/')
     steps:
-      - name: Dependabot metadata
-        id: metadata
-        uses: dependabot/fetch-metadata@v3
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-
       - name: Create GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v1
@@ -28,12 +28,11 @@ jobs:
           private-key: ${{ secrets.DEPENDABOT_GH_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
-      - name: Enable auto-merge for all dependency updates
+      - name: Merge Dependabot PR after checks pass
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
           PAT_TOKEN: ${{ secrets.DEPENDABOT_MY_PAT }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           if [ -n "$APP_TOKEN" ]; then
             GH_TOKEN="$APP_TOKEN"
@@ -42,9 +41,19 @@ jobs:
             GH_TOKEN="$PAT_TOKEN"
             echo "Using DEPENDABOT_MY_PAT fallback."
           else
-            echo "::error::Configure DEPENDABOT_GH_APP_ID + DEPENDABOT_GH_APP_PRIVATE_KEY (recommended) or DEPENDABOT_MY_PAT."
+            echo "::error::Configure DEPENDABOT_GH_APP_ID + DEPENDABOT_GH_APP_PRIVATE_KEY or DEPENDABOT_MY_PAT."
             exit 1
           fi
           export GH_TOKEN
-          gh pr merge "$PR_NUMBER" --merge --auto
-          echo "Auto-merge enabled for PR #$PR_NUMBER (${UPDATE_TYPE:-unknown})"
+
+          PR_NUMBER=$(gh pr list --head "$HEAD_BRANCH" --base gh-pages --state open --json number -q '.[0].number')
+          if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+            echo "No open PR for $HEAD_BRANCH (already merged?)."
+            exit 0
+          fi
+
+          echo "Waiting for PR #$PR_NUMBER checks to finish..."
+          gh pr checks "$PR_NUMBER" --watch --fail-fast --interval 15
+
+          gh pr merge "$PR_NUMBER" --merge --delete-branch
+          echo "Merged PR #$PR_NUMBER"
