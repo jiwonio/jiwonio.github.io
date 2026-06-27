@@ -1,7 +1,8 @@
 name: Dependabot auto-merge
 
 on:
-  pull_request:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -21,13 +22,13 @@ jobs:
 
       - name: Enable auto-merge for all dependency updates
         env:
-          # Dependabot-triggered workflows get a read-only GITHUB_TOKEN.
-          GH_TOKEN: ${{ secrets.MY_PAT }}
+          # Dependabot-triggered workflows only receive secrets named DEPENDABOT_*.
+          GH_TOKEN: ${{ secrets.DEPENDABOT_MY_PAT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
         run: |
           if [ -z "$GH_TOKEN" ]; then
-            echo "::error::MY_PAT secret is required to enable auto-merge on Dependabot PRs."
+            echo "::error::Add repository secret DEPENDABOT_MY_PAT (same value as MY_PAT). Dependabot workflows cannot read MY_PAT."
             exit 1
           fi
           gh pr merge "$PR_NUMBER" --merge --auto
