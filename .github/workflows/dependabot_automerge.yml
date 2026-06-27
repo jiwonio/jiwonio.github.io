@@ -21,9 +21,14 @@ jobs:
 
       - name: Enable auto-merge for all dependency updates
         env:
-          GH_TOKEN: ${{ github.token }}
+          # Dependabot-triggered workflows get a read-only GITHUB_TOKEN.
+          GH_TOKEN: ${{ secrets.MY_PAT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
         run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::MY_PAT secret is required to enable auto-merge on Dependabot PRs."
+            exit 1
+          fi
           gh pr merge "$PR_NUMBER" --merge --auto
           echo "Auto-merge enabled for PR #$PR_NUMBER (${UPDATE_TYPE:-unknown})"
