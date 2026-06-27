@@ -1,6 +1,12 @@
 name: Dependabot auto-merge
 
 on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Dependabot PR number to merge (CI must already be green)
+        required: true
+        type: number
   workflow_run:
     workflows:
       - Deploy Jekyll site to Pages
@@ -15,9 +21,12 @@ jobs:
   merge:
     runs-on: ubuntu-latest
     if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'pull_request' &&
-      startsWith(github.event.workflow_run.head_branch, 'dependabot/')
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'pull_request' &&
+        startsWith(github.event.workflow_run.head_branch, 'dependabot/')
+      )
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -31,6 +40,7 @@ jobs:
 
       - name: Merge Dependabot PR after required CI passes
         env:
+          DISPATCH_PR: ${{ github.event.inputs.pr_number }}
           CI_RUN_ID: ${{ github.event.workflow_run.id }}
           HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -39,19 +49,33 @@ jobs:
         run: |
           set -euo pipefail
 
-          PR_NUMBER=$(gh api "repos/${REPO}/actions/runs/${CI_RUN_ID}" \
-            --jq '(.pull_requests[0].number? // empty)')
-          if [ -z "$PR_NUMBER" ]; then
-            PR_NUMBER=$(gh pr list --repo "$REPO" --head "${OWNER}:${HEAD_BRANCH}" --base gh-pages --state open \
-              --json number -q '(.[0].number? // empty)')
+          if [ -n "${DISPATCH_PR:-}" ]; then
+            PR_NUMBER="$DISPATCH_PR"
+            HEAD_SHA=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefOid -q '.headRefOid')
+            HEAD_BRANCH=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json headRefName -q '.headRefName')
+          else
+            PR_NUMBER=$(gh api "repos/${REPO}/actions/runs/${CI_RUN_ID}" \
+              --jq '(.pull_requests[0].number? // empty)')
+            if [ -z "$PR_NUMBER" ]; then
+              PR_NUMBER=$(gh pr list --repo "$REPO" --head "${OWNER}:${HEAD_BRANCH}" --base gh-pages --state open \
+                --json number -q '(.[0].number? // empty)')
+            fi
+            if [ -z "$PR_NUMBER" ]; then
+              PR_NUMBER=$(gh pr view "$HEAD_BRANCH" --repo "$REPO" --json number -q '.number? // empty' 2>/dev/null || true)
+            fi
           fi
+
           if [ -z "$PR_NUMBER" ]; then
-            PR_NUMBER=$(gh pr view "$HEAD_BRANCH" --repo "$REPO" --json number -q '.number? // empty' 2>/dev/null || true)
-          fi
-          if [ -z "$PR_NUMBER" ]; then
-            echo "No open PR for ${HEAD_BRANCH} (already merged?)."
+            echo "No open PR for ${HEAD_BRANCH:-unknown branch} (already merged?)."
             exit 0
           fi
+
+          pr_author=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json author -q '.author.login')
+          if [ "$pr_author" != "dependabot[bot]" ]; then
+            echo "PR #${PR_NUMBER} is not from dependabot[bot] (got: ${pr_author})."
+            exit 1
+          fi
+
           echo "Target PR #${PR_NUMBER} (${HEAD_BRANCH} @ ${HEAD_SHA:0:7})."
 
           jekyll_conclusion=$(gh api "repos/${REPO}/actions/workflows/jekyll.yml/runs" \
@@ -63,12 +87,19 @@ jobs:
           fi
 
           if gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename' | grep -q '^e2e/'; then
-            e2e_conclusion=$(gh api "repos/${REPO}/actions/workflows/e2e.yml/runs" \
-              -f head_sha="$HEAD_SHA" -f event=pull_request -f status=completed \
-              --jq '(.workflow_runs[0].conclusion? // empty)')
-            if [ "$e2e_conclusion" != "success" ]; then
-              echo "E2E CI not successful yet for ${HEAD_SHA} (got: ${e2e_conclusion:-none})."
-              exit 0
+            e2e_total=$(gh api "repos/${REPO}/actions/workflows/e2e.yml/runs" \
+              -f head_sha="$HEAD_SHA" -f event=pull_request \
+              --jq '.total_count')
+            if [ "$e2e_total" -gt 0 ]; then
+              e2e_conclusion=$(gh api "repos/${REPO}/actions/workflows/e2e.yml/runs" \
+                -f head_sha="$HEAD_SHA" -f event=pull_request -f status=completed \
+                --jq '(.workflow_runs[0].conclusion? // empty)')
+              if [ "$e2e_conclusion" != "success" ]; then
+                echo "E2E CI not successful yet for ${HEAD_SHA} (got: ${e2e_conclusion:-none})."
+                exit 0
+              fi
+            else
+              echo "PR touches e2e/ but no E2E run exists for ${HEAD_SHA}; Jekyll success is enough."
             fi
           fi
 
