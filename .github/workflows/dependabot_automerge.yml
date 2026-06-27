@@ -6,28 +6,24 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  checks: read
 
 jobs:
   dependabot:
     runs-on: ubuntu-latest
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-
       - name: Dependabot metadata
         id: metadata
         uses: dependabot/fetch-metadata@v3
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Enable auto-merge for patch/minor updates
-        if: |
-          steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
-          steps.metadata.outputs.update-type == 'version-update:semver-minor'
+      - name: Enable auto-merge for all dependency updates
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          UPDATE_TYPE: ${{ steps.metadata.outputs.update-type }}
         run: |
           gh pr merge "$PR_NUMBER" --merge --auto
-          echo "Auto-merge enabled for PR #$PR_NUMBER"
+          echo "Auto-merge enabled for PR #$PR_NUMBER (${UPDATE_TYPE:-unknown})"
