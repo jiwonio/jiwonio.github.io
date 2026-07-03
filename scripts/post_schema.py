@@ -36,18 +36,15 @@ def has_standalone_line(content: str, marker: str) -> bool:
 
 
 def extract_reference_urls(content: str) -> list[str]:
-    refs_start = content.find("### 참고문헌")
-    if refs_start < 0:
-        return []
-    section = content[refs_start:]
-    return REFERENCE_URL_PATTERN.findall(section)
+    from post_analysis import extract_reference_urls as _extract_reference_urls
+
+    return _extract_reference_urls(content)
 
 
 def strip_references_section(content: str) -> str:
-    refs_start = content.find("### 참고문헌")
-    if refs_start < 0:
-        return content
-    return content[:refs_start].rstrip()
+    from post_analysis import strip_references_section as _strip_references_section
+
+    return _strip_references_section(content)
 
 
 def sanitize_generated_content(content: str) -> str:

@@ -6,6 +6,7 @@ import re
 import subprocess
 from collections import defaultdict
 from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 
 import yaml
 
@@ -27,6 +28,16 @@ REFERENCE_HEADINGS = (
     "### 参考资料",
 )
 PLAIN_REF_URL_PATTERN = re.compile(r"^-\s+(https?://\S+)", re.MULTILINE)
+REF_LINK_LINE = re.compile(
+    r'^- \[([^\]]*)\]\(([^)\s"]+)(?:\s+"[^"]*")?\)(?:\{:target="_blank"\})?',
+    re.MULTILINE,
+)
+REFERENCE_HEADING_BY_LANG = {
+    "ko": "### 참고문헌",
+    "en": "## References",
+    "ja": "### 参考文献",
+    "zh": "### 参考资料",
+}
 INFORMAL_KO_LINE = re.compile(
     r"(?:해요|돼요|이에요|예요|어요|아요|할게요|했어요|있어요|없어요)[.!?…]?$"
 )
@@ -56,28 +67,77 @@ def count_markdown_h3(content: str) -> int:
     return len(H3_PATTERN.findall(prose_body(content)))
 
 
-def extract_reference_urls(content: str) -> list[str]:
-    refs_start = -1
+def find_references_section_start(content: str) -> int:
     for heading in REFERENCE_HEADINGS:
-        refs_start = content.find(heading)
-        if refs_start >= 0:
-            break
-    if refs_start < 0:
+        idx = content.find(heading)
+        if idx >= 0:
+            return idx
+    return -1
+
+
+def normalize_reference_url(url: str) -> str:
+    cleaned = url.strip().rstrip(").,;")
+    parsed = urlparse(cleaned)
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
+
+
+def extract_reference_entries(content: str) -> list[tuple[str, str]]:
+    start = find_references_section_start(content)
+    if start < 0:
         return []
-    section = content[refs_start:]
-    urls: list[str] = []
-    seen: set[str] = set()
-    for url in REFERENCE_URL_PATTERN.findall(section):
-        cleaned = url.rstrip(").,;")
-        if cleaned not in seen:
-            seen.add(cleaned)
-            urls.append(cleaned)
+    section = content[start:]
+    entries: list[tuple[str, str]] = []
+    seen_urls: set[str] = set()
+    for match in REF_LINK_LINE.finditer(section):
+        title, url = match.group(1).strip(), normalize_reference_url(match.group(2))
+        if url not in seen_urls:
+            seen_urls.add(url)
+            entries.append((title, url))
     for url in PLAIN_REF_URL_PATTERN.findall(section):
-        cleaned = url.rstrip(").,;")
-        if cleaned not in seen:
-            seen.add(cleaned)
-            urls.append(cleaned)
-    return urls
+        cleaned = normalize_reference_url(url)
+        if cleaned not in seen_urls:
+            seen_urls.add(cleaned)
+            entries.append(("", cleaned))
+    return entries
+
+
+def extract_reference_urls(content: str) -> list[str]:
+    return [url for _, url in extract_reference_entries(content)]
+
+
+def strip_references_section(content: str) -> str:
+    start = find_references_section_start(content)
+    if start < 0:
+        return content
+    return content[:start].rstrip()
+
+
+def reference_heading_for_lang(lang: str) -> str:
+    return REFERENCE_HEADING_BY_LANG.get(lang, "## References")
+
+
+def rebuild_references_section(content: str, source_content: str, target_lang: str) -> str:
+    """Rebuild the references block using source URLs and translated titles when available."""
+    source_entries = extract_reference_entries(source_content)
+    if not source_entries:
+        return content
+
+    translated_entries = extract_reference_entries(content)
+    heading = reference_heading_for_lang(target_lang)
+    lines = [heading]
+    for index, (_, source_url) in enumerate(source_entries):
+        title = (
+            translated_entries[index][0]
+            if index < len(translated_entries) and translated_entries[index][0]
+            else source_entries[index][0] or source_url
+        )
+        lines.append(f'- [{title}]({source_url}){{:target="_blank"}}')
+
+    ref_block = "\n".join(lines) + "\n"
+    start = find_references_section_start(content)
+    if start >= 0:
+        return content[:start].rstrip() + "\n\n" + ref_block
+    return content.rstrip() + "\n\n" + ref_block
 
 
 def extract_body_external_urls(content: str) -> list[str]:

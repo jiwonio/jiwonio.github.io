@@ -5,8 +5,10 @@ from unittest import mock
 
 from post_analysis import (
     count_markdown_h2,
+    extract_reference_entries,
     extract_reference_urls,
     find_informal_ko_lines,
+    rebuild_references_section,
     title_similarity,
     tokenize,
 )
@@ -75,6 +77,35 @@ Body
         tokens = tokenize("Building production guide with docker")
         self.assertNotIn("with", tokens)
         self.assertIn("docker", tokens)
+
+    def test_extract_reference_entries_preserves_titles(self):
+        content = """---
+title: t
+---
+### 참고문헌
+- [GitHub Blog](https://github.blog/post){:target="_blank"}
+"""
+        self.assertEqual(
+            extract_reference_entries(content),
+            [("GitHub Blog", "https://github.blog/post")],
+        )
+
+    def test_rebuild_references_section_uses_source_urls_for_ja(self):
+        source = """---
+title: t
+---
+### 참고문헌
+- [원문](https://example.com/source){:target="_blank"}
+"""
+        translated = """---
+title: t
+---
+### 参考文献
+- [誤ったURL](https://example.com/wrong){:target="_blank"}
+"""
+        rebuilt = rebuild_references_section(translated, source, "ja")
+        self.assertIn("https://example.com/source", rebuilt)
+        self.assertNotIn("https://example.com/wrong", rebuilt)
 
     def test_find_informal_ko_lines(self):
         content = """---

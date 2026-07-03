@@ -7,11 +7,15 @@ on:
 
 permissions:
   actions: read
+  contents: read
 
 jobs:
   watchdog:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
       - name: Check last successful AI post generation
         env:
           GH_TOKEN: ${{ github.token }}
@@ -34,6 +38,27 @@ jobs:
           if [ "$AGE_DAYS" -gt 4 ]; then
             echo "::error::Last successful scheduled_ai_post run is older than 4 days."
             exit 1
+          fi
+
+          DOW=$(date -u +%u)
+          TODAY=$(date -u +%Y-%m-%d)
+          EXPECTED_KIND=""
+          EXPECTED_SLUG=""
+          case "$DOW" in
+            1|3) EXPECTED_KIND="deep-dive"; EXPECTED_SLUG="${TODAY}-" ;;
+            5)   EXPECTED_KIND="ai-news"; EXPECTED_SLUG="${TODAY}-ai-news-${TODAY}" ;;
+          esac
+
+          if [ -n "$EXPECTED_KIND" ]; then
+            MATCH=$(git ls-tree -r --name-only HEAD "_posts/ko" \
+              | grep -F "${EXPECTED_SLUG}" || true)
+            if [ -z "$MATCH" ]; then
+              echo "::error::Expected ${EXPECTED_KIND} post for ${TODAY} is missing on gh-pages."
+              exit 1
+            fi
+            echo "Expected ${EXPECTED_KIND} post present: ${MATCH}"
+          else
+            echo "No scheduled AI post expected today (DOW=${DOW})."
           fi
 
           echo "Scheduled AI post generation is within the expected window."

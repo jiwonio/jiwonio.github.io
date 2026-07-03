@@ -6,6 +6,7 @@ from generate_ai_news import (
     find_plain_da_tone_violations,
     keyword_score,
     normalize_title,
+    repair_korean_formal_tone,
     title_similarity,
 )
 
@@ -52,6 +53,18 @@ class GenerateAiNewsTests(unittest.TestCase):
             "- **Copilot**: 컨텍스트 필터링이 개선되어 체감 품질이 좋아질 수 있습니다.\n"
         )
         self.assertEqual(find_plain_da_tone_violations(prose), [])
+
+    def test_repair_korean_formal_tone_fixes_yo_and_da_endings(self):
+        content = (
+            "---\nlayout: post\n---\n"
+            "이번 주는 변화가 많았다.\n"
+            "- **LangChain**: 에이전트 런타임이 정리됐어요.\n"
+        )
+        repaired = repair_korean_formal_tone(content)
+        self.assertIn("많았습니다", repaired)
+        self.assertIn("정리됐습니다", repaired)
+        self.assertNotIn("많았다.", repaired)
+        self.assertNotIn("정리됐어요", repaired)
 
 if __name__ == "__main__":
     unittest.main()

@@ -86,6 +86,76 @@ PLAIN_DA_SUFFIX = re.compile(
     r"남았다|받았다|진화했다|가능해졌다|되었다)(?:\.|$)"
 )
 SKIP_TONE_LINES = frozenset({"<!--more-->", "[HERO_IMAGE]", "-----"})
+YO_TO_FORMAL_REPLACEMENTS = (
+    ("했어요", "했습니다"),
+    ("됐어요", "됐습니다"),
+    ("었어요", "었습니다"),
+    ("있어요", "있습니다"),
+    ("없어요", "없습니다"),
+    ("같아요", "같습니다"),
+    ("보여요", "보입니다"),
+    ("할게요", "하겠습니다"),
+    ("볼게요", "보겠습니다"),
+    ("해요", "합니다"),
+    ("예요", "입니다"),
+    ("이에요", "입니다"),
+    ("거예요", "것입니다"),
+)
+DA_TO_FORMAL_REPLACEMENTS = (
+    ("생겼다", "생겼습니다"),
+    ("밝혔다", "밝혔습니다"),
+    ("발표했다", "발표했습니다"),
+    ("공개했다", "공개했습니다"),
+    ("가능해졌다", "가능해졌습니다"),
+    ("정리됐다", "정리됐습니다"),
+    ("많았다", "많았습니다"),
+    ("되었다", "되었습니다"),
+    ("있었다", "있었습니다"),
+    ("없었다", "없었습니다"),
+    ("였다", "였습니다"),
+    ("했다", "했습니다"),
+    ("었다", "었습니다"),
+    ("았다", "았습니다"),
+    ("된다", "됩니다"),
+    ("한다", "합니다"),
+    ("같다", "같습니다"),
+    ("보인다", "보입니다"),
+)
+
+
+def repair_korean_formal_tone(content: str) -> str:
+    """Normalize common 해요체/한다체 drift to 합니다체 before strict validation."""
+    parts = content.split("### 참고문헌", 1)
+    prose = parts[0]
+    suffix = "### 참고문헌" + parts[1] if len(parts) > 1 else ""
+
+    repaired_lines: list[str] = []
+    for line in prose.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or stripped in SKIP_TONE_LINES:
+            repaired_lines.append(line)
+            continue
+        if FORMAL_ENDING_PATTERN.search(stripped):
+            repaired_lines.append(line)
+            continue
+
+        updated = line
+        for old, new in YO_TO_FORMAL_REPLACEMENTS:
+            if old in updated:
+                updated = updated.replace(old, new)
+        if not FORMAL_ENDING_PATTERN.search(updated):
+            trimmed = updated.rstrip()
+            trailing = ""
+            while trimmed and trimmed[-1] in ".!?…":
+                trailing = trimmed[-1] + trailing
+                trimmed = trimmed[:-1]
+            for old, new in DA_TO_FORMAL_REPLACEMENTS:
+                if trimmed.endswith(old):
+                    updated = trimmed[: -len(old)] + new + trailing
+                    break
+        repaired_lines.append(updated)
+
+    return "\n".join(repaired_lines) + suffix
 
 
 def find_plain_da_tone_violations(prose: str) -> list[str]:
@@ -725,6 +795,18 @@ def generate_ai_news_post(
         if repaired != content:
             print("🔧 LLM 출력 자동 보정 적용 (HERO_IMAGE 블록·내부 링크)")
             content = repaired
+        toned = repair_korean_formal_tone(content)
+        if toned != content:
+            print("🔧 한국어 문체 자동 보정 적용 (해요체/한다체 → 합니다체)")
+            content = toned
+        from post_common import drop_broken_reference_urls
+
+        content, dropped_refs = drop_broken_reference_urls(content)
+        if dropped_refs:
+            print(
+                "🔧 유효하지 않은 참고문헌 URL 제거: "
+                + ", ".join(dropped_refs[:3])
+            )
         try:
             return validate_ai_news_content(content, past_urls, edition_date=today)
         except ValueError as exc:

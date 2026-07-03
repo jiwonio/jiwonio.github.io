@@ -508,13 +508,10 @@ def generate_translation_content(
                 strip_preamble(strip_code_fence(result.text))
             )
             content = ensure_translation_metadata(content, source_content, target_lang, slug)
-            from post_common import (
-                get_existing_ko_slugs,
-                repair_internal_post_slugs,
-                repair_reference_urls,
-            )
+            from post_analysis import rebuild_references_section
+            from post_common import get_existing_ko_slugs, repair_internal_post_slugs
 
-            content = repair_reference_urls(content, source_content)
+            content = rebuild_references_section(content, source_content, target_lang)
             content = repair_internal_post_slugs(content, get_existing_ko_slugs())
             validate_translation_content(
                 content,

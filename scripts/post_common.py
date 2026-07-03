@@ -306,58 +306,14 @@ def resolve_internal_post_slug(link_slug: str, ko_slugs: set[str]) -> str | None
     return None
 
 
-REF_LINK_LINE = re.compile(
-    r"^(- \[[^\]]*\]\()([^)]+)(\)(?:\{:target=\"_blank\"\})?)",
-    re.MULTILINE,
-)
-REFERENCE_SECTION_HEADINGS = (
-    "### 참고문헌",
-    "## References",
-    "### References",
-    "## 参考",
-    "### 参考",
-    "## 参考文献",
-    "### 参考文獻",
-    "## 参考资料",
-    "### 参考资料",
-)
+def repair_reference_urls(content: str, source_content: str, target_lang: str = "ko") -> str:
+    from post_analysis import rebuild_references_section
 
-
-def find_references_section_start(content: str) -> int:
-    for heading in REFERENCE_SECTION_HEADINGS:
-        idx = content.find(heading)
-        if idx >= 0:
-            return idx
-    return -1
-
-
-def repair_reference_urls(content: str, source_content: str) -> str:
-    """Keep translated reference titles but restore exact URLs from the Korean source."""
-    source_urls = extract_reference_urls(source_content)
-    if not source_urls:
-        return content
-
-    start = find_references_section_start(content)
-    if start < 0:
-        return content
-
-    prefix = content[:start]
-    section = content[start:]
-    url_idx = 0
-
-    def replace_link(match: re.Match[str]) -> str:
-        nonlocal url_idx
-        if url_idx >= len(source_urls):
-            return match.group(0)
-        line_prefix, suffix = match.group(1), match.group(3)
-        url = source_urls[url_idx]
-        url_idx += 1
-        return f"{line_prefix}{url}{suffix}"
-
-    return prefix + REF_LINK_LINE.sub(replace_link, section)
+    return rebuild_references_section(content, source_content, target_lang)
 
 
 def find_broken_reference_urls(content: str) -> list[str]:
+    from post_analysis import extract_reference_urls
     from validate_posts import check_reference_url
 
     broken: list[str] = []
@@ -365,6 +321,43 @@ def find_broken_reference_urls(content: str) -> list[str]:
         if check_reference_url(url):
             broken.append(url)
     return broken
+
+
+def drop_broken_reference_urls(content: str) -> tuple[str, list[str]]:
+    """Remove unreachable reference links and rebuild the references section."""
+    from post_analysis import (
+        extract_reference_entries,
+        find_references_section_start,
+        normalize_reference_url,
+    )
+    from validate_posts import check_reference_url
+
+    entries = extract_reference_entries(content)
+    if not entries:
+        return content, []
+
+    kept: list[tuple[str, str]] = []
+    dropped: list[str] = []
+    for title, url in entries:
+        normalized = normalize_reference_url(url)
+        if check_reference_url(normalized):
+            dropped.append(normalized)
+            continue
+        kept.append((title, normalized))
+
+    if not dropped:
+        return content, []
+
+    start = find_references_section_start(content)
+    if start < 0:
+        return content, dropped
+
+    lines = ["### 참고문헌"]
+    for title, url in kept:
+        label = title or url
+        lines.append(f'- [{label}]({url}){{:target="_blank"}}')
+    ref_block = "\n".join(lines) + "\n"
+    return content[:start].rstrip() + "\n\n" + ref_block, dropped
 
 
 def repair_internal_post_slugs(content: str, ko_slugs: set[str]) -> str:
@@ -432,11 +425,9 @@ def repair_ai_news_structure(content: str, internal_candidates: list[dict]) -> s
 
 
 def extract_reference_urls(content: str) -> list[str]:
-    refs_start = content.find("### 참고문헌")
-    if refs_start < 0:
-        return []
-    section = content[refs_start:]
-    return [normalize_url(url) for url in REFERENCE_URL_PATTERN.findall(section)]
+    from post_analysis import extract_reference_urls as _extract_reference_urls
+
+    return _extract_reference_urls(content)
 
 
 def normalize_url(url: str) -> str:
