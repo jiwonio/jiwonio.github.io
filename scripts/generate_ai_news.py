@@ -68,7 +68,9 @@ ACTION_VERBS = (
     "확인", "검토", "도입", "업데이트", "비교", "테스트", "정리", "점검", "설정",
     "모니터링", "문서화", "축소", "확장", "백업", "마이그레이션", "교체", "보류",
     "관리", "적용", "배포", "패치", "기록", "공유", "동기화", "제한", "완화",
+    "추적", "파악", "대비", "준비", "살펴", "조정", "연동", "갱신", "수립",
 )
+MIN_SUMMARY_ACTION_BULLETS = 2
 HYPE_WORDS = ("혁신", "패러다임", "게임 체인저", "세계 최초", "역사적")
 SUMMARY_SECTIONS = ("이번 주 한 줄 정리",)
 BANNED_INTRO_PHRASES = (
@@ -96,6 +98,7 @@ YO_TO_FORMAL_REPLACEMENTS = (
     ("보여요", "보입니다"),
     ("할게요", "하겠습니다"),
     ("볼게요", "보겠습니다"),
+    ("하세요", "합니다"),
     ("해요", "합니다"),
     ("예요", "입니다"),
     ("이에요", "입니다"),
@@ -399,7 +402,117 @@ def extract_summary_bullets(content: str) -> list[str]:
 
 def bullet_has_action_hint(bullet: str) -> bool:
     lowered = bullet.casefold()
-    return any(verb in lowered for verb in ACTION_VERBS)
+    if any(verb in lowered for verb in ACTION_VERBS):
+        return True
+    return bool(re.search(r"(?:하십시오|합니다|하세요|할 것|해보|점검해|확인해|검토해)$", lowered))
+
+
+def ensure_action_bullet(bullet: str) -> str:
+    if bullet_has_action_hint(bullet):
+        return bullet
+    label_match = re.match(r"^(\*\*[^*]+\*\*:\s*)(.+)$", bullet)
+    if label_match:
+        prefix, core = label_match.groups()
+        core = core.rstrip(". ")
+        return f"{prefix}{core}을(를) 확인합니다."
+    core = bullet.rstrip(". ")
+    return f"확인: {core}을(를) 점검합니다."
+
+
+def repair_summary_action_bullets(content: str, *, min_actionable: int = MIN_SUMMARY_ACTION_BULLETS) -> str:
+    lines = content.splitlines()
+    output: list[str] = []
+    in_summary = False
+
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("## ") and "이번 주 한 줄 정리" in stripped:
+            in_summary = True
+            output.append(line)
+            continue
+        if in_summary and stripped.startswith("#"):
+            in_summary = False
+        if in_summary and stripped.startswith(("- ", "* ")):
+            indent = line[: len(line) - len(line.lstrip())]
+            bullet = stripped.lstrip("-* ").strip()
+            output.append(f"{indent}- {ensure_action_bullet(bullet)}")
+            continue
+        output.append(line)
+
+    repaired = "\n".join(output)
+    bullets = extract_summary_bullets(repaired)
+    actionable = [bullet for bullet in bullets if bullet_has_action_hint(bullet)]
+    if len(actionable) >= min_actionable:
+        return repaired
+
+    lines = repaired.splitlines()
+    output = []
+    in_summary = False
+    fixed = 0
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("## ") and "이번 주 한 줄 정리" in stripped:
+            in_summary = True
+            output.append(line)
+            continue
+        if in_summary and stripped.startswith("#"):
+            in_summary = False
+        if in_summary and stripped.startswith(("- ", "* ")):
+            indent = line[: len(line) - len(line.lstrip())]
+            bullet = stripped.lstrip("-* ").strip()
+            if not bullet_has_action_hint(bullet) and fixed < min_actionable:
+                bullet = ensure_action_bullet(bullet)
+                fixed += 1
+            output.append(f"{indent}- {bullet}")
+            continue
+        output.append(line)
+    return "\n".join(output)
+
+
+def repair_ai_news_front_matter(
+    content: str,
+    *,
+    slug: str,
+    current_time: str,
+) -> str:
+    from post_common import parse_required_front_matter
+
+    try:
+        metadata = parse_required_front_matter(content)
+        if str(metadata.get("slug", "")).strip():
+            return content
+    except ValueError:
+        pass
+
+    body = content.strip()
+    title = "이번 주 AI 소식"
+    title_match = re.search(r'^title:\s*["\']?(.+?)["\']?\s*$', body, re.MULTILINE)
+    if title_match:
+        title = title_match.group(1).strip()
+    else:
+        heading_match = re.search(r"^##\s+1\.\s+(.+)$", body, re.MULTILINE)
+        if heading_match:
+            title = f"이번 주 AI 소식: {heading_match.group(1).strip()[:48]}"
+
+    if body.startswith("---"):
+        body = re.sub(r"^---.*?---\s*", "", body, count=1, flags=re.DOTALL).strip()
+
+    front_matter = f"""---
+layout: post
+title: "{title}"
+slug: {slug}
+lang: ko
+translation_key: {slug}
+post_type: ai-news
+date: {current_time}
+categories: [AI]
+tags: [AI-News, Developer-Digest, News-Digest]
+description: "이번 주 개발자 관점 AI 소식 다이제스트"
+image: "/uploads/{slug}/thumbnail.webp"
+---
+"""
+    print("🔧 YAML front matter 자동 보정 적용")
+    return front_matter + body
 
 
 def parse_selection_json(text: str) -> dict:
@@ -791,6 +904,11 @@ def generate_ai_news_post(
     )
 
     def validate(content: str) -> tuple[dict, str]:
+        content = repair_ai_news_front_matter(
+            content,
+            slug=today_slug,
+            current_time=current_time,
+        )
         repaired = repair_ai_news_structure(content, internal_candidates)
         if repaired != content:
             print("🔧 LLM 출력 자동 보정 적용 (HERO_IMAGE 블록·내부 링크)")
@@ -799,6 +917,10 @@ def generate_ai_news_post(
         if toned != content:
             print("🔧 한국어 문체 자동 보정 적용 (해요체/한다체 → 합니다체)")
             content = toned
+        summary_repaired = repair_summary_action_bullets(content)
+        if summary_repaired != content:
+            print("🔧 '이번 주 한 줄 정리' bullet 자동 보정 적용 (행동 동사)")
+            content = summary_repaired
         from post_common import drop_broken_reference_urls
 
         content, dropped_refs = drop_broken_reference_urls(content)
@@ -819,6 +941,7 @@ def generate_ai_news_post(
         post_type="ai-news",
         text_provider=text_provider,
         system_prompt=AI_NEWS_SYSTEM_PROMPT,
+        max_retries=8,
     )
 
     image_prompt = (

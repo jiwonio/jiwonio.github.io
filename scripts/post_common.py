@@ -640,6 +640,22 @@ def generate_with_retry(
                         "\n- Include at least 2 markdown links like "
                         "[title](/posts/slug/) in the body."
                     )
+                if "한 줄 정리" in error_msg or "bullet" in error_msg:
+                    hints += (
+                        "\n- In '이번 주 한 줄 정리', write 3-4 bullets that start "
+                        "with action verbs (확인, 검토, 점검, 적용, 도입, 업데이트)."
+                    )
+                if "~요" in error_msg or "~다" in error_msg or "문체" in error_msg:
+                    hints += (
+                        "\n- Use formal '~습니다·입니다' endings only. "
+                        "Do not use '~요' or plain '~다' style."
+                    )
+                if "front matter" in error_msg or "YAML" in error_msg:
+                    hints += (
+                        "\n- Start with valid YAML front matter (layout, title, slug, "
+                        "lang, translation_key, post_type, date, categories, tags, "
+                        "description, image) between --- fences."
+                    )
                 current_prompt = (
                     f"{prompt}\n\n"
                     f"[Previous attempt failed validation: {error_msg}. "

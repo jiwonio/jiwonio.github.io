@@ -1,12 +1,16 @@
 import unittest
 
 from generate_ai_news import (
+    bullet_has_action_hint,
     deduplicate_items,
+    ensure_action_bullet,
     filter_ai_relevant_entries,
     find_plain_da_tone_violations,
     keyword_score,
     normalize_title,
+    repair_ai_news_front_matter,
     repair_korean_formal_tone,
+    repair_summary_action_bullets,
     title_similarity,
 )
 
@@ -65,6 +69,47 @@ class GenerateAiNewsTests(unittest.TestCase):
         self.assertIn("정리됐습니다", repaired)
         self.assertNotIn("많았다.", repaired)
         self.assertNotIn("정리됐어요", repaired)
+
+    def test_ensure_action_bullet_prefixes_noun_only_line(self):
+        bullet = "GitHub Copilot 보안 샌드박스 정책 변경"
+        repaired = ensure_action_bullet(bullet)
+        self.assertTrue(bullet_has_action_hint(repaired))
+
+    def test_repair_summary_action_bullets_adds_action_verbs(self):
+        content = """---
+title: t
+---
+intro
+<!--more-->
+## 1. News
+body
+## 이번 주 한 줄 정리
+- GitHub Copilot 보안 샌드박스 정책 변경
+- LangChain 1.0 에이전트 런타임 정리
+- API 가격 변경 공지
+### 참고문헌
+- [x](https://example.com)
+"""
+        repaired = repair_summary_action_bullets(content)
+        bullets = repaired.split("## 이번 주 한 줄 정리", 1)[1].split("### 참고문헌")[0]
+        self.assertGreaterEqual(bullets.count("확인"), 1)
+
+    def test_repair_ai_news_front_matter_rebuilds_invalid_yaml(self):
+        broken = """---
+코딩 에이전트가 바뀌었다.
+<!--more-->
+[HERO_IMAGE]
+-----
+## 1. News
+"""
+        repaired = repair_ai_news_front_matter(
+            broken,
+            slug="ai-news-2026-07-03",
+            current_time="2026-07-03 00:00:00 +0900",
+        )
+        self.assertIn('slug: ai-news-2026-07-03', repaired)
+        self.assertIn("layout: post", repaired)
+        self.assertIn("## 1. News", repaired)
 
 if __name__ == "__main__":
     unittest.main()
