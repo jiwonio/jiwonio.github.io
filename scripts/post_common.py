@@ -306,6 +306,67 @@ def resolve_internal_post_slug(link_slug: str, ko_slugs: set[str]) -> str | None
     return None
 
 
+REF_LINK_LINE = re.compile(
+    r"^(- \[[^\]]*\]\()([^)]+)(\)(?:\{:target=\"_blank\"\})?)",
+    re.MULTILINE,
+)
+REFERENCE_SECTION_HEADINGS = (
+    "### 참고문헌",
+    "## References",
+    "### References",
+    "## 参考",
+    "### 参考",
+    "## 参考文献",
+    "### 参考文獻",
+    "## 参考资料",
+    "### 参考资料",
+)
+
+
+def find_references_section_start(content: str) -> int:
+    for heading in REFERENCE_SECTION_HEADINGS:
+        idx = content.find(heading)
+        if idx >= 0:
+            return idx
+    return -1
+
+
+def repair_reference_urls(content: str, source_content: str) -> str:
+    """Keep translated reference titles but restore exact URLs from the Korean source."""
+    source_urls = extract_reference_urls(source_content)
+    if not source_urls:
+        return content
+
+    start = find_references_section_start(content)
+    if start < 0:
+        return content
+
+    prefix = content[:start]
+    section = content[start:]
+    url_idx = 0
+
+    def replace_link(match: re.Match[str]) -> str:
+        nonlocal url_idx
+        if url_idx >= len(source_urls):
+            return match.group(0)
+        line_prefix, suffix = match.group(1), match.group(3)
+        url = source_urls[url_idx]
+        url_idx += 1
+        return f"{line_prefix}{url}{suffix}"
+
+    return prefix + REF_LINK_LINE.sub(replace_link, section)
+
+
+def find_broken_reference_urls(content: str) -> list[str]:
+    from validate_posts import check_reference_url
+
+    broken: list[str] = []
+    for url in extract_reference_urls(content):
+        if check_reference_url(url):
+            broken.append(url)
+    return broken
+
+
 def repair_internal_post_slugs(content: str, ko_slugs: set[str]) -> str:
     """Fix truncated /posts/slug/ links when they uniquely match one ko post."""
 

@@ -7,6 +7,7 @@ from post_common import (
     repair_hero_image_placeholder,
     repair_internal_links,
     repair_internal_post_slugs,
+    repair_reference_urls,
     resolve_internal_post_slug,
 )
 
@@ -79,6 +80,26 @@ body text
         content = "See [Docker](/posts/building-a-production-ready-local-development-with-docker-compose/)."
         repaired = repair_internal_post_slugs(content, ko_slugs)
         self.assertIn("development-environment-with-docker-compose", repaired)
+
+    def test_repair_reference_urls_restores_source_urls(self):
+        source = """---
+layout: post
+---
+### 참고문헌
+- [원문](https://example.com/good){:target="_blank"}
+- [둘째](https://example.com/also-good){:target="_blank"}
+"""
+        translated = """---
+layout: post
+---
+## References
+- [English title](https://example.com/broken){:target="_blank"}
+- [Second](https://example.com/wrong){:target="_blank"}
+"""
+        repaired = repair_reference_urls(translated, source)
+        self.assertIn("https://example.com/good", repaired)
+        self.assertIn("https://example.com/also-good", repaired)
+        self.assertNotIn("https://example.com/broken", repaired)
 
 if __name__ == "__main__":
     unittest.main()

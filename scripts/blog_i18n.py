@@ -389,7 +389,13 @@ Source post (references section omitted from input):
 """
 
 
-def validate_translation_content(content: str, target_lang: str, slug: str) -> dict:
+def validate_translation_content(
+    content: str,
+    target_lang: str,
+    slug: str,
+    *,
+    source_content: str | None = None,
+) -> dict:
     from post_common import find_invalid_internal_post_slugs, get_existing_ko_slugs
     metadata = parse_front_matter(content)
 
@@ -418,6 +424,12 @@ def validate_translation_content(content: str, target_lang: str, slug: str) -> d
             + ", ".join(invalid_slugs[:5])
             + " (번역 시 /posts/ slug를 변경하지 마세요)"
         )
+
+    if source_content:
+        source_urls = extract_reference_urls(source_content)
+        trans_urls = extract_reference_urls(content)
+        if source_urls and trans_urls != source_urls:
+            raise ValueError("번역 참고문헌 URL이 원문과 일치하지 않습니다.")
 
     return metadata
 
@@ -479,7 +491,7 @@ def generate_translation_content(
     if target_lang == "en" and is_primarily_english(source_content):
         content = copy_as_english_translation(source_content, slug)
         content = ensure_translation_metadata(content, source_content, target_lang, slug)
-        validate_translation_content(content, target_lang, slug)
+        validate_translation_content(content, target_lang, slug, source_content=source_content)
         return content
 
     base_prompt = build_translation_prompt(source_content, target_lang, slug)
@@ -496,10 +508,20 @@ def generate_translation_content(
                 strip_preamble(strip_code_fence(result.text))
             )
             content = ensure_translation_metadata(content, source_content, target_lang, slug)
-            from post_common import get_existing_ko_slugs, repair_internal_post_slugs
+            from post_common import (
+                get_existing_ko_slugs,
+                repair_internal_post_slugs,
+                repair_reference_urls,
+            )
 
+            content = repair_reference_urls(content, source_content)
             content = repair_internal_post_slugs(content, get_existing_ko_slugs())
-            validate_translation_content(content, target_lang, slug)
+            validate_translation_content(
+                content,
+                target_lang,
+                slug,
+                source_content=source_content,
+            )
             from api_monitor import notify_llm_usage
 
             notify_llm_usage(

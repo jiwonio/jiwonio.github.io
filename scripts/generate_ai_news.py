@@ -268,6 +268,20 @@ def score_and_rank_items(items: list[dict]) -> list[dict]:
     )
 
 
+def filter_reachable_items(items: list[dict]) -> list[dict]:
+    from validate_posts import check_reference_url
+
+    kept: list[dict] = []
+    for item in items:
+        error = check_reference_url(item["url"])
+        if error:
+            title = str(item.get("title", ""))[:60]
+            print(f"  ⏭️ unreachable RSS item skipped: {title} ({error})")
+            continue
+        kept.append(item)
+    return kept
+
+
 def count_news_sections(content: str) -> list[str]:
     body = body_after_more(content)
     sections = []
@@ -522,6 +536,15 @@ def validate_ai_news_content(
     if len(ref_urls) < MIN_REFERENCE_URLS:
         raise ValueError(f"참고문헌 URL이 {MIN_REFERENCE_URLS}개 이상 필요합니다: {len(ref_urls)}개")
 
+    from post_common import find_broken_reference_urls
+
+    broken_refs = find_broken_reference_urls(content)
+    if broken_refs:
+        raise ValueError(
+            "참고문헌 URL이 유효하지 않습니다 (404/410): "
+            + ", ".join(broken_refs[:3])
+        )
+
     overlap = set(ref_urls) & past_urls
     if overlap:
         raise ValueError(f"이미 다룬 참고문헌 URL이 포함되어 있습니다: {list(overlap)[:3]}")
@@ -676,8 +699,8 @@ def generate_ai_news_post(
     print("📡 RSS 피드 수집 중...")
     raw_items = fetch_rss_items() + fetch_hn_items()
     deduped = deduplicate_items(raw_items)
-    ranked = score_and_rank_items(deduped)
-    print(f"✅ 후보 {len(ranked)}건 (중복 제거 후)")
+    ranked = filter_reachable_items(score_and_rank_items(deduped))
+    print(f"✅ 후보 {len(ranked)}건 (중복 제거·URL 검증 후)")
 
     if len(ranked) < MIN_REFERENCE_URLS:
         raise RuntimeError(f"RSS 후보가 부족합니다: {len(ranked)}건 (최소 {MIN_REFERENCE_URLS}건 필요)")
@@ -750,8 +773,11 @@ def dry_run(*, strict: bool = False) -> int:
     print("\n📡 RSS 피드 수집 중...")
     raw_items = fetch_rss_items() + fetch_hn_items()
     deduped = deduplicate_items(raw_items)
-    ranked = score_and_rank_items(deduped)
-    print(f"\n✅ 후보 {len(ranked)}건 (원본 {len(raw_items)}건 → 중복 제거 {len(deduped)}건)")
+    ranked = filter_reachable_items(score_and_rank_items(deduped))
+    print(
+        f"\n✅ 후보 {len(ranked)}건 "
+        f"(원본 {len(raw_items)}건 → 중복 제거 {len(deduped)}건 → URL 검증 후)"
+    )
 
     if len(ranked) < MIN_REFERENCE_URLS:
         print(f"  ❌ 후보 부족: {len(ranked)}건 (최소 {MIN_REFERENCE_URLS}건 필요)")

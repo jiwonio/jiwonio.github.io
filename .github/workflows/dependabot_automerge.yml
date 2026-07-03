@@ -28,10 +28,19 @@ jobs:
         startsWith(github.event.workflow_run.head_branch, 'dependabot/')
       )
     steps:
+      - name: Resolve auth method
+        id: auth
+        run: |
+          if [ -n "${{ secrets.DEPENDABOT_GH_APP_ID }}" ] && [ -n "${{ secrets.DEPENDABOT_GH_APP_PRIVATE_KEY }}" ]; then
+            echo "has_app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_app=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Create GitHub App token
         id: app-token
-        if: secrets.DEPENDABOT_GH_APP_ID != '' && secrets.DEPENDABOT_GH_APP_PRIVATE_KEY != ''
-        uses: actions/create-github-app-token@v1
+        if: steps.auth.outputs.has_app == 'true'
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.DEPENDABOT_GH_APP_ID }}
           private-key: ${{ secrets.DEPENDABOT_GH_APP_PRIVATE_KEY }}
