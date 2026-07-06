@@ -1,15 +1,15 @@
 # TODO — blog.jiwon.io
 
-> **마지막 갱신:** 2026-06-26
+> **마지막 갱신:** 2026-07-06
 > **브랜치:** `gh-pages` (배포·개발 모두 이 브랜치)  
 > **저장소:** https://github.com/jwjp/jwjp.github.io  
 > **사이트:** https://blog.jiwon.io
 
 나중에 Grok 등으로 이어서 작업할 항목입니다. 완료되면 `- [x]` 체크하고 날짜를 적어 주세요.
 
-### 다음 작업 (2026-06-26 기준)
+### 다음 작업 (2026-07-06 기준)
 
-**미완료:** 선택 항목만 남음. 주간 Lighthouse·배포 CI는 정상.
+**미완료:** 선택 항목만 남음. zh 참고문헌 파싱·정규화 보완 후 배포·url_check·AI 포스트 CI 복구 예정.
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
@@ -134,6 +134,9 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
+| (pending) | fix(refs): zh 참고문헌 파싱(`-*` 불릿) + 2건 정규화 — Deploy·url_check·AI 포스트 CI 복구 |
+| `39eec16` | ai-news auto-repair (summary bullets, tone, front matter) — zh refs 미정규화로 CI 실패 잔존 |
+| `c9c7ee4` | ai-news reference sync·tone repair·watchdog 강화 |
 | `89e6ac7` | perf 4차: inline @font-face, optional, preload — Lighthouse 주간만, Deploy #216 green |
 | `fa67f37` | perf 3차 (회귀 61%) — async font CSS, deploy 직후 Lighthouse (이후 롤백) |
 | `8dcd011` | htmlproofer 수정, JP/SC 단일 woff2, 폰트·IndexNow 자동화, devcontainer |
@@ -145,6 +148,7 @@ cd e2e && npm ci && npx playwright test
 
 ## 알려진 이슈 · 검토 필요
 
+- [x] zh 번역 참고문헌 0건으로 검증 실패 — `-*` 불릿 파싱 + 2건 `rebuild_references_section` 정규화 (2026-07-06)
 - [x] Deploy #212–213 htmlproofer 실패 — 이메일 링크 `href="#"` 추가 (2026-06-26)
 - [x] Windows 로컬 `htmlproofer` libcurl 미설치로 실패 가능 — CI·devcontainer가 정본 (수용, 2026-06-26)
 

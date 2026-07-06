@@ -90,6 +90,23 @@ title: t
             [("GitHub Blog", "https://github.blog/post")],
         )
 
+    def test_extract_reference_urls_supports_spaced_and_asterisk_bullets(self):
+        content = """---
+title: t
+---
+## 参考资料
+
+-   [Daybreak](https://openai.com/index/daybreak-securing-the-world)
+*   [CCCL](https://developer.nvidia.com/blog/cccl-runtime/)
+"""
+        self.assertEqual(
+            extract_reference_urls(content),
+            [
+                "https://openai.com/index/daybreak-securing-the-world",
+                "https://developer.nvidia.com/blog/cccl-runtime/",
+            ],
+        )
+
     def test_rebuild_references_section_uses_source_urls_for_ja(self):
         source = """---
 title: t

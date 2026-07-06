@@ -230,9 +230,8 @@ GitHub Copilot 会读取仓库根目录下的 `.github/copilot-instructions.md` 
 
 与其关闭或开启工具，不如先确保团队以相同标准使用它。Copilot 在未经协商就开启的那一刻，审查成本就会悄然上升。
 
-## 参考文献
-
-*   [GitHub Copilot Enterprise 管理访问权限](https://docs.github.com/en/copilot/managing-copilot/managing-copilot-for-your-enterprise/managing-access-to-copilot-in-your-enterprise)
-*   [为 GitHub Copilot 添加仓库自定义指令](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot)
-*   [GitHub Copilot 信任中心](https://resources.github.com/copilot-trust-center/)
-*   [GitHub Copilot 使用情况 REST API](https://docs.github.com/en/rest/copilot/copilot-usage)
+### 参考资料
+- [GitHub Copilot Enterprise 管理访问权限](https://docs.github.com/en/copilot/managing-copilot/managing-copilot-for-your-enterprise/managing-access-to-copilot-in-your-enterprise){:target="_blank"}
+- [为 GitHub Copilot 添加仓库自定义指令](https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot){:target="_blank"}
+- [GitHub Copilot 信任中心](https://resources.github.com/copilot-trust-center/){:target="_blank"}
+- [GitHub Copilot 使用情况 REST API](https://docs.github.com/en/rest/copilot/copilot-usage){:target="_blank"}

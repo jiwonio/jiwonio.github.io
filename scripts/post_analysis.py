@@ -27,9 +27,9 @@ REFERENCE_HEADINGS = (
     "## 参考资料",
     "### 参考资料",
 )
-PLAIN_REF_URL_PATTERN = re.compile(r"^-\s+(https?://\S+)", re.MULTILINE)
+PLAIN_REF_URL_PATTERN = re.compile(r"^[-*]\s+(https?://\S+)", re.MULTILINE)
 REF_LINK_LINE = re.compile(
-    r'^- \[([^\]]*)\]\(([^)\s"]+)(?:\s+"[^"]*")?\)(?:\{:target="_blank"\})?',
+    r'^[-*]\s+\[([^\]]*)\]\(([^)\s"]+)(?:\s+"[^"]*")?\)(?:\{:target="_blank"\})?',
     re.MULTILINE,
 )
 REFERENCE_HEADING_BY_LANG = {
