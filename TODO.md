@@ -9,7 +9,7 @@
 
 ### 다음 작업 (2026-07-06 기준)
 
-**미완료:** 선택 항목만 남음. zh 참고문헌 파싱·정규화 보완 후 배포·url_check·AI 포스트 CI 복구 예정.
+**미완료:** 선택 항목만 남음. zh 참고문헌 파싱·정규화 보완 완료, Deploy #28761998817 green.
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
@@ -134,7 +134,7 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
-| (pending) | fix(refs): zh 참고문헌 파싱(`-*` 불릿) + 2건 정규화 — Deploy·url_check·AI 포스트 CI 복구 |
+| `e415dae` | fix(refs): zh 참고문헌 파싱(`-*` 불릿) + 2건 정규화 — Deploy #28761998817 green |
 | `39eec16` | ai-news auto-repair (summary bullets, tone, front matter) — zh refs 미정규화로 CI 실패 잔존 |
 | `c9c7ee4` | ai-news reference sync·tone repair·watchdog 강화 |
 | `89e6ac7` | perf 4차: inline @font-face, optional, preload — Lighthouse 주간만, Deploy #216 green |
