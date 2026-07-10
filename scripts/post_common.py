@@ -443,7 +443,17 @@ def normalize_url(url: str) -> str:
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
 
 
-def collect_past_reference_urls(slug_prefix: str = "ai-news-") -> set[str]:
+def collect_past_reference_urls(
+    slug_prefix: str = "ai-news-",
+    *,
+    before_date: str | None = None,
+) -> set[str]:
+    """Collect reference URLs from prior ai-news editions.
+
+    before_date: optional YYYY-MM-DD. When set (backfill), only editions whose
+    slug date is strictly earlier than this day are included so a later published
+    digest does not block recovering a missed earlier edition.
+    """
     urls: set[str] = set()
     for path in list_post_files():
         if detect_lang_from_path(path) != DEFAULT_LANG:
@@ -451,6 +461,11 @@ def collect_past_reference_urls(slug_prefix: str = "ai-news-") -> set[str]:
         slug = extract_slug_from_path(path)
         if not slug or not slug.startswith(slug_prefix):
             continue
+        if before_date:
+            # slug form: ai-news-YYYY-MM-DD
+            suffix = slug[len(slug_prefix) :]
+            if len(suffix) >= 10 and suffix[:10] >= before_date:
+                continue
         try:
             content = Path(path).read_text(encoding="utf-8")
             urls.update(extract_reference_urls(content))

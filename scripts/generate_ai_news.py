@@ -882,7 +882,9 @@ def generate_ai_news_post(
     if len(ranked) < MIN_REFERENCE_URLS:
         raise RuntimeError(f"RSS 후보가 부족합니다: {len(ranked)}건 (최소 {MIN_REFERENCE_URLS}건 필요)")
 
-    past_urls = collect_past_reference_urls()
+    past_urls = collect_past_reference_urls(
+        before_date=today.strftime("%Y-%m-%d") if date_override else None,
+    )
     edition_plan, selected_items = select_edition_plan(ranked, text_provider=text_provider)
     rss_titles = [item["title"] for item in selected_items]
     internal_candidates = get_internal_link_candidates(rss_titles)
