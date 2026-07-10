@@ -20,8 +20,10 @@ from post_common import (
     get_kst_now,
     get_recent_slugs,
     get_recent_titles,
+    inject_front_matter_field,
     normalize_slug,
     publish_post,
+    resolve_edition_datetime,
     tokenize,
     validate_base_content,
     validate_tag_consistency,
@@ -229,9 +231,16 @@ image: "/uploads/english-slug-for-this-topic/thumbnail.webp"
 """
 
 
-def generate_blog_post(*, text_provider: str | None = None, translation_provider: str | None = None) -> str:
-    today = get_kst_now()
+def generate_blog_post(
+    *,
+    text_provider: str | None = None,
+    translation_provider: str | None = None,
+    date_override: str | None = None,
+) -> str:
+    today = resolve_edition_datetime(date_override)
     current_time = today.strftime("%Y-%m-%d %H:%M:%S +0900")
+    if date_override:
+        print(f"📅 deep-dive 날짜 고정(백필): {today.strftime('%Y-%m-%d')}")
 
     recent_titles = get_recent_titles(50)
     recent_slugs = get_recent_slugs(50)
@@ -258,6 +267,9 @@ def generate_blog_post(*, text_provider: str | None = None, translation_provider
         text_provider=text_provider,
         system_prompt=DEEP_DIVE_SYSTEM_PROMPT,
     )
+    # Keep filename date and front matter date aligned on backfill runs.
+    content = inject_front_matter_field(content, "date", current_time)
+    metadata["date"] = current_time
 
     clean_english_topic = slug.replace("-", " ")
     image_prompt = (
@@ -327,6 +339,11 @@ if __name__ == "__main__":
         choices=["gemini", "anthropic", "openai", "xai"],
         help="번역에 사용할 LLM provider (기본: 번역 폴백 체인)",
     )
+    parser.add_argument(
+        "--date",
+        metavar="YYYY-MM-DD",
+        help="파일명/front matter 날짜 고정 (누락 deep-dive 백필용, 예: 2026-07-06)",
+    )
     args = parser.parse_args()
 
     if args.dry_run:
@@ -334,4 +351,5 @@ if __name__ == "__main__":
     generate_blog_post(
         text_provider=args.text_provider,
         translation_provider=args.translation_provider,
+        date_override=args.date,
     )

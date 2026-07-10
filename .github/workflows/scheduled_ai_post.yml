@@ -49,7 +49,7 @@ on:
           - openai
           - xai
       edition_date:
-        description: 'ai-news slug 날짜 (YYYY-MM-DD, 누락 호수 복구용, 비우면 오늘)'
+        description: '백필 날짜 (YYYY-MM-DD). ai-news slug·deep-dive 파일명/date 고정. 비우면 오늘'
         required: false
         default: ''
         type: string
@@ -175,7 +175,7 @@ jobs:
             EXTRA_ARGS+=(--translation-provider "$TRANSLATION_PROVIDER")
           fi
           EDITION_DATE="${{ github.event.inputs.edition_date }}"
-          if [ -n "$EDITION_DATE" ] && [ "$SCRIPT" = "scripts/generate_ai_news.py" ]; then
+          if [ -n "$EDITION_DATE" ]; then
             EXTRA_ARGS+=(--date "$EDITION_DATE")
           fi
 

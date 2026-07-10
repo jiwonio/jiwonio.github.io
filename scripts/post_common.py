@@ -68,6 +68,14 @@ def get_kst_now() -> datetime:
     return datetime.now(kst)
 
 
+def resolve_edition_datetime(date_override: str | None = None) -> datetime:
+    """Return KST datetime for generation; optional YYYY-MM-DD backfill override."""
+    if date_override:
+        parsed = datetime.strptime(date_override.strip(), "%Y-%m-%d")
+        return parsed.replace(tzinfo=get_kst_now().tzinfo)
+    return get_kst_now()
+
+
 def list_post_files() -> list[str]:
     return [str(path) for path in sorted(POSTS_DIR.rglob("*.md"))]
 

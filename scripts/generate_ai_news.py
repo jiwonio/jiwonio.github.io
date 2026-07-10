@@ -43,6 +43,7 @@ from post_common import (
     normalize_url,
     publish_post,
     repair_ai_news_structure,
+    resolve_edition_datetime,
     tokenize,
     validate_base_content,
     validate_tag_consistency,
@@ -636,13 +637,6 @@ def select_edition_plan(
     except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
         print(f"  ⚠️ 선별 JSON 파싱 실패, 상위 후보로 폴백: {exc}")
         return fallback_edition_plan(ranked_items)
-
-
-def resolve_edition_datetime(date_override: str | None = None) -> datetime:
-    if date_override:
-        parsed = datetime.strptime(date_override.strip(), "%Y-%m-%d")
-        return parsed.replace(tzinfo=get_kst_now().tzinfo)
-    return get_kst_now()
 
 
 def validate_ai_news_content(
