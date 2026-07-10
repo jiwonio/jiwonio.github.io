@@ -137,11 +137,23 @@ jobs:
             fi
           fi
 
-          merge_state=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergeable,mergeStateStatus -q '[.mergeable, .mergeStateStatus] | @tsv')
-          echo "Merge state: ${merge_state}"
+          mergeable=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergeable -q '.mergeable')
+          merge_state=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergeStateStatus -q '.mergeStateStatus')
+          echo "Merge state: ${mergeable}/${merge_state}"
+
+          if [ "$mergeable" = "CONFLICTING" ] || [ "$merge_state" = "DIRTY" ]; then
+            echo "PR #${PR_NUMBER} has merge conflicts with base. Skipping (rebase or close as superseded)."
+            exit 0
+          fi
 
           echo "Required CI passed. Merging Dependabot PR #${PR_NUMBER}..."
-          if ! gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --delete-branch; then
+          merge_err=$(mktemp)
+          if ! gh pr merge "$PR_NUMBER" --repo "$REPO" --merge --delete-branch 2>"$merge_err"; then
+            cat "$merge_err"
+            if grep -qiE 'conflict|not mergeable|protected branch|required status' "$merge_err"; then
+              echo "Merge blocked by branch state/rules for PR #${PR_NUMBER}; will retry on next green CI."
+              exit 0
+            fi
             echo "::error::gh pr merge failed. Add DEPENDABOT_MY_PAT (repo Contents+PRs write) or grant the Dependabot GitHub App Pull requests + Contents write."
             gh pr view "$PR_NUMBER" --repo "$REPO" --json mergeable,mergeStateStatus,statusCheckRollup
             exit 1
