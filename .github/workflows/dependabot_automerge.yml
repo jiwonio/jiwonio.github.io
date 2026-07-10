@@ -95,10 +95,16 @@ jobs:
           fi
 
           pr_author=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json author -q '.author.login')
-          if [ "$pr_author" != "dependabot[bot]" ]; then
-            echo "PR #${PR_NUMBER} is not from dependabot[bot] (got: ${pr_author})."
-            exit 1
-          fi
+          # REST/GraphQL may report dependabot as dependabot[bot] or app/dependabot.
+          # Quote the [bot] form so bash does not treat [] as a character class.
+          case "$pr_author" in
+            'dependabot[bot]'|app/dependabot|dependabot)
+              ;;
+            *)
+              echo "PR #${PR_NUMBER} is not from Dependabot (got: ${pr_author})."
+              exit 1
+              ;;
+          esac
 
           echo "Target PR #${PR_NUMBER} (${HEAD_BRANCH} @ ${HEAD_SHA:0:7})."
 

@@ -903,7 +903,7 @@ def generate_ai_news_post(
         edition_plan,
     )
 
-    def validate(content: str) -> tuple[dict, str]:
+    def validate(content: str) -> tuple[dict, str, str]:
         content = repair_ai_news_front_matter(
             content,
             slug=today_slug,
@@ -930,10 +930,13 @@ def generate_ai_news_post(
                 + ", ".join(dropped_refs[:3])
             )
         try:
-            return validate_ai_news_content(content, past_urls, edition_date=today)
+            metadata, slug = validate_ai_news_content(
+                content, past_urls, edition_date=today
+            )
         except ValueError as exc:
             preview = content[:300].replace("\n", " ")
             raise ValueError(f"{exc} | 응답 미리보기: {preview}") from exc
+        return metadata, slug, content
 
     content, metadata, slug = generate_with_retry(
         prompt,

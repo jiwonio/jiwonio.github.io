@@ -571,6 +571,36 @@ def inject_hero_image(content: str, image_md: str) -> str:
     return content.replace("<!--more-->", f"<!--more-->\n\n{image_md}\n\n-----")
 
 
+def _unpack_validate_result(
+    original_content: str,
+    validated: tuple,
+) -> tuple[str, dict, str]:
+    """Accept (metadata, slug) or (metadata, slug, repaired_content).
+
+    Validators may repair content (broken refs, tone, structure). Returning the
+    repaired body as a third tuple element ensures those fixes are persisted.
+    """
+    if not isinstance(validated, tuple):
+        raise TypeError(
+            f"validate_fn must return a tuple, got {type(validated).__name__}"
+        )
+    if len(validated) == 2:
+        metadata, slug = validated
+        return original_content, metadata, slug
+    if len(validated) == 3:
+        metadata, slug, repaired = validated
+        if not isinstance(repaired, str):
+            raise TypeError(
+                "validate_fn 3-tuple third element must be repaired content str, "
+                f"got {type(repaired).__name__}"
+            )
+        return repaired, metadata, slug
+    raise TypeError(
+        "validate_fn must return (metadata, slug) or "
+        f"(metadata, slug, content), got length {len(validated)}"
+    )
+
+
 def generate_with_retry(
     prompt: str,
     validate_fn,
@@ -601,7 +631,8 @@ def generate_with_retry(
             content = sanitize_generated_content(
                 strip_preamble(strip_code_fence(result.text))
             )
-            metadata, slug = validate_fn(content)
+            validated = validate_fn(content)
+            content, metadata, slug = _unpack_validate_result(content, validated)
             from api_monitor import notify_llm_usage
 
             notify_llm_usage(
@@ -655,6 +686,17 @@ def generate_with_retry(
                         "\n- Start with valid YAML front matter (layout, title, slug, "
                         "lang, translation_key, post_type, date, categories, tags, "
                         "description, image) between --- fences."
+                    )
+                if (
+                    "참고문헌" in error_msg
+                    or "reference URL" in error_msg
+                    or "404" in error_msg
+                    or "410" in error_msg
+                ):
+                    hints += (
+                        "\n- Use only real, publicly reachable reference URLs "
+                        "(official docs, GitHub repos/releases). Do not invent domains "
+                        "or paths. Prefer 2–5 well-known sources."
                     )
                 current_prompt = (
                     f"{prompt}\n\n"

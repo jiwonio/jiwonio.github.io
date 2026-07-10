@@ -11,6 +11,9 @@ from post_common import (
     FORBIDDEN_REPEAT_COUNT,
     body_after_more,
     count_token_frequency,
+    drop_broken_reference_urls,
+    extract_reference_urls,
+    find_broken_reference_urls,
     format_repeated_tokens,
     generate_with_retry,
     get_existing_ko_slugs,
@@ -23,6 +26,8 @@ from post_common import (
     validate_base_content,
     validate_tag_consistency,
 )
+
+MIN_REFERENCE_URLS = 2
 from prompt_config import DEEP_DIVE_SYSTEM_PROMPT
 
 AI_CODING_TOOLS = (
@@ -102,6 +107,19 @@ def validate_deep_dive_content(content: str) -> tuple[dict, str]:
     if not has_application_table(content):
         raise ValueError(
             "결론에 적용 조건 표가 필요합니다. | 상황 | 추천 | 이유 | 형식의 마크다운 표를 포함하세요."
+        )
+
+    ref_urls = extract_reference_urls(content)
+    if len(ref_urls) < MIN_REFERENCE_URLS:
+        raise ValueError(
+            f"참고문헌 URL이 {MIN_REFERENCE_URLS}개 이상 필요합니다: {len(ref_urls)}개"
+        )
+
+    broken_refs = find_broken_reference_urls(content)
+    if broken_refs:
+        raise ValueError(
+            "참고문헌 URL이 유효하지 않습니다 (404/410): "
+            + ", ".join(broken_refs[:3])
         )
 
     return metadata, slug
@@ -201,7 +219,10 @@ image: "/uploads/english-slug-for-this-topic/thumbnail.webp"
 3) 바로 다음 줄에 `[HERO_IMAGE]` 한 줄만 단독으로 작성하고, 그다음 줄에 `-----` 한 줄만 단독으로 작성합니다.
 4) 본문을 작성합니다. '~습니다' 체, H2/H3 계층, 외부 이미지 URL 금지.
    링크: `[텍스트](URL "툴팁"){{:target="_blank"}}`
-5) 마지막에 `### 참고문헌` 섹션을 작성하고 출처 링크를 나열합니다.
+5) 마지막에 `### 참고문헌` 섹션을 작성하고 출처 링크를 **최소 2개** 나열합니다.
+   - URL은 실제로 열리는 공식 문서·GitHub 저장소/릴리즈/이슈·벤더 블로그만 사용하세요.
+   - 존재하지 않는 도메인·경로·조직을 지어내지 마세요. (404 링크는 자동 거부됩니다)
+   - 불확실하면 잘 알려진 상위 문서(제품 홈, docs 루트, 공식 blog)만 넣으세요.
 
 주의: 1)~5)는 작성 순서 설명일 뿐 실제 헤더가 아닙니다. "Front Matter", "도입부", "본문" 같은
 지침 단어나 1) 2) 3) 같은 번호를 결과물에 절대 출력하지 마세요.
@@ -216,12 +237,19 @@ def generate_blog_post(*, text_provider: str | None = None, translation_provider
     recent_slugs = get_recent_slugs(50)
     prompt = build_generation_prompt(recent_titles, recent_slugs, current_time)
 
-    def validate(content: str) -> tuple[dict, str]:
+    def validate(content: str) -> tuple[dict, str, str]:
+        content, dropped_refs = drop_broken_reference_urls(content)
+        if dropped_refs:
+            print(
+                "🔧 유효하지 않은 참고문헌 URL 제거: "
+                + ", ".join(dropped_refs[:3])
+            )
         try:
-            return validate_deep_dive_content(content)
+            metadata, slug = validate_deep_dive_content(content)
         except ValueError as exc:
             preview = content[:300].replace("\n", " ")
             raise ValueError(f"{exc} | 응답 미리보기: {preview}") from exc
+        return metadata, slug, content
 
     content, metadata, slug = generate_with_retry(
         prompt,
