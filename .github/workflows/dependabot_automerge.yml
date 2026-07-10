@@ -108,7 +108,9 @@ jobs:
 
           echo "Target PR #${PR_NUMBER} (${HEAD_BRANCH} @ ${HEAD_SHA:0:7})."
 
-          jekyll_conclusion=$(gh api "repos/${REPO}/actions/workflows/jekyll.yml/runs" \
+          # gh api -f without --method GET becomes POST and 404s on list-runs.
+          jekyll_conclusion=$(gh api --method GET \
+            "repos/${REPO}/actions/workflows/jekyll.yml/runs" \
             -f head_sha="$HEAD_SHA" -f event=pull_request -f status=completed \
             --jq '(.workflow_runs[0].conclusion? // empty)')
           if [ "$jekyll_conclusion" != "success" ]; then
@@ -117,11 +119,13 @@ jobs:
           fi
 
           if gh api "repos/${REPO}/pulls/${PR_NUMBER}/files" --paginate --jq '.[].filename' | grep -q '^e2e/'; then
-            e2e_total=$(gh api "repos/${REPO}/actions/workflows/e2e.yml/runs" \
+            e2e_total=$(gh api --method GET \
+              "repos/${REPO}/actions/workflows/e2e.yml/runs" \
               -f head_sha="$HEAD_SHA" -f event=pull_request \
               --jq '.total_count')
             if [ "$e2e_total" -gt 0 ]; then
-              e2e_conclusion=$(gh api "repos/${REPO}/actions/workflows/e2e.yml/runs" \
+              e2e_conclusion=$(gh api --method GET \
+                "repos/${REPO}/actions/workflows/e2e.yml/runs" \
                 -f head_sha="$HEAD_SHA" -f event=pull_request -f status=completed \
                 --jq '(.workflow_runs[0].conclusion? // empty)')
               if [ "$e2e_conclusion" != "success" ]; then
