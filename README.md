@@ -54,26 +54,31 @@ _posts/
 
 ## GitHub Actions 워크플로
 
+검증은 **이층 구조**입니다.
+
+1. **콘텐츠 게이트** (`pre-merge-validate`): `validate_posts` · 변경 글 ref URL · 번역 완전성 · sync dry-run · 폰트 verify  
+2. **사이트 게이트** (`jekyll.yml` Deploy): unittest · 전체 validate · **Jekyll + Pagefind + htmlproofer** · IndexNow (배포 후 1회)
+
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
-| `jekyll.yml` | push/PR → `gh-pages` | test → validate → site.js·폰트 검증 → build → htmlproofer → Pagefind → 배포 |
-| `scheduled_ai_post.yml` | 월·수·금 00:00 | 월·수=deep-dive, 금=ai-news (검증 통과 시 자동 머지) |
-| `url_check.yml` | 일 04:00 | 참고문헌·본문 외부 URL HEAD 검증 (3회 재시도) |
-| `lighthouse.yml` | 일 06:00 | 홈페이지 Lighthouse 성능 점검 (80% 미만 Slack 경고) |
-| `indexnow_audit.yml` | 토 05:00 | IndexNow 키 파일·최근 URL 재제출 |
-| `llm_usage_weekly.yml` | 토 07:00 | 최근 7일 LLM 사용량·비용 Slack 요약 |
-| `llm_usage_daily.yml` | 매일 08:00 | 일일 LLM 예산 점검 (초과 시 Slack) |
-| `ops_digest_weekly.yml` | 토 08:00 | 주간 Ops·파이프라인·URL·콘텐츠 전략 Slack 요약 |
-| `sync_maintenance.yml` | 수 05:00 | `sync_post_images`·`sync_translation_dates` → PR (자동 머지) |
-| `ai_news_health_check.yml` | 목 06:00 | 단위 테스트 + ai-news RSS `--dry-run --strict` (금요일 포스팅 전) |
-| `deep_dive_health_check.yml` | 일·화 06:00 | 단위 테스트 + deep-dive `--dry-run` (월·수 포스팅 전) |
-| `thumbnail_check.yml` | 화 07:00 | 누락 썸네일 `--dry-run` 점검·자동 생성 |
-| `translation_audit.yml` | 일 05:00 | deep-dive en/ja/zh 번역 완전성 주간 감사 |
-| `content_quality_audit.yml` | 토 06:00 | 콘텐츠 품질·발견성 주간 감사 |
-| `schedule_watchdog.yml` | 매일 08:00 | `scheduled_ai_post` 최근 4일 내 성공 실행 여부 감시 |
-| `backfill_translations.yml` | 수동 | 누락 번역 백필 → PR (자동 머지) |
-| `e2e.yml` | 토 08:00 | 프로덕션 스모크 테스트 (Playwright, 실패 시 Slack) |
-| `dependabot_automerge.yml` | Dependabot PR | patch/minor actions·pip 업데이트 CI 통과 시 자동 머지 |
+| `jekyll.yml` | push/PR → `gh-pages` | **유일한 full site 게이트** + unittest + IndexNow |
+| `scheduled_ai_post.yml` | 월·수·금 00:00 | deep-dive/ai-news 생성 → 콘텐츠 게이트 → **gh-pages 직푸시** (기본) |
+| `url_check.yml` | 일 04:00 | 참고문헌·본문 외부 URL HEAD 전수 검증 |
+| `lighthouse.yml` | 일 06:00 | 홈 Lighthouse (80% 미만 Slack) |
+| `indexnow_audit.yml` | 토 05:00 | IndexNow 키·최근 URL 재제출 |
+| `llm_usage_weekly.yml` | 토 07:00 | 주간 LLM 비용 Slack |
+| `llm_usage_daily.yml` | 매일 08:00 | 일일 예산 점검 |
+| `ops_digest_weekly.yml` | 토 08:00 | 주간 Ops 요약 (번역 갭 포함) |
+| `sync_maintenance.yml` | 수 05:00 | 이미지·날짜 동기화 → 직푸시 |
+| `ai_news_health_check.yml` | 목 06:00 | RSS `--dry-run --strict` (금 포스팅 전) |
+| `deep_dive_health_check.yml` | 일 06:00 | deep-dive `--dry-run` (월·수 전) |
+| `thumbnail_check.yml` | **매월 1일** 07:00 | 누락 썸네일 안전망 |
+| `translation_audit.yml` | **매월 1일** 05:00 | 번역 완전성 월간 감사 |
+| `content_quality_audit.yml` | 토 06:00 | 콘텐츠 품질·포스트 발견성 (Pagefind full rebuild 없음) |
+| `schedule_watchdog.yml` | 매일 08:00 | 최근 4일 내 AI 포스팅 성공 여부 |
+| `backfill_translations.yml` | 수동 | 누락 번역 백필 → 직푸시 |
+| `e2e.yml` | 토 08:00 | 프로덕션 Playwright 스모크 |
+| `dependabot_automerge.yml` | Dependabot PR | CI green 시 자동 머지 |
 
 ### LLM 라우팅
 
@@ -87,16 +92,17 @@ _posts/
 `workflow_dispatch`에서 `text_provider`·`translation_provider`로 override 가능합니다.  
 로컬에서는 `LLM_TEXT_PROVIDER`, `LLM_TRANSLATION_PROVIDER` 환경 변수로도 지정할 수 있습니다.
 
-### 자동 머지 정책
+### 게시 정책
 
-수동 검수 없이 **검증 통과 시 자동 머지**합니다. 머지 전 `.github/actions/pre-merge-validate`가 실행됩니다.
+수동 검수 없이 **콘텐츠 게이트 통과 시 `gh-pages`에 직푸시**합니다.  
+전체 사이트 빌드·htmlproofer·IndexNow는 이어지는 **Deploy**가 담당합니다.
 
-| 워크플로 | 자동 머지 | 머지 전 자동 검증 |
-|----------|-----------|-------------------|
-| `scheduled_ai_post` (스케줄) | ✅ 항상 | unittest, validate, translation audit, Jekyll, htmlproofer |
-| `scheduled_ai_post` (수동) | 기본 `true` | 동일 |
-| `backfill_translations` | ✅ | 동일 |
-| `sync_maintenance` | ✅ | 동일 |
+| 워크플로 | 게시 방식 | 콘텐츠 게이트 | full site 게이트 |
+|----------|-----------|---------------|------------------|
+| `scheduled_ai_post` (스케줄) | 직푸시 | `pre-merge-validate` | Deploy |
+| `scheduled_ai_post` (수동) | 기본 직푸시 (`direct_push=false`면 PR만) | 동일 | Deploy |
+| `backfill_translations` | 직푸시 | 동일 | Deploy |
+| `sync_maintenance` | 직푸시 | 동일 | Deploy |
 
 ### LLM 사용량 모니터링
 
@@ -204,7 +210,8 @@ Actions 탭 → **Scheduled AI Post Generation** → Run workflow
 |------|--------|
 | `post_type` | `ai-news` 또는 `deep-dive` |
 | `dry_run` | ai-news RSS 점검 시 `true` |
-| `auto_merge` | 기본 `true` (검증 통과 시 자동 머지) |
+| `direct_push` | 기본 `true` (gh-pages 직푸시; `false`면 PR만) |
+| `edition_date` | 백필 시 `YYYY-MM-DD` |
 
 ## 참고
 

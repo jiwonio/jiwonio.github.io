@@ -21,8 +21,8 @@ on:
         required: false
         default: false
         type: boolean
-      auto_merge:
-        description: 'PR 자동 머지 (기본: true)'
+      direct_push:
+        description: 'true=gh-pages 직푸시 (기본), false=PR만 생성(머지 안 함)'
         required: false
         default: true
         type: boolean
@@ -81,12 +81,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -125,23 +119,23 @@ jobs:
 
           if [ "$POST_TYPE" = "deep-dive" ]; then
             SCRIPT="scripts/generate_post.py"
-            PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
             COMMIT_MSG="Add auto-generated deep-dive post"
+            PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
             echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
           elif [ "$POST_TYPE" = "ai-news" ]; then
             SCRIPT="scripts/generate_ai_news.py"
-            PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
             COMMIT_MSG="Add auto-generated ai-news digest"
+            PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
             echo "POST_TYPE=ai-news" >> "$GITHUB_ENV"
           elif [ "$DOW" = "1" ] || [ "$DOW" = "3" ]; then
             SCRIPT="scripts/generate_post.py"
-            PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
             COMMIT_MSG="Add auto-generated deep-dive post"
+            PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
             echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
           elif [ "$DOW" = "5" ]; then
             SCRIPT="scripts/generate_ai_news.py"
-            PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
             COMMIT_MSG="Add auto-generated ai-news digest"
+            PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
             echo "POST_TYPE=ai-news" >> "$GITHUB_ENV"
           else
             echo "예상치 못한 요일(DOW=$DOW), 스킵합니다."
@@ -150,8 +144,8 @@ jobs:
           fi
 
           echo "SCRIPT=$SCRIPT" >> "$GITHUB_ENV"
-          echo "PR_TITLE=$PR_TITLE" >> "$GITHUB_ENV"
           echo "COMMIT_MSG=$COMMIT_MSG" >> "$GITHUB_ENV"
+          echo "PR_TITLE=$PR_TITLE" >> "$GITHUB_ENV"
 
           DRY_RUN="${{ github.event.inputs.dry_run }}"
           if [ "$DRY_RUN" = "true" ]; then
@@ -181,13 +175,14 @@ jobs:
 
           python "$SCRIPT" "${EXTRA_ARGS[@]}"
 
+      # Font/JS once after generation; Deploy re-verifies. No full Jekyll here.
       - name: Refresh derived assets
         if: env.RUN_GENERATION == 'true'
         run: |
           python scripts/build_site_js.py
           python scripts/check_font_subset.py --fix
 
-      - name: Pre-merge validation
+      - name: Content validation gate
         if: env.RUN_GENERATION == 'true'
         id: pre_merge
         uses: ./.github/actions/pre-merge-validate
@@ -200,7 +195,7 @@ jobs:
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           pat: ${{ secrets.MY_PAT }}
 
-      - name: Commit, push, create PR, and auto-merge
+      - name: Commit and publish
         if: env.RUN_GENERATION == 'true'
         run: |
           git config --local user.email "min@jiwon.io"
@@ -208,29 +203,41 @@ jobs:
 
           git add _posts/ uploads/ assets/vendor/ _data/noto_preload.yml assets/js/site.js
 
-          if ! git diff-index --quiet HEAD; then
-            BEFORE_SHA=$(git rev-parse HEAD)
+          if git diff-index --quiet HEAD; then
+            echo "⚠️ 커밋할 새로운 변경 사항이 없습니다."
+            exit 0
+          fi
+
+          DIRECT_PUSH="${{ github.event.inputs.direct_push }}"
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            DIRECT_PUSH="true"
+          fi
+          if [ -z "$DIRECT_PUSH" ]; then
+            DIRECT_PUSH="true"
+          fi
+
+          if [ "$DIRECT_PUSH" = "true" ]; then
+            git commit -m "$COMMIT_MSG"
+            git pull --rebase origin gh-pages
+            git push origin HEAD:gh-pages
+            echo "✅ gh-pages 직푸시 완료 (IndexNow·Jekyll 빌드는 Deploy 워크플로에서 처리)"
+          else
             BRANCH_NAME="ai-post-$(date +%Y%m%d-%H%M%S)"
             git checkout -b "$BRANCH_NAME"
             git commit -m "$COMMIT_MSG"
-            AFTER_SHA=$(git rev-parse HEAD)
-
-            if ! python scripts/submit_indexnow.py --from-git "$BEFORE_SHA" "$AFTER_SHA"; then
-              echo "::warning::IndexNow submission failed (non-fatal)"
-            fi
-
             git push origin "$BRANCH_NAME"
 
             PR_BODY=$(cat <<'EOF'
           Multi-LLM 파이프라인으로 작성·번역·썸네일을 자동 생성했습니다.
 
-          ## Automated checks (all passed)
-          - Python unit tests
+          ## Content gate (passed)
           - `validate_posts.py` (metadata, links, language, translation structure)
           - Changed-post reference URL HEAD checks
           - Translation completeness audit
           - Sync drift dry-run (images, dates)
-          - Jekyll build + Pagefind + htmlproofer
+          - Font subset verify
+
+          Full Jekyll + Pagefind + htmlproofer run on Deploy after merge.
           EOF
           )
 
@@ -239,25 +246,7 @@ jobs:
               --body "$PR_BODY" \
               --base gh-pages \
               --head "$BRANCH_NAME")
-
-            echo "PR Created: $PR_URL"
-
-            AUTO_MERGE="${{ github.event.inputs.auto_merge }}"
-            if [ "${{ github.event_name }}" = "schedule" ]; then
-              AUTO_MERGE="true"
-            fi
-            if [ -z "$AUTO_MERGE" ]; then
-              AUTO_MERGE="true"
-            fi
-
-            if [ "$AUTO_MERGE" = "true" ]; then
-              gh pr merge "$BRANCH_NAME" --merge --delete-branch
-              echo "✅ PR 자동 병합 완료"
-            else
-              echo "PR left open (auto_merge=false): $PR_URL"
-            fi
-          else
-            echo "⚠️ 커밋할 새로운 변경 사항이 없습니다."
+            echo "PR left open (direct_push=false): $PR_URL"
           fi
 
       - name: LLM usage report
@@ -274,4 +263,4 @@ jobs:
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           title: Scheduled AI Post Generation failed
-          failed-step: ${{ steps.pre_merge.outcome == 'failure' && 'pre-merge validation (tests, validate_posts, Jekyll, htmlproofer)' || steps.generate.outcome == 'failure' && 'post generation (LLM pipeline)' || 'see Actions log' }}
+          failed-step: ${{ steps.pre_merge.outcome == 'failure' && 'content validation gate (validate_posts, refs, translations)' || steps.generate.outcome == 'failure' && 'post generation (LLM pipeline)' || 'see Actions log' }}

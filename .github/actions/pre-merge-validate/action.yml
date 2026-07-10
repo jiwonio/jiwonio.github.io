@@ -1,13 +1,11 @@
 name: Pre-merge validation
-description: Automated gate before auto-merging generated content
+description: >
+  Content gate before publishing generated content. Full site build, Pagefind,
+  htmlproofer, and unit tests run on Deploy (jekyll.yml) only.
 
 runs:
   using: composite
   steps:
-    - name: Python unit tests
-      shell: bash
-      run: python -m unittest discover -s scripts/tests -v
-
     - name: Validate posts
       shell: bash
       run: python scripts/validate_posts.py
@@ -26,24 +24,6 @@ runs:
         python scripts/sync_post_images.py --dry-run
         python scripts/sync_translation_dates.py --dry-run
 
-    - name: Build site JS bundle
-      shell: bash
-      run: python scripts/build_site_js.py
-
     - name: Verify font subsets
       shell: bash
       run: python scripts/check_font_subset.py
-
-    - name: Build Jekyll
-      shell: bash
-      env:
-        JEKYLL_ENV: production
-      run: bundle exec jekyll build --baseurl ""
-
-    - name: Build Pagefind index
-      shell: bash
-      run: npx --yes pagefind@1.3.0 --site _site
-
-    - name: Proof HTML
-      shell: bash
-      run: bundle exec htmlproofer ./_site --disable-external --allow-hash-href --ignore-empty-alt

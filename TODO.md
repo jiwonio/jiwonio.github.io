@@ -1,19 +1,19 @@
 # TODO — blog.jiwon.io
 
-> **마지막 갱신:** 2026-07-06
+> **마지막 갱신:** 2026-07-10
 > **브랜치:** `gh-pages` (배포·개발 모두 이 브랜치)  
 > **저장소:** https://github.com/jwjp/jwjp.github.io  
 > **사이트:** https://blog.jiwon.io
 
 나중에 Grok 등으로 이어서 작업할 항목입니다. 완료되면 `- [x]` 체크하고 날짜를 적어 주세요.
 
-### 다음 작업 (2026-07-06 기준)
+### 다음 작업 (2026-07-10 기준)
 
-**미완료:** 선택 항목만 남음. zh 참고문헌 파싱·정규화 보완 완료, Deploy #28761998817 green.
+**완료 (2026-07-10):** CI 슬림화 — 콘텐츠 게이트 / Deploy full site 이층 구조, AI 포스팅·sync·backfill 직푸시, IndexNow는 Deploy 1회, 중복 감사 월간화.
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 2~4주 후 (~2026-07 말) |
+| **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 후 |
 
 ---
 
@@ -49,7 +49,7 @@ TODO.md와 README.md를 읽고 전체 상태를 파악해줘.
 
 현재 정책:
 - GitHub App 설정 완료 (`GH_APP_ID` + `GH_APP_PRIVATE_KEY`), MY_PAT는 폴백
-- AI 포스트는 수동 검수 없이 pre-merge-validate 통과 시 auto-merge
+- AI 포스트는 콘텐츠 게이트 통과 후 gh-pages 직푸시 (Deploy가 full site + IndexNow)
 - ai-news 2026-06-24 이후만 en/ja/zh 자동 번역
 ```
 
@@ -91,8 +91,8 @@ cd e2e && npm ci && npx playwright test
 | AI 글 | 월·수=deep-dive, 금=ai-news (`scheduled_ai_post.yml`) |
 | 번역 묶음 | front matter `translation_key` |
 | 인증 | GitHub App 우선 (`setup-git-auth`), `MY_PAT` 폴백 |
-| 머지 | `pre-merge-validate` 통과 시 auto-merge (수동 검수 없음) |
-| 검증 | unittest, validate_posts, Jekyll build, htmlproofer, Pagefind |
+| 게시 | 콘텐츠 게이트 통과 후 `gh-pages` 직푸시 (수동 검수 없음) |
+| 검증 | 콘텐츠 게이트(validate·refs·번역) + Deploy(unittest·Jekyll·Pagefind·htmlproofer·IndexNow) |
 
 ### 언어·URL 규칙
 
@@ -119,7 +119,7 @@ cd e2e && npm ci && npx playwright test
 | 번역·백필 | `scripts/backfill_translations.py`, `scripts/blog_i18n.py` |
 | 검증 | `scripts/validate_posts.py`, `scripts/post_schema.py` |
 | LLM | `scripts/llm_client.py`, `scripts/models_config.py`, `scripts/api_monitor.py` |
-| 머지 전 검증 | `.github/actions/pre-merge-validate/` |
+| 콘텐츠 게이트 | `.github/actions/pre-merge-validate/` (full site 빌드 없음) |
 | Git 인증 | `.github/actions/setup-git-auth/`, `verify-git-auth/` |
 | 배포 CI | `.github/workflows/jekyll.yml` |
 | 자동 포스팅 | `.github/workflows/scheduled_ai_post.yml` |
@@ -235,7 +235,7 @@ cd e2e && npm ci && npx playwright test
 - [x] SEO/hreflang/접근성 대량 개선
 - [x] Python 파이프라인 (atomic publish, LLM 폴백, 비용 로깅)
 - [x] CI/CD 확장 (url_check, sync, e2e, lighthouse, watchdog, indexnow_audit)
-- [x] 수동 검수 제거 → pre-merge 자동 검증 + auto-merge
+- [x] 수동 검수 제거 → 콘텐츠 게이트 + gh-pages 직푸시 (2026-07-10 CI 슬림화)
 - [x] GitHub App용 action 스캐폴딩
 - [x] perf 1차·2차 (critical CSS, site.js, KR/JP/SC 단일 woff2)
 - [x] perf 4차 (inline @font-face, optional, preload, Lighthouse 주간 전환)

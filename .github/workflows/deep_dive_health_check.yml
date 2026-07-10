@@ -1,9 +1,10 @@
 name: Deep-dive Generation Health Check
 
+# Lightweight pre-flight before Mon/Wed posts. Full unit tests run on Deploy only.
 on:
   schedule:
+    # Sunday only (was Sun+Tue); Tue added little beyond Sunday.
     - cron: '0 6 * * 0'
-    - cron: '0 6 * * 2'
   workflow_dispatch:
 
 jobs:
@@ -33,9 +34,6 @@ jobs:
             echo "At least one LLM API key secret is required."
             exit 1
           fi
-
-      - name: Run Python unit tests
-        run: python -m unittest discover -s scripts/tests -v
 
       - name: Run deep-dive dry-run
         env:

@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -25,12 +24,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
 
       - name: Install dependencies
         run: |
@@ -52,7 +45,7 @@ jobs:
           python scripts/build_site_js.py
           python scripts/check_font_subset.py --fix
 
-      - name: Pre-merge validation
+      - name: Content validation gate
         id: pre_merge
         uses: ./.github/actions/pre-merge-validate
 
@@ -63,7 +56,7 @@ jobs:
           private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
           pat: ${{ secrets.MY_PAT }}
 
-      - name: Create PR and auto-merge
+      - name: Commit and push to gh-pages
         run: |
           git config --local user.email "min@jiwon.io"
           git config --local user.name "jwjp"
@@ -74,20 +67,10 @@ jobs:
             exit 0
           fi
 
-          BRANCH_NAME="sync-maintenance-$(date +%Y%m%d-%H%M%S)"
-          git checkout -b "$BRANCH_NAME"
           git commit -m "Sync post images and translation dates"
-
-          git push origin "$BRANCH_NAME"
-
-          PR_URL=$(gh pr create \
-            --title "🔧 Weekly sync: images and translation dates" \
-            --body "Automated sync. All pre-merge validation checks passed." \
-            --base gh-pages \
-            --head "$BRANCH_NAME")
-
-          gh pr merge "$BRANCH_NAME" --merge --delete-branch
-          echo "✅ PR 자동 병합 완료: $PR_URL"
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
+          echo "✅ gh-pages 직푸시 완료"
 
       - name: Notify Slack (in-job failure detail)
         if: failure()
@@ -95,4 +78,4 @@ jobs:
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK_URL }}
           title: Weekly Sync Maintenance failed
-          failed-step: ${{ steps.pre_merge.outcome == 'failure' && 'pre-merge validation (tests, validate_posts, Jekyll, htmlproofer)' || 'see Actions log' }}
+          failed-step: ${{ steps.pre_merge.outcome == 'failure' && 'content validation gate' || 'see Actions log' }}

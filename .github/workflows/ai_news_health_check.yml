@@ -1,5 +1,6 @@
 name: AI News RSS Health Check
 
+# Thursday pre-flight for Friday ai-news. Unit tests run on Deploy only.
 on:
   schedule:
     - cron: '0 6 * * 4'
@@ -22,9 +23,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
           pip install -e ./scripts
-
-      - name: Run Python unit tests
-        run: python -m unittest discover -s scripts/tests -v
 
       - name: Run RSS dry-run (strict)
         run: python scripts/generate_ai_news.py --dry-run --strict
