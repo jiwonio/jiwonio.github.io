@@ -1,29 +1,22 @@
 ---
 layout: post
 title: 在 Ubuntu 22.04 LTS 上配置交换内存
-meta: 学习如何在 Ubuntu 22.04 LTS 上配置交换内存，以解决低规格服务器上的 RAM 短缺问题。非常适合运行资源密集型应用的 AWS EC2 和自托管服务器。
 tags:
 - ubuntu
 image: /uploads/ubuntu22-swap-memory/thumbnail.webp
 lang: zh
 translation_key: ubuntu22-swap-memory
 slug: ubuntu22-swap-memory
-description: 学习如何在 Ubuntu 22.04 LTS 上配置交换内存，以解决低规格服务器上的 RAM 短缺问题。非常适合运行资源密集型应用的 AWS
-  EC2 和自托管服务器。
+description: 在 Ubuntu 22.04 LTS 上创建并持久化 swap 文件，说明容量与 swappiness 的选择，以及生产环境应避免的陷阱。
 permalink: /zh/posts/ubuntu22-swap-memory/
 categories:
 - DevOps
 post_type: deep-dive
-updated: 2024-08-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
-在使用 **Amazon Web Services EC2** 等服务的免费套餐或其他自托管服务器时，安装大型外部资源时偶尔会遇到内存不足的问题。
-这可能导致服务器长时间卡顿，并最终崩溃。
-虽然这种情况不常发生，但如果您在规格非常有限的服务器上运行用于商业用途的个人项目并实施**微服务架构（Micro Service Architecture）**，这个问题可能会非常关键。
-在这种情况下，**交换内存（swap memory）**会非常有帮助。在这篇文章中，我将介绍什么是交换内存以及如何创建它。
+在 AWS EC2 免费套餐或其他低配自托管服务器上，安装大型软件包时经常会把 RAM 打满，导致卡死或 OOM 杀进程。在升级实例类型之前，用 **swap 文件** 把一部分磁盘当作应急内存，有助于扛过安装和构建时的瞬时峰值。本文以 Ubuntu 22.04 LTS 为例，给出步骤，并说明 **什么时候该用、什么时候不该用**。
 
 <!--more-->
-
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">我也在 [Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 上发布。</small>
 
 ![Random Access Memory](/uploads/ubuntu22-swap-memory/ram.jpg)
 
@@ -34,77 +27,136 @@ updated: 2024-08-15 10:00:00 +0900
 
 -----
 
-**交换内存**（Swap Memory）的作用是使用物理磁盘的一部分作为易失性内存 RAM（以下简称内存），以补充不足的内存容量。
-有时，在安装像 [Laravel](https://laravel.com/ "Laravel"){:target="_blank"} 或 [NestJS](https://nestjs.com/ "NestJS"){:target="_blank"} 这样的大型软件包时，会需要大量的内存和 CPU 资源，即计算机资源。如果资源不足，安装可能会失败。
+## Swap 做什么
 
-在大多数虚拟机服务中，如 [Google Compute Engine](https://cloud.google.com/products/compute "Google Compute Engine"){:target="_blank"}、[Amazon EC2](https://aws.amazon.com/ko/ec2/ "Amazon EC2"){:target="_blank"} 等，要增加内存容量，需要先停止实例，然后更改实例类型。
-如果在意想不到的情况下因内存不足而发生系统错误导致需要重启，那么在实例停止期间会持续产生损失，因此有必要提前做好准备。
-在这种情况下，设置交换内存可以临时性地缓解内存不足的问题。
+**Swap（交换区）** 把磁盘（分区或文件）的一部分当作 RAM 页的溢出区。内核会把暂时不用的页换出到磁盘，需要时再换回。[Laravel](https://laravel.com/ "Laravel"){:target="_blank"}、[NestJS](https://nestjs.com/ "NestJS"){:target="_blank"} 这类大体量安装，或 `npm`/`composer` 解析依赖时，常出现 **短时间内存峰值**，仅靠物理内存可能扛不住。
 
-在大多数商业服务环境中，通常会采用各种基础设施管理技术，因此很少会发生上述情况。但是，对于用于开发测试或玩具项目（toy project）的免费套餐等低规格环境，设置交换内存会非常方便且有帮助。
+但磁盘 I/O 远慢于内存。如果主机 **长期泡在 swap 里**，延迟会明显变差。Swap 是“缓冲”，不是“内存替代品”。
+
+在 [Google Compute Engine](https://cloud.google.com/products/compute "Google Compute Engine"){:target="_blank"}、[Amazon EC2](https://aws.amazon.com/ec2/ "Amazon EC2"){:target="_blank"} 上增加内存通常需要停机改机型。意外 OOM 重启会拉长故障窗口，因此 **开发、玩具项目、低配测试节点** 预先开 swap 更稳妥。正式生产更应靠合理规格或自动扩缩。
+
+Windows 里对应概念叫 **虚拟内存（页面文件）**。
 
 ![Windows 11 virtual memory](/uploads/ubuntu22-swap-memory/windows11-virtual-memory.png)
 
-<p style="text-align:center;color:gray;"><small>Windows 的虚拟内存</small></p>
+<p style="text-align:center;color:gray;"><small>Windows 虚拟内存</small></p>
 
-交换内存这个概念并不仅限于 Ubuntu 等 Linux 或 Unix 系统。在 Windows 中，它以虚拟内存的名称存在，并在低配置电脑上被有效地使用。
+## 容量怎么选
 
-### 配置交换内存
+没有放之四海皆准的公式，实务上可从下表起步：
 
-1. 检查是否已配置交换内存
-   ```shell
-      sudo free -m
-      sudo swapon -s
-   ```
-   ![Check swap memory](/uploads/ubuntu22-swap-memory/check-swap-memory.png)
-2. 如果已配置交换内存，请先禁用
-   ```shell
-      sudo swapoff -a
-   ```
-3. 创建用作交换内存的 swapfile
-   ```shell
-      # 创建一个 4G 大小的交换文件
-      sudo fallocate -l 4G /swapfile
-   ```
-4. 将创建的 swapfile 设置为交换内存
-    ```shell
-      # 修改权限
-      sudo chmod 600 /swapfile
-    
-      # 准备激活
-      sudo mkswap /swapfile
-    
-      # 激活
-      sudo swapon /swapfile
-    ```
-   ![Make swapfile](/uploads/ubuntu22-swap-memory/make-swapfile.png)
-5. 设置服务器重启后也能使用交换内存
-    ```shell
-      # 编辑文件
-      sudo nano /etc/fstab 
-    
-      # 添加以下内容
-      /swapfile swap swap defaults 0 0
-    ```
-   ![Swap setup for rebooting](/uploads/ubuntu22-swap-memory/swap-setup-for-rebooting.png)
-6. 交换内存配置完成
-   ![Complete make swapfile](/uploads/ubuntu22-swap-memory/complete-make-swapfile.png)
+| 物理 RAM | Swap 起点 | 说明 |
+| --- | --- | --- |
+| 1–2 GB（t2/t3.micro 级） | 2–4 GB | 装包、轻量构建缓冲 |
+| 4 GB | 2–4 GB | 不需要休眠时约 0.5–1 倍 RAM |
+| 8 GB 以上 | 1–2 GB 或不用 | 没有明确需求就保持最小 |
 
-### 禁用交换内存
+- 磁盘快满时不要建超大 swap。
+- `fallocate` 失败可用 `dd`。
+- 下文示例为 **4GB** 的 `/swapfile`，按需改数字即可。
 
-如果不再需要使用交换内存，可以将其禁用。
+## 配置步骤
+
+### 1. 查看当前 swap
+
 ```shell
-# 禁用交换分区
-sudo swapoff -v /swapfile 
-
-# 编辑文件并删除以下行
-sudo nano /etc/fstab      
-/swapfile swap swap defaults 0 0
-
-# 删除 swap 文件
-sudo rm /swapfile 
+sudo free -m
+sudo swapon --show
 ```
 
-### 参考资料
-- 维基百科：[虚拟内存](https://en.wikipedia.org/wiki/Virtual_memory "虚拟内存"){:target="_blank"}
-- 维基百科：[内存分页](https://en.wikipedia.org/wiki/Memory_paging "内存分页"){:target="_blank"}
+![Check swap memory](/uploads/ubuntu22-swap-memory/check-swap-memory.png)
+
+### 2. 关闭已有 swap（仅在调整大小时）
+
+```shell
+sudo swapoff -a
+```
+
+### 3. 创建 swap 文件
+
+```shell
+sudo fallocate -l 4G /swapfile
+```
+
+失败时：
+
+```shell
+sudo dd if=/dev/zero of=/swapfile bs=1M count=4096 status=progress
+```
+
+### 4. 权限、格式化、启用
+
+文件必须仅 root 可读写。
+
+```shell
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+sudo swapon --show
+sudo free -m
+```
+
+![Make swapfile](/uploads/ubuntu22-swap-memory/make-swapfile.png)
+
+### 5. 重启后仍生效（`/etc/fstab`）
+
+```shell
+grep -n swapfile /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+![Swap setup for rebooting](/uploads/ubuntu22-swap-memory/swap-setup-for-rebooting.png)
+
+### 6. 验证
+
+```shell
+sudo free -m
+sudo swapon --show
+```
+
+![Complete make swapfile](/uploads/ubuntu22-swap-memory/complete-make-swapfile.png)
+
+## swappiness 与性能
+
+`vm.swappiness`（0–100）控制内存压力下使用 swap 的积极程度。Ubuntu Server 常见默认值约 60。
+
+- **数据库或延迟敏感服务**：常降到 10–30。
+- **仅作低配构建节点**：保持默认往往可以。
+
+临时：
+
+```shell
+sudo sysctl vm.swappiness=20
+```
+
+持久化：
+
+```shell
+echo 'vm.swappiness=20' | sudo tee /etc/sysctl.d/99-swap.conf
+sudo sysctl --system
+```
+
+调低 swappiness 并不能消灭 OOM。内存本身不够时，进程仍会死亡或极慢。
+
+## 生产注意点
+
+- 持续 swap thrashing 就是故障，用 `vmstat 1` 等观察 `si`/`so`。
+- 根卷已满时再建大 swap，部署和日志也会一起失败。
+- 合规环境需考虑内存页落盘问题，必要时加密 swap。
+- 编排节点请优先遵循平台建议。
+
+## 关闭 swap
+
+```shell
+sudo swapoff -v /swapfile
+sudo sed -i.bak '/swapfile/d' /etc/fstab
+sudo rm /swapfile
+sudo free -m
+```
+
+修改 `/etc/fstab` 后务必确认有控制台/串口恢复手段再重启，笔误可能导致无法启动。
+
+## 参考文献
+
+- 维基百科：[Virtual memory](https://en.wikipedia.org/wiki/Virtual_memory "Virtual memory"){:target="_blank"}
+- 维基百科：[Paging](https://en.wikipedia.org/wiki/Memory_paging "Paging"){:target="_blank"}
+- Ubuntu Server：[Swap](https://documentation.ubuntu.com/server/how-to/system-tuning/swap-faq/ "Ubuntu swap FAQ"){:target="_blank"}

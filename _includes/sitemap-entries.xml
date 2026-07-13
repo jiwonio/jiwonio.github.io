@@ -1,14 +1,17 @@
 {%- assign sitemap_lang = include.lang | default: site.default_lang -%}
 {%- assign sitemap_posts = site.posts_by_lang[sitemap_lang] -%}
+{%- comment -%}
+  Thin-content remediation: only index substantive pages (home, about,
+  privacy, posts). List/search/tag/year/pagination URLs stay reachable
+  but are noindex + excluded from the sitemap.
+{%- endcomment -%}
 {%- if sitemap_lang == site.default_lang -%}
 <url><loc>{{ site.url }}/</loc></url>
-<url><loc>{{ site.url }}/archive/</loc></url>
-<url><loc>{{ site.url }}/search/</loc></url>
+<url><loc>{{ site.url }}/about/</loc></url>
 <url><loc>{{ site.url }}/privacy-policy/</loc></url>
 {%- else -%}
 <url><loc>{{ site.url }}/{{ sitemap_lang }}/</loc></url>
-<url><loc>{{ site.url }}/{{ sitemap_lang }}/archive/</loc></url>
-<url><loc>{{ site.url }}/{{ sitemap_lang }}/search/</loc></url>
+<url><loc>{{ site.url }}/{{ sitemap_lang }}/about/</loc></url>
 <url><loc>{{ site.url }}/{{ sitemap_lang }}/privacy-policy/</loc></url>
 {%- endif -%}
 {%- for post in sitemap_posts -%}
@@ -17,38 +20,3 @@
 <lastmod>{{ post.date | date_to_xmlschema }}</lastmod>
 </url>
 {%- endfor -%}
-{%- assign sitemap_tag_entries = site.tag_archives_by_lang[sitemap_lang] -%}
-{%- for entry in sitemap_tag_entries -%}
-{%- if sitemap_lang == site.default_lang -%}
-<url><loc>{{ site.url }}/archive/tag/{{ entry.slug }}/</loc></url>
-{%- else -%}
-<url><loc>{{ site.url }}/{{ sitemap_lang }}/archive/tag/{{ entry.slug }}/</loc></url>
-{%- endif -%}
-{%- endfor -%}
-{%- if sitemap_lang == site.default_lang -%}
-{%- assign years = '' | split: '' -%}
-{%- for post in sitemap_posts -%}
-{%- assign year = post.date | date: '%Y' -%}
-{%- unless years contains year -%}
-{%- assign years = years | push: year -%}
-<url><loc>{{ site.url }}/archive/{{ year }}/</loc></url>
-{%- endunless -%}
-{%- endfor -%}
-{%- assign page_count = sitemap_posts.size | plus: site.posts_per_page | minus: 1 | divided_by: site.posts_per_page -%}
-{%- for i in (2..page_count) -%}
-<url><loc>{{ site.url }}/page/{{ i }}/</loc></url>
-{%- endfor -%}
-{%- else -%}
-{%- assign years = '' | split: '' -%}
-{%- for post in sitemap_posts -%}
-{%- assign year = post.date | date: '%Y' -%}
-{%- unless years contains year -%}
-{%- assign years = years | push: year -%}
-<url><loc>{{ site.url }}/{{ sitemap_lang }}/archive/{{ year }}/</loc></url>
-{%- endunless -%}
-{%- endfor -%}
-{%- assign page_count = sitemap_posts.size | plus: site.posts_per_page | minus: 1 | divided_by: site.posts_per_page -%}
-{%- for i in (2..page_count) -%}
-<url><loc>{{ site.url }}/{{ sitemap_lang }}/page/{{ i }}/</loc></url>
-{%- endfor -%}
-{%- endif -%}

@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: LM Studio 运行模型时忽略的内存成本
 slug: lm-studio-memory-hidden-costs

@@ -7,17 +7,15 @@ image: /uploads/ubuntu22-default-setting/thumbnail.webp
 lang: ko
 translation_key: ubuntu22-default-setting
 slug: ubuntu22-default-setting
-description: AWS EC2 프리티어 Ubuntu 22.04 LTS 인스턴스의 키 페어, 방화벽, 스토리지 등 초기 설정 절차를 안내합니다.
+description: AWS EC2 Ubuntu 22.04 LTS 프리티어 인스턴스의 보안 그룹·SSH·패키지 업데이트·로케일·타임존 초기 설정과, 자주 나는 실수(포트 과개방, HISTFILESIZE 오타 등)를 정리합니다.
 post_type: deep-dive
 categories:
 - DevOps
-updated: 2024-10-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
 AWS EC2 프리티어로 개발·테스트 환경을 만들 때 **Ubuntu 22.04 LTS** 인스턴스의 초기 설정이 중요합니다. Route 53, ELB, RDS 같은 서비스는 다루지 않고, 키 페어, 방화벽, 스토리지 등 필수 구성만 단계별로 설명합니다. 초기에 올바르게 설정해 두면 이후 트러블슈팅 시간을 크게 줄일 수 있습니다.
 
 <!--more-->
-
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 ![Ubuntu Server](/uploads/ubuntu22-default-setting/ubuntu.jpg)
 
@@ -27,6 +25,20 @@ AWS EC2 프리티어로 개발·테스트 환경을 만들 때 **Ubuntu 22.04 LT
 </p>
 
 -----
+
+## 이 가이드의 범위
+
+다루지 않는 것: Route 53, ALB/ELB, RDS, 다중 AZ 등 본격 프로덕션 토폴로지.
+다루는 것: **한 대의 EC2 Ubuntu 22.04** 를 개발·테스트 용도로 쓰기 위한 최소 안전 설정.
+
+프리티어 `t2.micro` / `t3.micro` 급에서도 동일합니다. 보안 그룹 이름은 콘솔 기본값(`launch-wizard-*`)일 수 있으나, **22/80/3306을 0.0.0.0/0에 장기간 열어 두는 구성은 권장하지 않습니다.**
+
+## 생성 전 체크리스트
+
+1. 키 페어 `.pem` 권한을 로컬에서 `400` 수준으로 제한했는지
+2. 보안 그룹 인바운드: SSH(22)는 **본인 IP** 또는 VPN/bastion 대역만
+3. 루트 볼륨 크기: 로그·Docker 이미지를 쓸 계획이면 8GB 기본보다 여유 있게
+4. 퍼블릭 IP/Elastic IP 필요 여부
 
 [Amazon EC2](https://aws.amazon.com/ec2/ "Amazon EC2"){:target="_blank"}에서 개발 또는 테스트 환경을 설정할 때는 인스턴스를 올바르게 구성하는 것이 중요합니다. 이 가이드는 Ubuntu 22.04 LTS 초기 설정 단계를 안내합니다.
 비용 절감을 위해 무료 티어를 사용하는 경우에 특히 유용합니다. Route 53, ELB, RDS 등의 서비스는 다루지 않으며 기본 설정에 중점을 둡니다.
@@ -107,11 +119,11 @@ ubuntu@test:~$ sudo vi /etc/bash.bashrc
 # 가장 하단에 아래 내용 추가
 # VIM 기준 Shift + G 누르는 경우 가장 하단으로 이동
 export HISTSIZE=10000
-export HISEFILESIZE=10000
+export HISTFILESIZE=10000
 ```
 
 ![History default size](/uploads/ubuntu22-default-setting/history-default-size.png)
-<p style="text-align:center;color:gray;"><small>HISTSIZE 및 HISEFILESIZE 내용 추가</small></p>
+<p style="text-align:center;color:gray;"><small>HISTSIZE 및 HISTFILESIZE 내용 추가</small></p>
 
 ### 6. locale 한국으로 설정
 
@@ -158,7 +170,22 @@ ubuntu@test:~$ sudo timedatectl set-timezone Asia/Seoul
 ![Timezone setup](/uploads/ubuntu22-default-setting/timezone-setup.png)
 <p style="text-align:center;color:gray;"><small>timezone 변경 완료</small></p>
 
-### 참고문헌
+
+
+## 자주 하는 실수
+
+- **보안 그룹에 MySQL(3306) 전 세계 개방**: 스캔·무차별 대입 대상이 됩니다. DB는 프라이빗 서브넷 또는 보안 그룹 소스로 웹 서버 SG만 허용하세요.
+- **`HISTFILESIZE` 오타**: `HISTFILESIZE`처럼 쓰면 설정이 무시됩니다. `echo $HISTFILESIZE`로 확인하세요.
+- **apt upgrade 중 재부팅 없이 커널 업데이트만 방치**: `reboot`가 필요한 경우가 있습니다.
+- **키 파일 공유·슬랙 업로드**: 유출 시 즉시 키 페어를 교체하세요.
+
+## 다음 단계 제안
+
+- 스왑 버퍼가 필요하면 [Ubuntu 22.04 스왑 설정](/posts/ubuntu22-swap-memory/) 글을 이어서 적용하세요.
+- 방화벽을 호스트에서도 이중화하려면 `ufw`로 SSH만 허용한 뒤 enable 하는 패턴을 검토하세요.
+- 장기 운영 시 unattended-upgrades, fail2ban, 정기 스냅샷을 추가하세요.
+
+## 참고문헌
 
 - [How to set or change timezone](https://linuxize.com/post/how-to-set-or-change-timezone-on-ubuntu-20-04/ "How to set or change timezone"){:target="_blank"}
 - [How do I change the default locale](https://askubuntu.com/questions/89976/how-do-i-change-the-default-locale-in-ubuntu-server "How do I change the default locale"){:target="_blank"}

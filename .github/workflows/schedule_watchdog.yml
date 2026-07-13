@@ -1,8 +1,10 @@
 name: Scheduled AI Post Watchdog
 
+# AdSense thin-content remediation (2026-07): AI schedule is paused.
+# Watchdog is manual-only until automatic publishing is re-enabled.
 on:
-  schedule:
-    - cron: '0 8 * * *'
+  # schedule:
+  #   - cron: '0 8 * * *'
   workflow_dispatch:
 
 permissions:
@@ -20,6 +22,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # While scheduled_ai_post.yml has no cron, only report status (do not fail).
+          if ! grep -qE '^\s*-\s*cron:' .github/workflows/scheduled_ai_post.yml; then
+            echo "scheduled_ai_post.yml has no active cron — AI auto-posting is paused."
+            echo "Watchdog soft-pass (AdSense remediation)."
+            exit 0
+          fi
+
           LAST_RUN=$(gh api \
             "/repos/${{ github.repository }}/actions/workflows/scheduled_ai_post.yml/runs?status=success&per_page=1" \
             --jq '.workflow_runs[0].created_at // empty')
@@ -78,10 +87,5 @@ jobs:
           fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -sS -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"⚠️ Scheduled AI post watchdog: no successful run within 4 days\n${RUN_URL}\"}" \
+            --data "{\"text\":\"⚠️ schedule_watchdog failed: ${RUN_URL}\"}" \
             "$SLACK_WEBHOOK_URL"
-
-      - name: Print failure summary
-        run: |
-          echo "::error::Scheduled AI post watchdog failed."
-          echo "Run log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

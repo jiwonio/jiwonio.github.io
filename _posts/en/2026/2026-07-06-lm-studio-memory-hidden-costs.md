@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: Overlooked Memory Costs When Running Models with LM Studio
 slug: lm-studio-memory-hidden-costs

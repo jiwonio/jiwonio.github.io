@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: スタイルガイド
 meta: このブログの最初の投稿として、このサイトの基本的なスタイルガイドの記録と説明を兼ねています。

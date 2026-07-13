@@ -2,8 +2,9 @@ name: AI News RSS Health Check
 
 # Thursday pre-flight for Friday ai-news. Unit tests run on Deploy only.
 on:
-  schedule:
-    - cron: '0 6 * * 4'
+  # Paused with AI auto-posting (AdSense remediation 2026-07).
+  # schedule:
+  #   - cron: '0 6 * * 4'
   workflow_dispatch:
 
 jobs:

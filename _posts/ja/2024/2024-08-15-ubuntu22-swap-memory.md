@@ -1,26 +1,20 @@
 ---
 layout: post
 title: Ubuntu 22.04 LTSでのスワップメモリ設定
-meta: 低スペックサーバーのRAM不足を解消するために、Ubuntu 22.04 LTSでスワップメモリを設定する方法を学びます。リソースを大量に消費するアプリケーションを実行するAWS
-  EC2や自己ホスト型サーバーに最適です。
 tags:
 - ubuntu
 image: /uploads/ubuntu22-swap-memory/thumbnail.webp
 lang: ja
 translation_key: ubuntu22-swap-memory
 slug: ubuntu22-swap-memory
-description: 低スペックサーバーのRAM不足を解消するために、Ubuntu 22.04 LTSでスワップメモリを設定する方法を学びます。リソースを大量に消費するアプリケーションを実行するAWS
-  EC2や自己ホスト型サーバーに最適です。
+description: Ubuntu 22.04 LTSでスワップファイルを作成し再起動後も有効にする手順と、サイズ・swappinessの選び方、本番で避けるべき落とし穴を整理します。
 permalink: /ja/posts/ubuntu22-swap-memory/
 categories:
 - DevOps
 post_type: deep-dive
-updated: 2024-08-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
-**Amazon Web Services EC2**のような無料利用枠のサービスや、その他の自己ホスト型サーバーを使用していると、大規模な外部リソースをインストールする際にRAM不足の問題に直面することがあります。
-これにより、サーバーが長時間フリーズし、最終的にクラッシュする可能性があります。
-これは頻繁に起こることではありませんが、非常に限られたスペックのサーバーで商用利用の個人プロジェクトを実行し、**マイクロサービスアーキテクチャ**を実装している場合には、非常に深刻な問題となり得ます。
-このような状況では、**スワップメモリ**が非常に役立ちます。この記事では、スワップメモリの作成方法とその概要について解説します。
+AWS EC2 の無料枠や低スペックの自己ホストサーバーでは、大きなパッケージ導入時に RAM が足りず、フリーズや OOM でプロセスが落ちることがあります。インスタンスタイプを上げる前に **スワップファイル** でディスクの一部を緊急メモリにすると、インストールやビルド中のピークを乗り越えやすくなります。Ubuntu 22.04 LTS の手順に加え、**いつ使い、いつ使わないべきか** をまとめます。
 
 <!--more-->
 
@@ -33,77 +27,136 @@ updated: 2024-08-15 10:00:00 +0900
 
 -----
 
-**スワップメモリ**は、物理ディスクの一部を揮発性メモリであるRAM（以下、メモリ）として使用し、不足しているメモリ容量を補う役割を果たします。
-時折、[Laravel](https://laravel.com/ "Laravel"){:target="_blank"}や[NestJS](https://nestjs.com/ "NestJS"){:target="_blank"}のような大きなパッケージをインストールする際には、メモリやCPUリソースといったコンピュータのリソースを大量に必要とするため、リソースが不足しているとインストールに失敗することがあります。
+## スワップの役割
 
-[Google Compute Engine](https://cloud.google.com/products/compute "Google Compute Engine"){:target="_blank"}や[Amazon EC2](https://aws.amazon.com/ko/ec2/ "Amazon EC2"){:target="_blank"}など、ほとんどの仮想マシンサービスでは、メモリ容量を追加するにはインスタンスを停止してからインスタンスタイプを変更する必要があります。
-予期せぬ状況でメモリ不足によるシステムエラーが発生し再起動が必要になった場合、停止している間も損失が発生し続けるため、事前の対策が不可欠です。
-このような場合にスワップメモリを設定しておけば、一時的にでもメモリ不足の問題を少しでも緩和することができます。
+**スワップ** はディスク（パーティションまたはファイル）の一部を RAM の退避領域として使う仕組みです。カーネルはすぐ使わないページをディスクへ移し、必要になったら戻します。[Laravel](https://laravel.com/ "Laravel"){:target="_blank"} や [NestJS](https://nestjs.com/ "NestJS"){:target="_blank"} のような大きなパッケージ、`npm`/`composer` の依存解決など **短時間のメモリピーク** では、物理 RAM だけでは足りない瞬間を埋められます。
 
-ほとんどの商用サービス環境では、各々のインフラ管理技術が導入されているため、上記のような状況はあまり発生しませんが、開発テストやトイプロジェクトのような用途で使用する無料利用枠程度の低スペックな環境では、スワップメモリを設定しておくと非常に便利で役立ちます。
+ただしディスク I/O は RAM より大幅に遅いです。スワップが **常時フル稼働** ならレイテンシが悪化します。スワップは「余裕バッファ」であり「RAM の代替」ではありません。
+
+[Google Compute Engine](https://cloud.google.com/products/compute "Google Compute Engine"){:target="_blank"} や [Amazon EC2](https://aws.amazon.com/ec2/ "Amazon EC2"){:target="_blank"} でメモリを増やすには、多くの場合インスタンスを停止してタイプ変更が必要です。予期しない OOM 再起動が続くと障害時間が伸びるため、**開発・実験・低スペック試験ノード** ではあらかじめスワップを用意しておくと安全です。商用本番は適切なサイジングやオートスケールが本筋です。
+
+Windows では **仮想メモリ（ページファイル）** として同じ概念があります。
 
 ![Windows 11 virtual memory](/uploads/ubuntu22-swap-memory/windows11-virtual-memory.png)
 
-<p style="text-align:center;color:gray;"><small>Windowsの仮想メモリ</small></p>
+<p style="text-align:center;color:gray;"><small>Windows の仮想メモリ</small></p>
 
-スワップメモリという概念は、UbuntuのようなLinuxやUnixだけに存在するものではありません。Windowsにも「仮想メモリ」という名前で活用されており、低スペックのPCで便利に利用されています。
+## サイズの目安
 
-### スワップメモリの設定
+環境ごとに正解は違いますが、実務で使いやすい出発点は次のとおりです。
 
-1. スワップメモリが設定されているか確認
-   ```shell
-      sudo free -m
-      sudo swapon -s
-   ```
-   ![Check swap memory](/uploads/ubuntu22-swap-memory/check-swap-memory.png)
-2. スワップメモリが設定されている場合は無効化
-   ```shell
-      sudo swapoff -a
-   ```
-3. スワップメモリとして使用するswapfileを作成
-   ```shell
-      # 4Gサイズのスワップファイルを作成
-      sudo fallocate -l 4G /swapfile
-   ```
-4. 作成したswapfileをスワップメモリとして使用するように設定
-    ```shell
-      # 権限を修正
-      sudo chmod 600 /swapfile
-    
-      # 有効化の準備
-      sudo mkswap /swapfile
-    
-      # 有効化
-      sudo swapon /swapfile
-    ```
-   ![Make swapfile](/uploads/ubuntu22-swap-memory/make-swapfile.png)
-5. サーバー再起動後もスワップメモリを使用できるように設定
-    ```shell
-      # ファイルを編集
-      sudo nano /etc/fstab 
-    
-      # 以下の内容を追加
-      /swapfile swap swap defaults 0 0
-    ```
-   ![Swap setup for rebooting](/uploads/ubuntu22-swap-memory/swap-setup-for-rebooting.png)
-6. スワップメモリの設定完了
-   ![Complete make swapfile](/uploads/ubuntu22-swap-memory/complete-make-swapfile.png)
+| 物理 RAM | スワップ目安 | 備考 |
+| --- | --- | --- |
+| 1–2 GB（t2/t3.micro 級） | 2–4 GB | パッケージ導入・軽いビルド用 |
+| 4 GB | 2–4 GB | ハイバネ不要なら RAM の 0.5–1 倍 |
+| 8 GB 以上 | 1–2 GB または無し | 必要が明確でないなら最小限 |
 
-### スワップメモリの無効化
+- ディスク余裕が少ないのに巨大スワップを作らないでください。
+- `fallocate` が失敗する場合は `dd` を使えます。
+- 以下は **4GB** の `/swapfile` 例です。数字だけ変えれば流用できます。
 
-スワップメモリをこれ以上使用しない場合は無効化します。
+## 設定手順
+
+### 1. 現状確認
+
 ```shell
-# スワップの無効化
-sudo swapoff -v /swapfile 
-
-# ファイルを開き、以下の行を削除
-sudo nano /etc/fstab      
-/swapfile swap swap defaults 0 0
-
-# swapファイルを削除
-sudo rm /swapfile 
+sudo free -m
+sudo swapon --show
 ```
 
-### 参考文献
-- ウィキペディア : [仮想メモリ](https://en.wikipedia.org/wiki/Virtual_memory "仮想メモリ"){:target="_blank"}
-- ウィキペディア : [メモリ管理 - ページング](https://en.wikipedia.org/wiki/Memory_paging "メモリ管理 - ページング"){:target="_blank"}
+![Check swap memory](/uploads/ubuntu22-swap-memory/check-swap-memory.png)
+
+### 2. 既存スワップをオフ（サイズ変更時）
+
+```shell
+sudo swapoff -a
+```
+
+### 3. スワップファイル作成
+
+```shell
+sudo fallocate -l 4G /swapfile
+```
+
+失敗時:
+
+```shell
+sudo dd if=/dev/zero of=/swapfile bs=1M count=4096 status=progress
+```
+
+### 4. 権限・フォーマット・有効化
+
+ルートのみ読み書き可能にします。
+
+```shell
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+sudo swapon --show
+sudo free -m
+```
+
+![Make swapfile](/uploads/ubuntu22-swap-memory/make-swapfile.png)
+
+### 5. 再起動後も有効化（`/etc/fstab`）
+
+```shell
+grep -n swapfile /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+![Swap setup for rebooting](/uploads/ubuntu22-swap-memory/swap-setup-for-rebooting.png)
+
+### 6. 確認
+
+```shell
+sudo free -m
+sudo swapon --show
+```
+
+![Complete make swapfile](/uploads/ubuntu22-swap-memory/complete-make-swapfile.png)
+
+## swappiness と性能
+
+`vm.swappiness`（0–100）はメモリ逼迫時にスワップをどれだけ積極的に使うかを決めます。Ubuntu Server では 60 前後がよく見られます。
+
+- **DB や遅延に敏感なサービス**: 10–30 に下げる例が多いです。
+- **低スペックのビルド専用**: デフォルトのままで問題ないことも多いです。
+
+一時適用:
+
+```shell
+sudo sysctl vm.swappiness=20
+```
+
+永続化例:
+
+```shell
+echo 'vm.swappiness=20' | sudo tee /etc/sysctl.d/99-swap.conf
+sudo sysctl --system
+```
+
+swappiness を下げても OOM そのものは消えません。RAM が絶対的に不足していればプロセスは落ちるか極端に遅くなります。
+
+## 本番での注意点
+
+- 継続的なスワップ thrashing は障害です。`vmstat 1` などで `si`/`so` を監視してください。
+- ルートボリュームが満杯の状態で大きなスワップを作ると、デプロイやログも同時に失敗します。
+- 規制の厳しい環境では、メモリア内容がディスクに残る点を踏まえ暗号化スワップなどを検討してください。
+- オーケストレータノードではプラットフォーム推奨を優先してください。
+
+## スワップの無効化
+
+```shell
+sudo swapoff -v /swapfile
+sudo sed -i.bak '/swapfile/d' /etc/fstab
+sudo rm /swapfile
+sudo free -m
+```
+
+`/etc/fstab` 編集後は誤記で起動不能になり得るため、コンソール復旧手段を確認してから再起動してください。
+
+## 参考文献
+
+- Wikipedia: [Virtual memory](https://en.wikipedia.org/wiki/Virtual_memory "Virtual memory"){:target="_blank"}
+- Wikipedia: [Paging](https://en.wikipedia.org/wiki/Memory_paging "Paging"){:target="_blank"}
+- Ubuntu Server: [Swap](https://documentation.ubuntu.com/server/how-to/system-tuning/swap-faq/ "Ubuntu swap FAQ"){:target="_blank"}

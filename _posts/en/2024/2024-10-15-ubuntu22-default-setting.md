@@ -14,7 +14,7 @@ permalink: /en/posts/ubuntu22-default-setting/
 categories:
 - DevOps
 post_type: deep-dive
-updated: 2024-10-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
 When setting up a development or testing environment on AWS EC2, starting with the right configurations for your instance is essential. 
 This guide walks you through the initial setup steps for **Ubuntu 22.04 LTS**, ideal for those utilizing the free tier to keep costs down. 
@@ -34,6 +34,20 @@ Follow these steps to create a stable and efficient environment for your develop
 </p>
 
 -----
+
+## Scope of this guide
+
+Out of scope: Route 53, ALB/ELB, RDS, multi-AZ production topology.
+In scope: **one EC2 Ubuntu 22.04** host for development and testing.
+
+Even on free-tier sizes, leaving 22/80/3306 open to `0.0.0.0/0` for a long time is a bad default.
+
+## Before you launch
+
+1. Restrict local `.pem` permissions
+2. SSH (22) only from your IP / VPN / bastion
+3. Give the root volume room if you will use Docker or large logs
+4. Decide whether a public or Elastic IP is required
 
 When setting up a development or testing environment on [Amazon EC2](https://aws.amazon.com/ec2/ "Amazon EC2"){:target="_blank"}, it's crucial to configure your instance correctly. This guide will walk you through the initial setup steps for Ubuntu 22.04 LTS. It's especially useful if you're using the free tier to keep costs down. We will focus on basic configurations and won't cover services like Route 53, ELB, or RDS.
 
@@ -113,11 +127,11 @@ ubuntu@test:~$ sudo vi /etc/bash.bashrc
 # Add the following lines to the end of the file
 # In VIM, press Shift + G to go to the end of the file
 export HISTSIZE=10000
-export HISEFILESIZE=10000
+export HISTFILESIZE=10000
 ```
 
 ![History default size](/uploads/ubuntu22-default-setting/history-default-size.png)
-<p style="text-align:center;color:gray;"><small>Adding HISTSIZE and HISEFILESIZE configuration</small></p>
+<p style="text-align:center;color:gray;"><small>Adding HISTSIZE and HISTFILESIZE configuration</small></p>
 
 ### 6. Set Locale to Korean
 
@@ -164,7 +178,22 @@ ubuntu@test:~$ sudo timedatectl set-timezone Asia/Seoul
 ![Timezone setup](/uploads/ubuntu22-default-setting/timezone-setup.png)
 <p style="text-align:center;color:gray;"><small>Timezone change complete</small></p>
 
-### References
+
+
+## Common mistakes
+
+- Opening MySQL 3306 to the world
+- Typo `HISTFILESIZE` instead of `HISTFILESIZE`
+- Kernel updates without reboot when required
+- Sharing key files in chat
+
+## Suggested next steps
+
+- Add swap if installs OOM: [swap guide](/en/posts/ubuntu22-swap-memory/)
+- Consider `ufw` for host firewall defense in depth
+- For longer life: unattended-upgrades, fail2ban, snapshots
+
+## References
 
 - [How to set or change timezone](https://linuxize.com/post/how-to-set-or-change-timezone-on-ubuntu-20-04/ "How to set or change timezone"){:target="_blank"}
 - [How do I change the default locale](https://askubuntu.com/questions/89976/how-do-i-change-the-default-locale-in-ubuntu-server "How do I change the default locale"){:target="_blank"}

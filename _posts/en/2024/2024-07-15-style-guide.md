@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: Style Guide
 meta: As this is the first post on my blog, it serves as a record and an explanation

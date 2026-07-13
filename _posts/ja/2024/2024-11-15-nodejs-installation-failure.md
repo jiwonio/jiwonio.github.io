@@ -13,7 +13,7 @@ permalink: /ja/posts/nodejs-installation-failure/
 categories:
 - DevOps
 post_type: deep-dive
-updated: 2024-11-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
 Windows 11に[Node.js](https://nodejs.org/ "nodejs"){:target="_blank"}をインストールする際、追加のパッケージインストールに関連するエラーに遭遇することがあります。
 これらのエラーは、一部のNode.jsパッケージを**C/C++**や**Python**でコンパイルする必要があるために頻繁に発生します。
@@ -35,6 +35,16 @@ Windows 11に[Node.js](https://nodejs.org/ "nodejs"){:target="_blank"}をイン�
 </p>
 
 -----
+
+## なぜこのエラーが出るか
+
+多くの場合 Node 本体ではなく、アドオン用の **ネイティブビルドツールチェーン** が原因です。事前ビルドが無い npm パッケージは `node-gyp` で C/C++・Python ツールを使います。Windows インストーラの自動ツール導入は Chocolatey 経由で `visualstudio2019-workload-vctools` などを入れようとします。
+
+Chocolatey の破損状態や Build Tools の不一致で次のようなメッセージが繰り返されます。
+
+> visualstudio2019-workload-vctools not installed. the package was not found with the source(s) listed.
+
+## 症状の確認
 
 Windows 11で**Node.js**をインストールする際、追加パッケージのインストールに関連するエラーが発生することがあります。
 これらのエラーは、一部のNode.jsパッケージを**C/C++**と**Python**を使用してコンパイルする必要があるために発生します。
@@ -117,7 +127,23 @@ Node.jsのインストールと必要なパッケージのインストールが�
 ![Upgrade successful](/uploads/nodejs-installation-failure/upgrade-successful.png)
 <p style="text-align:center;color:gray;"><small>インストール完了</small></p>
 
-### 参考資料
+
+
+## 再発防止チェックリスト
+
+1. Chocolatey / Build Tools 作業は **管理者権限** シェルで行う
+2. `node -v` / `npm -v` とネイティブ依存パッケージでスモークテスト
+3. 会社 PC では VS Build Tools がポリシーで禁止されていないか確認
+4. Node LTS を [公式インストーラ](https://nodejs.org/){:target="_blank"} やバージョン管理で統一
+5. CI では Build Tools 済みイメージやネイティブビルド回避を検討
+
+## 代替手段
+
+- Chocolatey なしで Build Tools を先に入れ、Node を再インストール
+- `npm config set msvs_version 2019` などで node-gyp の参照年を合わせる
+- Windows ネイティブが不要なら WSL2 上の Node を使う
+
+## 参考文献資料
 
 - [Windows 11 (Version 22H2)](https://en.wikipedia.org/wiki/Windows_11 "Windows 11"){:target="_blank"}
 - [Node.js 18.x LTS (includes npm 9.6.7)](https://nodejs.org/docs/latest-v18.x/api/index.html "Node.js 18.x LTS"){:target="_blank"}

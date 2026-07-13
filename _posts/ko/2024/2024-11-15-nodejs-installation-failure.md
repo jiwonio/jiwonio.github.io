@@ -7,18 +7,15 @@ image: /uploads/nodejs-installation-failure/thumbnail.webp
 lang: ko
 translation_key: nodejs-installation-failure
 slug: nodejs-installation-failure
-description: Windows 11에서 Node.js 설치 시 Chocolatey·Visual Studio Build Tools 관련 오류를
-  해결하는 방법을 설명합니다.
+description: Windows 11에서 Node.js 설치 중 Chocolatey와 Visual Studio Build Tools(visualstudio2019-workload-vctools) 실패를 재현·해결하는 절차와 재발 방지 체크리스트를 정리합니다.
 post_type: deep-dive
 categories:
 - DevOps
-updated: 2024-11-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
 Windows 11에서 **Node.js**를 설치할 때 C/C++, Python 컴파일이 필요한 네이티브 패키지 때문에 오류가 나는 경우가 많습니다. **Chocolatey**로 추가 도구를 설치하는 과정에서 `visualstudio2019-workload-vctools` 설치 실패로 깨끗한 설치가 안 되는 문제를 해결하는 방법을 정리합니다.
 
 <!--more-->
-
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 ![node.js](/uploads/nodejs-installation-failure/nodejs.png)
 
@@ -28,6 +25,18 @@ Windows 11에서 **Node.js**를 설치할 때 C/C++, Python 컴파일이 필요�
 </p>
 
 -----
+
+## 왜 이 오류가 나는가
+
+Node.js 자체 설치보다, **네이티브 애드온을 컴파일할 빌드 체인**을 같이 깔 때 문제가 납니다. 일부 npm 패키지는 미리 빌드된 바이너리가 없거나 환경과 맞지 않으면 `node-gyp`가 C/C++·Python 도구로 소스 빌드를 시도합니다. Windows 설치 마법사의 "자동으로 필요한 도구 설치"는 내부적으로 Chocolatey를 쓰고, 그 과정에서 `visualstudio2019-workload-vctools` 같은 패키지를 받습니다.
+
+이미 Chocolatey 캐시·부분 설치가 깨져 있거나, Visual Studio Build Tools 버전·워크로드가 기대와 다르면 다음과 비슷한 메시지가 반복됩니다.
+
+> visualstudio2019-workload-vctools not installed. the package was not found with the source(s) listed.
+
+같은 설치 프로그램을 여러 번 눌러도 **깨진 Chocolatey 상태**가 남으면 클린 설치처럼 보이지 않을 수 있습니다.
+
+## 증상 확인
 
 Windows 11에서 **Node.js**를 설치할 때 추가 패키지 설치와 관련된 오류가 발생할 수 있습니다. 
 이러한 오류는 **C/C++**와 **Python**을 사용하여 일부 Node.js 패키지를 컴파일해야 하는 필요성 때문에 발생합니다. 
@@ -56,7 +65,7 @@ Node.js 설치 중에는 위와 같이, 설치에 필요한 부가적인 필수 
 Node.js 사용에 필요한 추가 도구를 설치하기 위한 CMD 화면이 표시되고, PowerShell 을 이용하여 설치가 진행됩니다. 
 설치 중에 위와 같은 에러가 표시되고 아무리 다시 실행해봐도 클린 설치가 되지 않습니다.
 
-### 1. Chocolaty 재설치
+### 1. Chocolatey 재설치
 
  - C:\ProgramData\chocolaty 디렉터리로 이동하여 해당 디렉터리를 삭제합니다.
    Node.js를 재설치하면 chocolaty와 필요한 도구들도 함께 재설치됩니다.
@@ -110,7 +119,25 @@ Node.js 설치 및 필요한 패키지 설치를 모두 완료했습니다!
 ![Upgrade successful](/uploads/nodejs-installation-failure/upgrade-successful.png)
 <p style="text-align:center;color:gray;"><small>설치 완료</small></p>
 
-### 참고문헌
+
+
+## 재발 방지 체크리스트
+
+1. **관리자 권한** PowerShell/CMD에서 Chocolatey·Build Tools 작업을 수행했는지 확인합니다.
+2. 설치 후 `node -v`, `npm -v`와 함께 네이티브 모듈이 필요한 패키지 하나로 스모크 테스트를 합니다.
+3. 회사 PC라면 **정책으로 VS Build Tools 설치가 막혀 있는지** 확인합니다. 이 경우 관리자 배포 패키지가 필요합니다.
+4. 가능하면 Node LTS를 [공식 설치 프로그램](https://nodejs.org/){:target="_blank"} 또는 버전 관리 도구(예: `nvm-windows`, `fnm`)로 통일합니다.
+5. CI에서는 Windows 러너에 미리 캐시된 Build Tools 이미지를 쓰거나, 네이티브 빌드가 필요 없는 패키지 전략을 검토합니다.
+
+## 대안 경로
+
+- **Chocolatey 없이** Visual Studio Build Tools만 먼저 설치한 뒤 Node를 다시 설치해 보기
+- `npm config set msvs_version 2019` (또는 설치한 연도)로 node-gyp가 찾는 도구 연도를 맞추기
+- WSL2 Ubuntu 쪽에서 Node를 쓰는 워크플로로 우회하기 (Windows 네이티브 모듈이 꼭 필요하지 않을 때)
+
+환경마다 패키지 소스·프록시·권한이 다르므로, 아래 참고 링크의 오류 메시지와 자신의 로그를 대조하는 것이 중요합니다.
+
+## 참고문헌
 
 - [Windows 11 (Version 22H2)](https://en.wikipedia.org/wiki/Windows_11 "Windows 11"){:target="_blank"}
 - [Node.js 18.x LTS (includes npm 9.6.7)](https://nodejs.org/docs/latest-v18.x/api/index.html "Node.js 18.x LTS"){:target="_blank"}

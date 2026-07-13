@@ -2,10 +2,22 @@
 layout: default
 ---
 {% assign current_lang = page.lang | default: site.default_lang | default: 'ko' %}
+{% assign lang_meta = site.data.languages[current_lang] %}
 {% assign lang_posts = site.posts_by_lang[current_lang] %}
 {% assign per_page = site.posts_per_page | default: 5 %}
 {% assign page_num = page.page | default: 1 %}
 {% assign offset = page_num | minus: 1 | times: per_page %}
+
+{% if page_num == 1 and lang_meta.home_intro %}
+<div class="home-intro">
+    <p>{{ lang_meta.home_intro | strip }}</p>
+    {% if current_lang == site.default_lang %}
+    <p><a href="/about/">{{ lang_meta.about_title | default: 'About' }} →</a></p>
+    {% else %}
+    <p><a href="/{{ current_lang }}/about/">{{ lang_meta.about_title | default: 'About' }} →</a></p>
+    {% endif %}
+</div>
+{% endif %}
 
 <div class="posts">
     {% for post in lang_posts limit: per_page offset: offset %}

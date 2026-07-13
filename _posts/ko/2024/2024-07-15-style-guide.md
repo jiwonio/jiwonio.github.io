@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: 스타일 가이드
 tags:

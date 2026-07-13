@@ -20,8 +20,10 @@
                     {% include lang-switcher.html %}
                     <span class="masthead-nav__divider" aria-hidden="true"></span>
                     {% if current_lang == site.default_lang %}
+                        <a class="masthead-nav__link masthead-nav__text" href="/about/" title="{{ lang_meta.nav.about }}">{{ lang_meta.nav.about }}</a>
                         <a class="masthead-nav__link" href="/search/" title="{{ lang_meta.nav.search }}" aria-label="{{ lang_meta.nav.search }}">{{ icon_search }}</a>
                     {% else %}
+                        <a class="masthead-nav__link masthead-nav__text" href="/{{ current_lang }}/about/" title="{{ lang_meta.nav.about }}">{{ lang_meta.nav.about }}</a>
                         <a class="masthead-nav__link" href="/{{ current_lang }}/search/" title="{{ lang_meta.nav.search }}" aria-label="{{ lang_meta.nav.search }}">{{ icon_search }}</a>
                     {% endif %}
                     <a class="masthead-nav__link" href="https://x.com/{{ site.author.twitter }}" title="{{ lang_meta.nav.x }}" aria-label="{{ lang_meta.nav.x }}" target="_blank" rel="noopener noreferrer">{{ icon_twitter }}</a>
@@ -56,8 +58,12 @@
                     </li>
                     <li>
                         {% if current_lang == site.default_lang %}
+                            <a href="/about/" title="{{ lang_meta.about_title }}">{{ lang_meta.footer.about_link }}</a>
+                            ·
                             <a href="/privacy-policy/" title="{{ lang_meta.privacy_title }}">{{ lang_meta.footer.privacy_link }}</a>
                         {% else %}
+                            <a href="/{{ current_lang }}/about/" title="{{ lang_meta.about_title }}">{{ lang_meta.footer.about_link }}</a>
+                            ·
                             <a href="/{{ current_lang }}/privacy-policy/" title="{{ lang_meta.privacy_title }}">{{ lang_meta.footer.privacy_link }}</a>
                         {% endif %}
                         ·

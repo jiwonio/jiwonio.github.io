@@ -13,7 +13,7 @@ tags:
 - 上下文管理
 - CLI 工作流
 - 编码自动化
-description: 本文重现了 Antigravity CLI 在实际应用中因上下文丢失导致的问题，并逐步整理了防范模式。 大约150字。
+description: 本文重现了 Antigravity CLI 在实际应用中因上下文丢失导致的问题，并逐步整理了防范模式。
 image: /uploads/antigravity-cli-context-loss-mistakes/thumbnail.webp
 ai_generated: true
 permalink: /zh/posts/antigravity-cli-context-loss-mistakes/

@@ -28,6 +28,12 @@
     {%- else -%}
         {%- assign i18n_page_url = '/' | append: target_lang | append: '/privacy-policy/' -%}
     {%- endif -%}
+{%- elsif page.page_key == 'about' -%}
+    {%- if target_lang == site.default_lang -%}
+        {%- assign i18n_page_url = '/about/' -%}
+    {%- else -%}
+        {%- assign i18n_page_url = '/' | append: target_lang | append: '/about/' -%}
+    {%- endif -%}
 {%- elsif layout.archives and page.date -%}
     {%- assign archive_year = page.date | date: '%Y' -%}
     {%- if target_lang == site.default_lang -%}

@@ -13,7 +13,7 @@ permalink: /zh/posts/ubuntu22-default-setting/
 categories:
 - DevOps
 post_type: deep-dive
-updated: 2024-10-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
 在 AWS EC2 上设置开发或测试环境时，为您的实例选择正确的配置至关重要。
 本指南将引导您完成 **Ubuntu 22.04 LTS** 的初始设置步骤，非常适合希望通过免费套餐来降低成本的用户。
@@ -35,6 +35,20 @@ updated: 2024-10-15 10:00:00 +0900
 </p>
 
 -----
+
+## 本文范围
+
+不包含：Route 53、ALB/ELB、RDS、多 AZ 生产拓扑。
+包含：用于开发测试的 **单台 EC2 Ubuntu 22.04**。
+
+即使是免费套餐，也不建议长期把 22/80/3306 对 `0.0.0.0/0` 放开。
+
+## 创建前检查
+
+1. 限制本地 `.pem` 权限
+2. SSH(22) 仅本机 IP / VPN / bastion
+3. 若用 Docker 或大量日志，根卷留足空间
+4. 确认是否需要公网 / Elastic IP
 
 在 [Amazon EC2](https://aws.amazon.com/ec2/ "Amazon EC2"){:target="_blank"} 上设置开发或测试环境时，正确配置实例至关重要。本指南将引导您完成 Ubuntu 22.04 LTS 的初始设置步骤。
 这对于希望通过使用免费套餐来降低成本的用户尤其有用。本指南不涉及 Route 53、ELB、RDS 等服务，而是专注于基本设置。
@@ -115,11 +129,11 @@ ubuntu@test:~$ sudo vi /etc/bash.bashrc
 # 在文件末尾添加以下内容
 # 在 VIM 中，按 Shift + G 可跳转到文件末尾
 export HISTSIZE=10000
-export HISEFILESIZE=10000
+export HISTFILESIZE=10000
 ```
 
 ![History default size](/uploads/ubuntu22-default-setting/history-default-size.png)
-<p style="text-align:center;color:gray;"><small>添加 HISTSIZE 和 HISEFILESIZE 内容</small></p>
+<p style="text-align:center;color:gray;"><small>添加 HISTSIZE 和 HISTFILESIZE 内容</small></p>
 
 ### 6. 设置韩语 locale
 
@@ -166,7 +180,21 @@ ubuntu@test:~$ sudo timedatectl set-timezone Asia/Seoul
 ![Timezone setup](/uploads/ubuntu22-default-setting/timezone-setup.png)
 <p style="text-align:center;color:gray;"><small>timezone 更改完成</small></p>
 
-### 参考资料
+## 常见失误
+
+- 对公网开放 MySQL 3306
+- 把 HISTFILESIZE 写错
+- 需要重启的内核更新一直不 reboot
+- 在聊天工具分享私钥
+
+## 建议的下一步
+
+- 需要缓冲内存时参考 [swap 指南](/zh/posts/ubuntu22-swap-memory/)
+- 主机侧可用 ufw 做纵深防御
+- 长期运行可加 unattended-upgrades、fail2ban、定期快照
+
+## 参考文献
+
 
 - [How to set or change timezone](https://linuxize.com/post/how-to-set-or-change-timezone-on-ubuntu-20-04/ "How to set or change timezone"){:target="_blank"}
 - [How do I change the default locale](https://askubuntu.com/questions/89976/how-do-i-change-the-default-locale-in-ubuntu-server "How do I change the default locale"){:target="_blank"}

@@ -14,7 +14,7 @@ categories:
 - dev
 permalink: /en/posts/nodejs-installation-failure/
 post_type: deep-dive
-updated: 2024-11-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
 When installing [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} on Windows 11, you may encounter errors related to additional package installations. 
 These errors often occur due to the necessity to compile some Node.js packages using **C/C++** and **Python**. 
@@ -34,6 +34,16 @@ Despite several attempts, you might find that a clean installation cannot be ach
 </p>
 
 -----
+
+## Why this error happens
+
+The failure is usually not Node itself, but the **native build toolchain** pulled in for addons. Some npm packages compile with `node-gyp` when prebuilt binaries are missing. The Windows installer option that auto-installs tools uses Chocolatey and may try to install `visualstudio2019-workload-vctools`.
+
+Broken Chocolatey state or a mismatched Visual Studio Build Tools workload produces messages like:
+
+> visualstudio2019-workload-vctools not installed. the package was not found with the source(s) listed.
+
+## Confirm the symptoms
 
 When installing **Node.js** on Windows 11, you might run into errors related to installing additional packages.
 These errors often happen because some Node.js packages need to be compiled using **C/C++** and **Python**.
@@ -116,7 +126,23 @@ Node.js and the necessary tools are now installed and configured on Windows 11. 
 ![Upgrade successful](/uploads/nodejs-installation-failure/upgrade-successful.png)
 <p style="text-align:center;color:gray;"><small>Installation complete</small></p>
 
-### References
+
+
+## Prevention checklist
+
+1. Run Chocolatey and Build Tools steps from an **elevated** shell.
+2. After install, smoke-test with `node -v`, `npm -v`, and one native-dependent package.
+3. On managed PCs, check whether policy blocks VS Build Tools.
+4. Standardize on Node LTS via the [official installer](https://nodejs.org/){:target="_blank"} or a version manager (`nvm-windows`, `fnm`).
+5. In CI, prefer images with Build Tools cached, or avoid native builds when possible.
+
+## Alternative paths
+
+- Install Visual Studio Build Tools first **without** Chocolatey, then reinstall Node
+- Align node-gyp with `npm config set msvs_version 2019` (or your installed year)
+- Use Node inside WSL2 Ubuntu when Windows-native modules are not required
+
+## References
 
 - [Windows 11 (Version 22H2)](https://en.wikipedia.org/wiki/Windows_11 "Windows 11"){:target="_blank"}
 - [Node.js 18.x LTS (includes npm 9.6.7)](https://nodejs.org/docs/latest-v18.x/api/index.html "Node.js 18.x LTS"){:target="_blank"}

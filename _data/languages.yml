@@ -6,15 +6,20 @@ ko:
     웹 개발과 AI 코딩 도구를 다루는 기술 블로그입니다.
     실무에서 바로 쓸 수 있는 설정, 아키텍처, 트러블슈팅을 기록합니다.
   home_title: "Jiwon Min · Developer"
+  home_intro: >
+    웹 개발·인프라·AI 코딩 도구를 실무 관점에서 정리하는 기술 블로그입니다.
+    설정 절차뿐 아니라 실패 사례, 선택 기준, 운영 중 발견한 한계까지 기록합니다.
   archive_title: "아카이브"
   search_title: "검색"
   search_index_error: "검색 인덱스를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."
   privacy_title: "개인정보 처리방침"
+  about_title: "소개"
   year_heading: "연도"
   tag_heading: "태그"
   skip_to_content: "본문으로 건너뛰기"
   nav:
     search: "검색"
+    about: "소개"
     x: "X"
     github: "GitHub"
     email: "이메일"
@@ -25,6 +30,7 @@ ko:
     made_with: "Made with ❤ using"
     location: "대한민국에 사는 웹 개발자입니다"
     archive_link: "모든 글은 아카이브에서 볼 수 있습니다"
+    about_link: "소개"
     privacy_link: "개인정보 처리방침"
     cookie_settings: "쿠키 설정"
     rss: "RSS 피드"
@@ -80,15 +86,20 @@ en:
     A technical blog on web development and AI coding tools.
     Practical setups, architecture notes, and troubleshooting for production work.
   home_title: "Jiwon Min · Developer"
+  home_intro: >
+    A technical blog on web development, infrastructure, and AI coding tools.
+    Posts cover setup steps plus failure cases, decision criteria, and limits found in production.
   archive_title: "Archive"
   search_title: "Search"
   search_index_error: "Could not load the search index. Please try again later."
   privacy_title: "Privacy Policy"
+  about_title: "About"
   year_heading: "Year"
   tag_heading: "Tag"
   skip_to_content: "Skip to content"
   nav:
     search: "Search"
+    about: "About"
     x: "X"
     github: "GitHub"
     email: "Email"
@@ -99,6 +110,7 @@ en:
     made_with: "Made with ❤ using"
     location: "A web developer living in South Korea"
     archive_link: "All posts are available in the Archive"
+    about_link: "About"
     privacy_link: "Privacy Policy"
     cookie_settings: "Cookie settings"
     rss: "RSS feed"
@@ -154,15 +166,20 @@ ja:
     Web開発とAIコーディングツールを扱う技術ブログです。
     実務ですぐ使える設定、アーキテクチャ、トラブルシューティングを記録します。
   home_title: "Jiwon Min · Developer"
+  home_intro: >
+    Web開発・インフラ・AIコーディングツールを実務目線でまとめる技術ブログです。
+    手順だけでなく、失敗例・選定基準・運用で見えた限界まで記録します。
   archive_title: "アーカイブ"
   search_title: "検索"
   search_index_error: "検索インデックスを読み込めませんでした。しばらくしてから再度お試しください。"
   privacy_title: "プライバシーポリシー"
+  about_title: "About"
   year_heading: "年"
   tag_heading: "タグ"
   skip_to_content: "本文へスキップ"
   nav:
     search: "検索"
+    about: "About"
     x: "X"
     github: "GitHub"
     email: "メール"
@@ -173,6 +190,7 @@ ja:
     made_with: "Made with ❤ using"
     location: "韓国に住むWeb開発者です"
     archive_link: "すべての記事はアーカイブで閲覧できます"
+    about_link: "About"
     privacy_link: "プライバシーポリシー"
     cookie_settings: "Cookie設定"
     rss: "RSSフィード"
@@ -228,15 +246,20 @@ zh:
     分享 Web 开发与 AI 编程工具的技术博客。
     记录可直接用于生产的配置、架构与排错经验。
   home_title: "Jiwon Min · Developer"
+  home_intro: >
+    从实务角度整理 Web 开发、基础设施与 AI 编程工具的技术博客。
+    除了步骤，也会记录失败案例、选型标准，以及线上运行中发现的限制。
   archive_title: "归档"
   search_title: "搜索"
   search_index_error: "无法加载搜索索引，请稍后再试。"
   privacy_title: "隐私政策"
+  about_title: "关于"
   year_heading: "年份"
   tag_heading: "标签"
   skip_to_content: "跳转到正文"
   nav:
     search: "搜索"
+    about: "关于"
     x: "X"
     github: "GitHub"
     email: "电子邮件"
@@ -247,6 +270,7 @@ zh:
     made_with: "Made with ❤ using"
     location: "居住在韩国的 Web 开发者"
     archive_link: "所有文章可在归档中浏览"
+    about_link: "关于"
     privacy_link: "隐私政策"
     cookie_settings: "Cookie 设置"
     rss: "RSS 订阅"

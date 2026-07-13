@@ -47,6 +47,20 @@
       }
     }
 
+    &__text {
+      width: auto;
+      height: auto;
+      padding: 0 .15rem;
+      font-size: .85rem;
+      font-weight: 600;
+      text-decoration: none;
+      white-space: nowrap;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
     &__divider {
       width: 1px;
       height: 1rem;

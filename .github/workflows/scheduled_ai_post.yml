@@ -1,10 +1,12 @@
 name: Scheduled AI Post Generation
 
+# AdSense thin-content remediation (2026-07): pause automatic publishing.
+# Keep workflow_dispatch so posts can still be generated manually after review.
 on:
-  schedule:
-    - cron: '0 0 * * 1'
-    - cron: '0 0 * * 3'
-    - cron: '0 0 * * 5'
+  # schedule:
+  #   - cron: '0 0 * * 1'
+  #   - cron: '0 0 * * 3'
+  #   - cron: '0 0 * * 5'
   workflow_dispatch:
     inputs:
       post_type:

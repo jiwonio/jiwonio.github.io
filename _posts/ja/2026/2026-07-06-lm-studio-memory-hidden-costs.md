@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: LM Studioでモデルを動かす際に軽視していたメモリコスト
 slug: lm-studio-memory-hidden-costs

@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: LM Studio로 모델 돌릴 때 간과했던 메모리 비용
 slug: lm-studio-memory-hidden-costs

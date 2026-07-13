@@ -38,16 +38,23 @@
   {%- assign seo_og_type = "website" -%}
   {%- assign seo_title = lang_meta.home_title | default: site.title | append: " · " | append: site.tagline -%}
 {%- elsif layout.archives and page.date -%}
-  {%- comment -%} jekyll-archives 연도 아카이브 (page.title 없음) {%- endcomment -%}
+  {%- comment -%} jekyll-archives 연도 아카이브 (page.title 없음) — thin list page {%- endcomment -%}
   {%- assign seo_og_type = "website" -%}
   {%- assign seo_title = page.date | date: "%Y" | append: " " | append: lang_meta.archive_title | append: " | " | append: site.title -%}
+  {%- assign seo_robots = "noindex, follow" -%}
 {%- elsif layout.archives -%}
-  {%- comment -%} jekyll-archives 태그 아카이브 {%- endcomment -%}
+  {%- comment -%} jekyll-archives 태그 아카이브 — thin list page {%- endcomment -%}
   {%- assign seo_og_type = "website" -%}
   {%- assign seo_title = page.title | append: " | " | append: lang_meta.archive_title | append: " | " | append: site.title -%}
+  {%- assign seo_robots = "noindex, follow" -%}
 {%- elsif page.page_key == 'search' -%}
   {%- assign seo_og_type = "website" -%}
   {%- assign seo_title = lang_meta.search_title | append: " | " | append: site.title -%}
+  {%- assign seo_robots = "noindex, follow" -%}
+{%- elsif page.page_key == 'archive' -%}
+  {%- assign seo_og_type = "website" -%}
+  {%- assign seo_title = lang_meta.archive_title | append: " | " | append: site.title -%}
+  {%- assign seo_robots = "noindex, follow" -%}
 {%- else -%}
   {%- assign seo_og_type = "website" -%}
   {%- assign seo_title = page.title | append: " | " | append: site.title -%}

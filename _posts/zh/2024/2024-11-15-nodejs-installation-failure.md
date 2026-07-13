@@ -15,7 +15,7 @@ permalink: /zh/posts/nodejs-installation-failure/
 categories:
 - DevOps
 post_type: deep-dive
-updated: 2024-11-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
 在 Windows 11 上安装 [Node.js](https://nodejs.org/ "nodejs"){:target="_blank"} 时，你可能会遇到与附加软件包安装相关的错误。
 这些错误通常是由于某些 Node.js 包需要使用 **C/C++** 和 **Python** 进行编译而引起的。
@@ -35,6 +35,16 @@ updated: 2024-11-15 10:00:00 +0900
 </p>
 
 -----
+
+## 为什么会出现这个错误
+
+多数情况下问题不在 Node 本身，而在 **编译原生插件的工具链**。部分 npm 包在缺少预编译二进制时会通过 `node-gyp` 调用 C/C++、Python 工具。Windows 安装向导的“自动安装必要工具”会走 Chocolatey，并尝试安装 `visualstudio2019-workload-vctools`。
+
+Chocolatey 状态损坏或 Build Tools 工作负载不匹配时，会反复出现类似信息：
+
+> visualstudio2019-workload-vctools not installed. the package was not found with the source(s) listed.
+
+## 确认现象
 
 在 Windows 11 上安装 **Node.js** 时，可能会出现与附加包安装相关的错误。
 这些错误通常是由于某些 Node.js 包需要使用 **C/C++** 和 **Python** 进行编译。
@@ -117,7 +127,23 @@ Node.js 和所需软件包的安装现已全部完成！
 ![Upgrade successful](/uploads/nodejs-installation-failure/upgrade-successful.png)
 <p style="text-align:center;color:gray;"><small>安装完成</small></p>
 
-### 参考资料
+
+
+## 防复发检查清单
+
+1. 在 **管理员** shell 中执行 Chocolatey / Build Tools 步骤
+2. 安装后用 `node -v`、`npm -v` 以及一个需要原生模块的包做冒烟测试
+3. 公司电脑需确认策略是否禁止安装 VS Build Tools
+4. 用 [官方安装包](https://nodejs.org/){:target="_blank"} 或版本管理器统一 Node LTS
+5. CI 优先使用已缓存 Build Tools 的镜像，或尽量避免原生编译
+
+## 替代路径
+
+- 先单独安装 Visual Studio Build Tools，再重装 Node
+- 用 `npm config set msvs_version 2019` 对齐 node-gyp 年份
+- 若不需要 Windows 原生模块，可改用 WSL2 中的 Node
+
+## 参考文献资料
 
 - [Windows 11 (Version 22H2)](https://en.wikipedia.org/wiki/Windows_11 "Windows 11"){:target="_blank"}
 - [Node.js 18.x LTS (includes npm 9.6.7)](https://nodejs.org/docs/latest-v18.x/api/index.html "Node.js 18.x LTS"){:target="_blank"}

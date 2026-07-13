@@ -46,17 +46,18 @@ layout: default
 
     {% include share-buttons.html %}
 
-    {% include ad-unit.html unit="display" %}
-
+    {% comment %}
+      AdSense thin-content remediation: keep a single ad unit per post so
+      ads never dominate short or medium articles during policy review.
+    {% endcomment %}
     {% if article_parts.size > 1 %}
         {{ article_parts[0] }}
         {% include ad-unit.html unit="in-article" %}
         {{ article_parts[1] }}
     {% else %}
+        {% include ad-unit.html unit="in-article" %}
         {{ content }}
     {% endif %}
-
-    {% include ad-unit.html unit="autorelaxed" %}
 
     {% if show_ai_news_series %}
     <p class="post-series post-series--footer">

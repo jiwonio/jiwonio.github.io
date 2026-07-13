@@ -7,18 +7,16 @@ image: /uploads/ubuntu22-swap-memory/thumbnail.webp
 lang: ko
 translation_key: ubuntu22-swap-memory
 slug: ubuntu22-swap-memory
-description: Ubuntu 22.04 LTS에서 스왑 메모리를 설정해 저사양 EC2·자체 호스팅 서버의 RAM 부족 문제를 완화하는 방법을
-  설명합니다.
+description: Ubuntu 22.04 LTS에서 스왑 파일을 만들고 재부팅 후에도 유지하는 방법과, 크기·swappiness 선택 기준,
+  프로덕션에서 피해야 할 함정을 정리합니다.
 post_type: deep-dive
 categories:
 - DevOps
-updated: 2024-08-15 10:00:00 +0900
+updated: 2026-07-13 12:00:00 +0900
 ---
-AWS EC2 프리티어나 저사양 자체 호스팅 서버에서 대용량 패키지를 설치하다 보면 RAM 부족으로 서버가 멈추거나 다운되는 경우가 있습니다. 마이크로서비스를 낮은 사양에서 운영할 때도 같은 문제가 생길 수 있는데, 이때 **스왑 메모리**로 디스크 일부를 RAM처럼 쓰면 도움이 됩니다. Ubuntu 22.04 LTS에서 스왑을 설정하는 방법을 정리합니다.
+AWS EC2 프리티어나 저사양 자체 호스팅 서버에서 대용량 패키지를 설치하다 보면 RAM 부족으로 서버가 멈추거나 OOM으로 프로세스가 죽는 경우가 있습니다. 인스턴스 타입을 올리기 전에 **스왑 파일**로 디스크 일부를 비상 메모리로 쓰면, 설치·빌드 중 순간 피크를 넘기는 데 도움이 됩니다. 이 글은 Ubuntu 22.04 LTS 기준으로 설정 절차와 함께 **언제 쓰고, 언제 쓰면 안 되는지**를 정리합니다.
 
 <!--more-->
-
-<small style="color:lightgray;text-decoration:line-through;font-style: italic;">[Medium](https://medium.com/@jiwonio "medium.com/@jiwonio"){:target="_blank"} 에도 발행하고 있어요.</small>
 
 ![Random Access Memory](/uploads/ubuntu22-swap-memory/ram.jpg)
 
@@ -29,79 +27,146 @@ AWS EC2 프리티어나 저사양 자체 호스팅 서버에서 대용량 패키
 
 -----
 
-**스왑 메모리**는 물리 디스크의 일부를 휘발성 메모리인 RAM(이하 메모리) 으로 사용하여 부족한 메모리 용량을 보강해주는 역할을 합니다.
-간혹 [Laravel](https://laravel.com/ "Laravel"){:target="_blank"} 이나 [NestJS](https://nestjs.com/ "NestJS"){:target="_blank"} 같은 큰 패키지 덩어리를 인스톨하는 경우에 메모리나 CPU 자원과 같은
-즉, 컴퓨터 리소스를 많이 필요로하기 때문에 리소스가 부족한 경우 설치에 실패하는 경우가 있습니다.
+## 스왑이 하는 일
 
-[Google Compute Engine](https://cloud.google.com/products/compute "Google Compute Engine"){:target="_blank"}, [Amazon EC2](https://aws.amazon.com/ko/ec2/ "Amazon EC2"){:target="_blank"} 등등 대부분의 가상 머신 서비스에서는 메모리 용량을 추가하려면 인스턴스를 중지한 후에 인스턴스 타입을 변경해야 합니다.
-예상하지 못한 상황에서 메모리 부족으로 인한 시스템 오류가 발생하여 재부팅하는 일이 생긴다면, 중지되어 있는 동안 계속해서 손해가 발생하기 때문에 미리 대비해야 할 필요가 있습니다.
-이런 경우에 스왑 메모리를 설정해놓으면 임시적으로라도 메모리 부족에 대해서 조금이나마 도움을 받을 수 있습니다.
+**스왑 메모리**는 물리 디스크(또는 스왑 파티션/파일)의 일부를 휘발성 메모리처럼 쓰는 기법입니다. 커널이 당장 쓰지 않는 페이지를 디스크로 내리고, 필요할 때 다시 올립니다. [Laravel](https://laravel.com/ "Laravel"){:target="_blank"}·[NestJS](https://nestjs.com/ "NestJS"){:target="_blank"} 같은 큰 패키지 설치나 `npm`/`composer` 의존성 해석처럼 **짧은 시간 동안 메모리 피크**가 생기는 작업에서, 물리 RAM만으로는 부족한 순간을 메울 수 있습니다.
 
-대부분의 상용서비스 환경에서는 각각의 인프라 관리 기술을 도입해서 위와 같은 상황이 생기는 경우는 잘 없겠습니다만,
-개발 테스트나 토이프로젝트와 같은 용도로 사용하는 프리티어 정도의 낮은 사양에서는 스왑 메모리를 설정해두는 게 굉장히 편리하고 도움이 됩니다.
+다만 디스크 I/O는 RAM보다 훨씬 느립니다. 스왑이 **상시 풀가동**되는 상태라면 서비스 지연이 커지므로, 스왑은 “여유 버퍼”이지 “RAM 대체재”가 아닙니다.
+
+[Google Compute Engine](https://cloud.google.com/products/compute "Google Compute Engine"){:target="_blank"}, [Amazon EC2](https://aws.amazon.com/ko/ec2/ "Amazon EC2"){:target="_blank"} 등에서 메모리를 늘리려면 보통 인스턴스를 중지하고 타입을 바꿔야 합니다. 예기치 않은 OOM으로 재부팅이 반복되면 그 시간 동안 장애가 이어지므로, **개발·토이·저사양 테스트 노드**에서는 스왑을 미리 켜 두는 편이 안전합니다. 상용 프로덕션은 보통 오토스케일·적정 인스턴스 사이징으로 해결하는 쪽이 맞습니다.
+
+Windows에도 **가상 메모리(페이지 파일)** 라는 이름으로 같은 개념이 있습니다.
 
 ![Windows 11 virtual memory](/uploads/ubuntu22-swap-memory/windows11-virtual-memory.png)
 
 <p style="text-align:center;color:gray;"><small>윈도우의 가상 메모리</small></p>
 
-스왑 메모리라는 개념은 우분투와 같은 리눅스나 유닉스에만 있는 개념이 아닙니다. 윈도우에도 가상 메모리라는 이름으로 활용되고 있고, 저사양 PC에서 유용하게 활용되고 있습니다.
+## 크기 선택 기준
 
-### 스왑 메모리 설정
+정답 공식은 환경마다 다르지만, 실무에서 자주 쓰는 출발점은 다음과 같습니다.
 
-1. 스왑 메모리가 설정되어 있는 지 확인
-   ```shell
-      sudo free -m
-      sudo swapon -s
-   ```
-   ![Check swap memory](/uploads/ubuntu22-swap-memory/check-swap-memory.png)
-2. 스왑 메모리가 설정되어 있다면 사용 중지
-   ```shell
-      sudo swapoff -a
-   ```
-3. 스왑 메모리로 사용 할 swapfile 생성
-   ```shell
-      # 4G 크기만큼 스왑 파일 생성
-      sudo fallocate -l 4G /swapfile
-   ```
-4. 생성한 swapfile 을 스왑 메모리로 사용하도록 설정
-    ```shell
-      # 권한 수정
-      sudo chmod 600 /swapfile
-    
-      # 활성화 준비
-      sudo mkswap /swapfile
-    
-      # 활성화
-      sudo swapon /swapfile
-    ```
-   ![Make swapfile](/uploads/ubuntu22-swap-memory/make-swapfile.png)
-5. 서버 리부팅 후에도 스왑 메모리를 사용할 수 있도록 설정
-    ```shell
-      # 파일 편집
-      sudo nano /etc/fstab 
-    
-      # 내용 추가
-      /swapfile swap swap defaults 0 0
-    ```
-   ![Swap setup for rebooting](/uploads/ubuntu22-swap-memory/swap-setup-for-rebooting.png)
-6. 스왑 메모리 설정 완료
-   ![Complete make swapfile](/uploads/ubuntu22-swap-memory/complete-make-swapfile.png)
+| 물리 RAM | 권장 스왑(시작점) | 비고 |
+| --- | --- | --- |
+| 1–2 GB (t2/t3.micro 급) | 2–4 GB | 패키지 설치·가벼운 빌드용 버퍼 |
+| 4 GB | 2–4 GB | hibernate가 필요 없으면 RAM의 0.5–1배 |
+| 8 GB 이상 | 1–2 GB 또는 생략 | 개발 노트북이 아니면 최소만 |
 
-### 스왑 메모리 비활성화
+- **디스크 여유**가 부족하면 스왑을 크게 잡지 마세요. SSD 수명·용량 모두 비용입니다.
+- `fallocate`가 실패하거나 파일시스템 제약이 있으면 `dd`로 생성할 수 있습니다(아래 대안).
+- 이 글 예시는 **4GB 스왑 파일** (`/swapfile`) 기준입니다. 필요에 맞게 숫자만 바꾸면 됩니다.
 
-스왑 메모리를 더 이상 사용하지 않는 경우 비활성화 합니다.
+## 스왑 파일 설정 단계
+
+### 1. 현재 스왑 확인
+
 ```shell
-# 스왑 비활성화
-sudo swapoff -v /swapfile 
-
-# 파일 실행 후 아래 라인 삭제
-sudo nano /etc/fstab      
-/swapfile swap swap defaults 0 0
-
-# swap 파일 삭제
-sudo rm /swapfile 
+sudo free -m
+sudo swapon --show
 ```
 
-### 참고문헌
-- 위키피디아 : [가상 메모리](https://en.wikipedia.org/wiki/Virtual_memory "가상 메모리"){:target="_blank"}
-- 위키피디아 : [메모리 관리 기법 - 페이징](https://en.wikipedia.org/wiki/Memory_paging "메모리 관리 기법 - 페이징"){:target="_blank"}
+![Check swap memory](/uploads/ubuntu22-swap-memory/check-swap-memory.png)
+
+`free -m`의 Swap 행이 모두 0이면 스왑이 없거나 비활성 상태입니다.
+
+### 2. 기존 스왑이 있으면 끄기
+
+이미 스왑 파티션/파일이 켜져 있고 크기를 바꾸려는 경우에만 실행합니다.
+
+```shell
+sudo swapoff -a
+```
+
+### 3. 스왑 파일 생성
+
+```shell
+# 4G 크기 스왑 파일
+sudo fallocate -l 4G /swapfile
+```
+
+`fallocate`가 지원되지 않거나 오류가 나면:
+
+```shell
+sudo dd if=/dev/zero of=/swapfile bs=1M count=4096 status=progress
+```
+
+### 4. 권한·포맷·활성화
+
+스왑 파일은 **루트만 읽기/쓰기**여야 합니다. 권한이 넓으면 보안 경고 대상입니다.
+
+```shell
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+sudo swapon --show
+sudo free -m
+```
+
+![Make swapfile](/uploads/ubuntu22-swap-memory/make-swapfile.png)
+
+### 5. 재부팅 후에도 유지 (`/etc/fstab`)
+
+```shell
+# 중복 추가를 피하려면 먼저 검색
+grep -n swapfile /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+예전 글에서 쓰던 `defaults` 형태도 동작하는 경우가 많지만, Ubuntu 문서·관례상 스왑에는 `none swap sw 0 0` 형식을 쓰는 편이 명확합니다.
+
+![Swap setup for rebooting](/uploads/ubuntu22-swap-memory/swap-setup-for-rebooting.png)
+
+### 6. 확인
+
+```shell
+sudo free -m
+sudo swapon --show
+```
+
+![Complete make swapfile](/uploads/ubuntu22-swap-memory/complete-make-swapfile.png)
+
+## swappiness와 성능
+
+커널 파라미터 `vm.swappiness`는 메모리 압박이 있을 때 스왑을 얼마나 공격적으로 쓸지 조절합니다(0–100). 기본값은 배포판마다 다르지만 Ubuntu 서버에서는 보통 60 근처입니다.
+
+- **DB·지연에 민감한 서비스**: 10–30 정도로 낮춰 스왑 의존을 줄이는 경우가 많습니다.
+- **저사양 빌드 전용 노드**: 기본값을 유지해도 무방한 경우가 많습니다.
+
+임시 적용:
+
+```shell
+sudo sysctl vm.swappiness=20
+```
+
+영구 적용 예 (`/etc/sysctl.d/99-swap.conf`):
+
+```shell
+echo 'vm.swappiness=20' | sudo tee /etc/sysctl.d/99-swap.conf
+sudo sysctl --system
+```
+
+값을 낮춘다고 OOM이 사라지지는 않습니다. RAM 자체가 부족하면 프로세스가 죽거나 극단적으로 느려질 수 있습니다.
+
+## 프로덕션에서 주의할 점
+
+- **상시 스왑 thrashing**은 장애입니다. `vmstat 1`, `iostat`, 모니터링으로 `si`/`so`가 지속되는지 보세요.
+- **루트 볼륨이 가득 찬 상태**에서 큰 스왑 파일을 만들면 배포·로그 적재가 함께 실패합니다.
+- **암호화·규정**이 있는 환경에서는 스왑에 메모리 내용이 남을 수 있으므로 정책에 맞게 암호화 스왑 등을 검토하세요.
+- 컨테이너 오케스트레이션 노드에서는 노드 차원 스왑 정책이 플랫폼 권장과 다를 수 있습니다. 클러스터 가이드를 우선하세요.
+
+## 스왑 비활성화
+
+더 이상 필요 없으면 아래 순서로 정리합니다.
+
+```shell
+sudo swapoff -v /swapfile
+sudo sed -i.bak '/swapfile/d' /etc/fstab
+sudo rm /swapfile
+sudo free -m
+```
+
+`/etc/fstab` 편집 후에는 **오타로 부팅 실패**할 수 있으니, 클라우드 콘솔 시리얼/복구 수단을 확인한 뒤 재부팅하세요.
+
+## 참고문헌
+
+- 위키피디아: [가상 메모리](https://en.wikipedia.org/wiki/Virtual_memory "가상 메모리"){:target="_blank"}
+- 위키피디아: [메모리 관리 기법 - 페이징](https://en.wikipedia.org/wiki/Memory_paging "메모리 관리 기법 - 페이징"){:target="_blank"}
+- Ubuntu Server 문서: [Swap](https://documentation.ubuntu.com/server/how-to/system-tuning/swap-faq/ "Ubuntu swap FAQ"){:target="_blank"}

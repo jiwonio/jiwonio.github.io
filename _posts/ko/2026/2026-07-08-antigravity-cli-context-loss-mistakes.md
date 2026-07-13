@@ -14,7 +14,6 @@ tags:
 - CLI 워크플로
 - 코딩 자동화
 description: Antigravity CLI를 실무에 투입했을 때 컨텍스트 소실로 발생한 문제를 재현하고, 방지 패턴을 단계별로 정리합니다.
-  약 150자.
 image: /uploads/antigravity-cli-context-loss-mistakes/thumbnail.webp
 ai_generated: true
 permalink: /posts/antigravity-cli-context-loss-mistakes/
