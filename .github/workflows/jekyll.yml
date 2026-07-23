@@ -47,7 +47,7 @@ jobs:
         id: pages
         uses: actions/configure-pages@v6
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - name: Install Python dependencies
@@ -106,7 +106,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v5
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
       - name: Notify IndexNow of new posts
