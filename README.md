@@ -20,8 +20,8 @@ _posts/
 | 구성 요소 | 역할 |
 |-----------|------|
 | `_plugins/i18n.rb` | 언어 감지, permalink, 번역 스위처, `site.posts_by_lang` |
-| `scripts/generate_post.py` | 월·수 심층 기술 글(deep-dive) 자동 생성 |
-| `scripts/generate_ai_news.py` | 금요일 AI 뉴스 다이제스트(ai-news) 자동 생성 |
+| `scripts/generate_post.py` | 주 1회(수) deep-dive **초안** 생성 → PR (품질 우선) |
+| `scripts/generate_ai_news.py` | ai-news 초안 (스케줄 없음, 수동 `workflow_dispatch`만) |
 | `scripts/backfill_translations.py` | 기존 원문의 누락 번역 백필 |
 | `scripts/validate_posts.py` | 배포 전 front matter·이미지·번역 완전성·내부 링크·언어 품질 검증 |
 | `scripts/models_config.py` | LLM provider·모델·라우팅·비용 추정 설정 |
@@ -62,7 +62,7 @@ _posts/
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
 | `jekyll.yml` | push/PR → `gh-pages` | **유일한 full site 게이트** + unittest + IndexNow |
-| `scheduled_ai_post.yml` | 월·수·금 00:00 | deep-dive/ai-news 생성 → 콘텐츠 게이트 → **gh-pages 직푸시** (기본) |
+| `scheduled_ai_post.yml` | **수 00:00** | deep-dive **초안** → 콘텐츠 게이트 → **PR (편집 대기)**; `direct_push` 기본 `false` |
 | `url_check.yml` | 일 04:00 | 참고문헌·본문 외부 URL HEAD 전수 검증 |
 | `lighthouse.yml` | 일 06:00 | 홈 Lighthouse (80% 미만 Slack) |
 | `indexnow_audit.yml` | 토 05:00 | IndexNow 키·최근 URL 재제출 |
@@ -70,12 +70,12 @@ _posts/
 | `llm_usage_daily.yml` | 매일 08:00 | 일일 예산 점검 |
 | `ops_digest_weekly.yml` | 토 08:00 | 주간 Ops 요약 (번역 갭 포함) |
 | `sync_maintenance.yml` | 수 05:00 | 이미지·날짜 동기화 → 직푸시 |
-| `ai_news_health_check.yml` | 목 06:00 | RSS `--dry-run --strict` (금 포스팅 전) |
-| `deep_dive_health_check.yml` | 일 06:00 | deep-dive `--dry-run` (월·수 전) |
+| `ai_news_health_check.yml` | **매월 1일** 06:00 | RSS `--dry-run --strict` (ai-news는 수동 발행) |
+| `deep_dive_health_check.yml` | 일 06:00 | deep-dive `--dry-run` (수 초안 전) |
+| `schedule_watchdog.yml` | **목 08:00** | 주간 초안 파이프라인 생존 (14일 창, gh-pages 당일 글 불필요) |
 | `thumbnail_check.yml` | **매월 1일** 07:00 | 누락 썸네일 안전망 |
 | `translation_audit.yml` | **매월 1일** 05:00 | 번역 완전성 월간 감사 |
 | `content_quality_audit.yml` | 토 06:00 | 콘텐츠 품질·포스트 발견성 (Pagefind full rebuild 없음) |
-| `schedule_watchdog.yml` | 매일 08:00 | 최근 4일 내 AI 포스팅 성공 여부 |
 | `backfill_translations.yml` | 수동 | 누락 번역 백필 → 직푸시 |
 | `e2e.yml` | 토 08:00 | 프로덕션 Playwright 스모크 |
 | `dependabot_automerge.yml` | Dependabot PR | CI green 시 자동 머지 |
@@ -92,15 +92,23 @@ _posts/
 `workflow_dispatch`에서 `text_provider`·`translation_provider`로 override 가능합니다.  
 로컬에서는 `LLM_TEXT_PROVIDER`, `LLM_TRANSLATION_PROVIDER` 환경 변수로도 지정할 수 있습니다.
 
-### 게시 정책
+### 게시 정책 (품질 우선, 2026-08-04)
 
-수동 검수 없이 **콘텐츠 게이트 통과 시 `gh-pages`에 직푸시**합니다.  
-전체 사이트 빌드·htmlproofer·IndexNow는 이어지는 **Deploy**가 담당합니다.
+**양보다 질.** AI는 초안·번역·썸네일만 담당하고, **사람이 편집 체크리스트를 채운 뒤 머지**합니다.
+
+| 원칙 | 내용 |
+|------|------|
+| 빈도 | 주 1회 deep-dive 초안 (수 00:00 UTC). ai-news는 스케줄 없음 |
+| 기본 게시 | **PR only** (`direct_push` 기본 `false`). 스케줄 실행은 항상 PR |
+| 직푸시 | 수동 실행에서 `direct_push=true`일 때만 (예외) |
+| 머지 기준 | 실측·실패 사례·경험 보강 후 (PR 본문 체크리스트) |
+
+전체 사이트 빌드·htmlproofer·IndexNow는 머지 후 **Deploy**가 담당합니다.
 
 | 워크플로 | 게시 방식 | 콘텐츠 게이트 | full site 게이트 |
 |----------|-----------|---------------|------------------|
-| `scheduled_ai_post` (스케줄) | 직푸시 | `pre-merge-validate` | Deploy |
-| `scheduled_ai_post` (수동) | 기본 직푸시 (`direct_push=false`면 PR만) | 동일 | Deploy |
+| `scheduled_ai_post` (스케줄) | **PR (편집 대기)** | `pre-merge-validate` | Deploy (머지 후) |
+| `scheduled_ai_post` (수동) | 기본 PR (`direct_push=true`면 직푸시) | 동일 | Deploy |
 | `backfill_translations` | 직푸시 | 동일 | Deploy |
 | `sync_maintenance` | 직푸시 | 동일 | Deploy |
 
@@ -210,7 +218,7 @@ Actions 탭 → **Scheduled AI Post Generation** → Run workflow
 |------|--------|
 | `post_type` | `ai-news` 또는 `deep-dive` |
 | `dry_run` | ai-news RSS 점검 시 `true` |
-| `direct_push` | 기본 `true` (gh-pages 직푸시; `false`면 PR만) |
+| `direct_push` | 기본 `false` (PR + 편집 검수; `true`면 직푸시 예외) |
 | `edition_date` | 백필 시 `YYYY-MM-DD` |
 
 ## 참고

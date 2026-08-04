@@ -1,7 +1,7 @@
 name: Deep-dive Generation Health Check
 
-# Lightweight pre-flight before Mon/Wed posts. Full unit tests run on Deploy only.
-# Re-enabled 2026-08-04 with scheduled_ai_post cron.
+# Quality-first: Sunday pre-flight before Wednesday weekly deep-dive draft.
+# Full unit tests run on Deploy only.
 on:
   schedule:
     - cron: '0 6 * * 0'

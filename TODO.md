@@ -11,13 +11,16 @@
 
 **완료 (2026-07-13):** AdSense 「가치가 별로 없는 콘텐츠」 1차 조치 — style-guide·중복 LM Studio 비공개, 얇은 목록 페이지 noindex, 사이트맵 축소, 광고 1슬롯, About 페이지, AI 스케줄 일시 중단, 핵심 2024 글 확장.
 
-**완료 (2026-08-04):** AI 자동 포스팅 cron 재개 — `scheduled_ai_post` / `schedule_watchdog` / health check 스케줄 복구. 7/13 이후 포스팅 공백은 cron pause가 원인(버그 아님).
+**완료 (2026-08-04 오전):** AI 자동 포스팅 cron 재개 — 7/13 이후 공백은 AdSense용 cron pause 원인.
+
+**완료 (2026-08-04 품질 우선):** 주 3회 직푸시 → **주 1회 deep-dive 초안 + PR 편집 검수**. ai-news 스케줄 제거. `direct_push` 기본 `false`.
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **높음** | Search Console에서 주요 URL 색인 확인 후 AdSense 사이트 검토 요청 | 1–2주 대기 후 재신청 |
-| **높음** | AI deep-dive 상위 글 추가 수동 검수·실측 수치/경험 보강 | 승인 가능성 핵심 |
-| **중간** | 공백 기간 catch-up 글 필요 시 `workflow_dispatch`로 deep-dive/ai-news 수동 실행 | 스케줄은 월·수·금 00:00 UTC |
+| **높음** | 매주 수 생성 PR을 편집 체크리스트로 검수 후 머지 (품질 게이트의 사람 단계) | 그대로 머지 금지 |
+| **높음** | AI deep-dive 상위 글 추가 수동 검수·실측 수치/경험 보강 | AdSense·신뢰 핵심 |
+| **높음** | Search Console 색인 확인 후 AdSense 사이트 검토 요청 | thin content 재발 주의 |
+| **중간** | ai-news는 액션 가능 소식이 있을 때만 수동 `workflow_dispatch` | 스케줄 없음 |
 | **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 후 |
 
 ---
@@ -52,9 +55,10 @@ TODO.md와 README.md를 읽고 전체 상태를 파악해줘.
 2. 보완·추가 수정이 필요한 곳
 3. 우선순위 제안 (높음/중간/낮음)
 
-현재 정책:
+현재 정책 (품질 우선):
 - GitHub App 설정 완료 (`GH_APP_ID` + `GH_APP_PRIVATE_KEY`), MY_PAT는 폴백
-- AI 포스트는 콘텐츠 게이트 통과 후 gh-pages 직푸시 (Deploy가 full site + IndexNow)
+- AI 글: 주 1회(수) deep-dive 초안 → PR → **사람 편집 후 머지** (직푸시 기본 끔)
+- ai-news: 스케줄 없음, 수동만
 - ai-news 2026-06-24 이후만 en/ja/zh 자동 번역
 ```
 
@@ -93,11 +97,11 @@ cd e2e && npm ci && npx playwright test
 | 항목 | 내용 |
 |------|------|
 | 사이트 | Jekyll 4 다국어 기술 블로그 (ko 기본, en/ja/zh) |
-| AI 글 | 월·수=deep-dive, 금=ai-news (`scheduled_ai_post.yml`, 2026-08-04 cron 재개) |
+| AI 글 | **주 1회(수) deep-dive 초안** → PR (`scheduled_ai_post.yml`). ai-news는 수동만 |
 | 번역 묶음 | front matter `translation_key` |
 | 인증 | GitHub App 우선 (`setup-git-auth`), `MY_PAT` 폴백 |
-| 게시 | 콘텐츠 게이트 통과 후 `gh-pages` 직푸시 (수동 검수 없음) |
-| 검증 | 콘텐츠 게이트(validate·refs·번역) + Deploy(unittest·Jekyll·Pagefind·htmlproofer·IndexNow) |
+| 게시 | 콘텐츠 게이트 → **PR + 편집 검수** → 머지 후 Deploy (직푸시는 예외) |
+| 검증 | 콘텐츠 게이트 + 사람 체크리스트 + Deploy(unittest·Jekyll·Pagefind·htmlproofer·IndexNow) |
 
 ### 언어·URL 규칙
 
@@ -166,8 +170,9 @@ cd e2e && npm ci && npx playwright test
 - [x] 글당 광고 슬롯 1개(in-article)로 축소
 - [x] About 페이지 ko/en/ja/zh + 네비/푸터/홈 인트로
 - [x] `scheduled_ai_post` cron 주석 처리, watchdog 수동·soft-pass (2026-07-13)
-- [x] AI 스케줄 cron 재개 (scheduled_ai_post, watchdog, health checks) (2026-08-04)
+- [x] AI 스케줄 cron 재개 후 **품질 우선으로 재설계** (주 1 deep-dive PR, ai-news 수동, direct_push 기본 false) (2026-08-04)
 - [x] 2024 핵심 글 확장: swap / Ubuntu 초기설정 / Node.js 설치 오류 (4개 언어)
+- [ ] 매주 PR 편집 검수 습관화 (실측·실패 사례 반영)
 - [ ] 배포 후 GSC 색인·1–2주 대기·AdSense 재검토
 - [ ] 통과 전 추가 원문 강화 (AI 글 수동 편집)
 
@@ -255,6 +260,7 @@ cd e2e && npm ci && npx playwright test
 - [x] Python 파이프라인 (atomic publish, LLM 폴백, 비용 로깅)
 - [x] CI/CD 확장 (url_check, sync, e2e, lighthouse, watchdog, indexnow_audit)
 - [x] 수동 검수 제거 → 콘텐츠 게이트 + gh-pages 직푸시 (2026-07-10 CI 슬림화)
+- [x] 품질 우선 복귀 → 주 1회 초안 PR + 사람 편집 게이트 (2026-08-04)
 - [x] GitHub App용 action 스캐폴딩
 - [x] perf 1차·2차 (critical CSS, site.js, KR/JP/SC 단일 woff2)
 - [x] perf 4차 (inline @font-face, optional, preload, Lighthouse 주간 전환)

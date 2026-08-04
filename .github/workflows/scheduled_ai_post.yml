@@ -1,16 +1,17 @@
 name: Scheduled AI Post Generation
 
-# Mon/Wed 00:00 UTC = deep-dive, Fri 00:00 UTC = ai-news (see job DOW routing).
-# Re-enabled 2026-08-04 after AdSense thin-content pause (2026-07).
+# Quality-first policy (2026-08-04):
+# - Schedule: Wed 00:00 UTC → deep-dive draft only (not ai-news)
+# - Default publish path: open PR for human editorial review (no auto merge)
+# - ai-news: workflow_dispatch only when an operator chooses to run it
+# - Set direct_push=true only for intentional hotfixes / trusted catch-up
 on:
   schedule:
-    - cron: '0 0 * * 1'
     - cron: '0 0 * * 3'
-    - cron: '0 0 * * 5'
   workflow_dispatch:
     inputs:
       post_type:
-        description: '생성할 글 유형'
+        description: '생성할 글 유형 (auto=deep-dive; ai-news는 수동 선택)'
         required: false
         default: 'auto'
         type: choice
@@ -19,14 +20,14 @@ on:
           - deep-dive
           - ai-news
       dry_run:
-        description: 'RSS 수집만 확인 (API 호출 없음)'
+        description: 'RSS 수집만 확인 (API 호출 없음, ai-news 전용)'
         required: false
         default: false
         type: boolean
       direct_push:
-        description: 'true=gh-pages 직푸시 (기본), false=PR만 생성(머지 안 함)'
+        description: 'true=gh-pages 직푸시 / false=PR만 (품질 우선 기본값)'
         required: false
-        default: true
+        default: false
         type: boolean
       text_provider:
         description: '글 생성 LLM provider (auto=post_type 라우팅)'
@@ -119,28 +120,20 @@ jobs:
           DOW=$(date -u +%u)
           echo "RUN_GENERATION=true" >> "$GITHUB_ENV"
 
-          if [ "$POST_TYPE" = "deep-dive" ]; then
-            SCRIPT="scripts/generate_post.py"
-            COMMIT_MSG="Add auto-generated deep-dive post"
-            PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
-            echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
-          elif [ "$POST_TYPE" = "ai-news" ]; then
+          # Quality-first: schedule and "auto" always mean deep-dive.
+          # ai-news only when explicitly selected via workflow_dispatch.
+          if [ "$POST_TYPE" = "ai-news" ]; then
             SCRIPT="scripts/generate_ai_news.py"
-            COMMIT_MSG="Add auto-generated ai-news digest"
-            PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
+            COMMIT_MSG="Add auto-generated ai-news digest (draft for review)"
+            PR_TITLE="📝 [편집 대기] AI News 초안"
             echo "POST_TYPE=ai-news" >> "$GITHUB_ENV"
-          elif [ "$DOW" = "1" ] || [ "$DOW" = "3" ]; then
+          elif [ "$POST_TYPE" = "deep-dive" ] || [ "$POST_TYPE" = "auto" ]; then
             SCRIPT="scripts/generate_post.py"
-            COMMIT_MSG="Add auto-generated deep-dive post"
-            PR_TITLE="✨ [AI 자동작성] 심층 기술 포스트"
+            COMMIT_MSG="Add auto-generated deep-dive post (draft for review)"
+            PR_TITLE="📝 [편집 대기] 심층 기술 포스트 초안"
             echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
-          elif [ "$DOW" = "5" ]; then
-            SCRIPT="scripts/generate_ai_news.py"
-            COMMIT_MSG="Add auto-generated ai-news digest"
-            PR_TITLE="✨ [AI 자동작성] 개발자 관점 AI 소식"
-            echo "POST_TYPE=ai-news" >> "$GITHUB_ENV"
           else
-            echo "예상치 못한 요일(DOW=$DOW), 스킵합니다."
+            echo "Unknown post_type=$POST_TYPE (DOW=$DOW), skipping."
             echo "RUN_GENERATION=false" >> "$GITHUB_ENV"
             exit 0
           fi
@@ -210,12 +203,16 @@ jobs:
             exit 0
           fi
 
+          # Quality-first defaults (GH_TOKEN comes from setup-git-auth):
+          # - schedule → always PR (human review)
+          # - workflow_dispatch → respect input (default false)
+          # - empty/unset → false (never silent direct push)
           DIRECT_PUSH="${{ github.event.inputs.direct_push }}"
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            DIRECT_PUSH="true"
+            DIRECT_PUSH="false"
           fi
           if [ -z "$DIRECT_PUSH" ]; then
-            DIRECT_PUSH="true"
+            DIRECT_PUSH="false"
           fi
 
           if [ "$DIRECT_PUSH" = "true" ]; then
@@ -223,6 +220,7 @@ jobs:
             git pull --rebase origin gh-pages
             git push origin HEAD:gh-pages
             echo "✅ gh-pages 직푸시 완료 (IndexNow·Jekyll 빌드는 Deploy 워크플로에서 처리)"
+            echo "⚠️ direct_push=true was used — prefer PR + editorial review for quality."
           else
             BRANCH_NAME="ai-post-$(date +%Y%m%d-%H%M%S)"
             git checkout -b "$BRANCH_NAME"
@@ -230,16 +228,25 @@ jobs:
             git push origin "$BRANCH_NAME"
 
             PR_BODY=$(cat <<'EOF'
-          Multi-LLM 파이프라인으로 작성·번역·썸네일을 자동 생성했습니다.
+          ## 품질 우선 정책 — 편집 후 머지
 
-          ## Content gate (passed)
+          AI 초안입니다. **그대로 머지하지 마세요.** 아래를 채운 뒤 머지합니다.
+
+          ### 편집 체크리스트
+          - [ ] 실제 경험·실측 수치·실패 사례 중 1개 이상 반영
+          - [ ] 과장·일반론·문서 복붙 톤 제거
+          - [ ] 기존 글과 주제가 겹치면 신규 대신 기존 글 보강 검토
+          - [ ] 참고 링크·명령·버전 정보 확인
+          - [ ] (선택) 번역본 핵심 문장 스팟 체크
+
+          ### 자동 통과 항목 (콘텐츠 게이트)
           - `validate_posts.py` (metadata, links, language, translation structure)
           - Changed-post reference URL HEAD checks
           - Translation completeness audit
           - Sync drift dry-run (images, dates)
           - Font subset verify
 
-          Full Jekyll + Pagefind + htmlproofer run on Deploy after merge.
+          Full Jekyll + Pagefind + htmlproofer runs on Deploy after merge.
           EOF
           )
 
@@ -248,7 +255,7 @@ jobs:
               --body "$PR_BODY" \
               --base gh-pages \
               --head "$BRANCH_NAME")
-            echo "PR left open (direct_push=false): $PR_URL"
+            echo "PR opened for editorial review: $PR_URL"
           fi
 
       - name: LLM usage report

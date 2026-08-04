@@ -1,10 +1,11 @@
 name: AI News RSS Health Check
 
-# Thursday pre-flight for Friday ai-news. Unit tests run on Deploy only.
-# Re-enabled 2026-08-04 with scheduled_ai_post cron.
+# Quality-first: ai-news is not on the weekly schedule (manual only).
+# Keep a light monthly RSS health check so dispatch stays ready.
+# Unit tests run on Deploy only.
 on:
   schedule:
-    - cron: '0 6 * * 4'
+    - cron: '0 6 1 * *'
   workflow_dispatch:
 
 jobs:
