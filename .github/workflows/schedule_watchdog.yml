@@ -1,10 +1,10 @@
 name: Scheduled AI Post Watchdog
 
-# AdSense thin-content remediation (2026-07): AI schedule is paused.
-# Watchdog is manual-only until automatic publishing is re-enabled.
+# Daily 08:00 UTC — fails if last successful AI post run is older than 4 days
+# (and checks expected post presence on Mon/Wed/Fri).
 on:
-  # schedule:
-  #   - cron: '0 8 * * *'
+  schedule:
+    - cron: '0 8 * * *'
   workflow_dispatch:
 
 permissions:

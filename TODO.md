@@ -1,21 +1,23 @@
 # TODO — blog.jiwon.io
 
-> **마지막 갱신:** 2026-07-13
+> **마지막 갱신:** 2026-08-04
 > **브랜치:** `gh-pages` (배포·개발 모두 이 브랜치)  
 > **저장소:** https://github.com/jwjp/jwjp.github.io  
 > **사이트:** https://blog.jiwon.io
 
 나중에 Grok 등으로 이어서 작업할 항목입니다. 완료되면 `- [x]` 체크하고 날짜를 적어 주세요.
 
-### 다음 작업 (2026-07-13 기준)
+### 다음 작업 (2026-08-04 기준)
 
 **완료 (2026-07-13):** AdSense 「가치가 별로 없는 콘텐츠」 1차 조치 — style-guide·중복 LM Studio 비공개, 얇은 목록 페이지 noindex, 사이트맵 축소, 광고 1슬롯, About 페이지, AI 스케줄 일시 중단, 핵심 2024 글 확장.
 
+**완료 (2026-08-04):** AI 자동 포스팅 cron 재개 — `scheduled_ai_post` / `schedule_watchdog` / health check 스케줄 복구. 7/13 이후 포스팅 공백은 cron pause가 원인(버그 아님).
+
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **높음** | Search Console에서 주요 URL 색인 확인 후 **1–2주 뒤** AdSense 사이트 검토 요청 | 배포 직후 재신청 비권장 |
+| **높음** | Search Console에서 주요 URL 색인 확인 후 AdSense 사이트 검토 요청 | 1–2주 대기 후 재신청 |
 | **높음** | AI deep-dive 상위 글 추가 수동 검수·실측 수치/경험 보강 | 승인 가능성 핵심 |
-| **중간** | AdSense 통과 후 AI 스케줄 cron 재개 여부 결정 | `scheduled_ai_post.yml` / `schedule_watchdog.yml` |
+| **중간** | 공백 기간 catch-up 글 필요 시 `workflow_dispatch`로 deep-dive/ai-news 수동 실행 | 스케줄은 월·수·금 00:00 UTC |
 | **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 후 |
 
 ---
@@ -91,7 +93,7 @@ cd e2e && npm ci && npx playwright test
 | 항목 | 내용 |
 |------|------|
 | 사이트 | Jekyll 4 다국어 기술 블로그 (ko 기본, en/ja/zh) |
-| AI 글 | 월·수=deep-dive, 금=ai-news (`scheduled_ai_post.yml`) |
+| AI 글 | 월·수=deep-dive, 금=ai-news (`scheduled_ai_post.yml`, 2026-08-04 cron 재개) |
 | 번역 묶음 | front matter `translation_key` |
 | 인증 | GitHub App 우선 (`setup-git-auth`), `MY_PAT` 폴백 |
 | 게시 | 콘텐츠 게이트 통과 후 `gh-pages` 직푸시 (수동 검수 없음) |
@@ -163,7 +165,8 @@ cd e2e && npm ci && npx playwright test
 - [x] 태그/연도/아카이브/검색 `noindex, follow` + 사이트맵에서 목록·페이지네이션 제외
 - [x] 글당 광고 슬롯 1개(in-article)로 축소
 - [x] About 페이지 ko/en/ja/zh + 네비/푸터/홈 인트로
-- [x] `scheduled_ai_post` cron 주석 처리, watchdog 수동·soft-pass
+- [x] `scheduled_ai_post` cron 주석 처리, watchdog 수동·soft-pass (2026-07-13)
+- [x] AI 스케줄 cron 재개 (scheduled_ai_post, watchdog, health checks) (2026-08-04)
 - [x] 2024 핵심 글 확장: swap / Ubuntu 초기설정 / Node.js 설치 오류 (4개 언어)
 - [ ] 배포 후 GSC 색인·1–2주 대기·AdSense 재검토
 - [ ] 통과 전 추가 원문 강화 (AI 글 수동 편집)
