@@ -1,9 +1,9 @@
 name: Scheduled AI Post Generation
 
-# Quality-first policy (2026-08-04):
-# - Schedule: Wed 00:00 UTC → deep-dive draft only (not ai-news)
+# Quality-first policy:
+# - Schedule: Wed 00:00 UTC → deep-dive draft only
 # - Default publish path: open PR for human editorial review (no auto merge)
-# - ai-news: workflow_dispatch only when an operator chooses to run it
+# - ai-news retired (2026-08-11): unpublished + no generation path
 # - Set direct_push=true only for intentional hotfixes / trusted catch-up
 on:
   schedule:
@@ -11,26 +11,19 @@ on:
   workflow_dispatch:
     inputs:
       post_type:
-        description: '생성할 글 유형 (auto=deep-dive; ai-news는 수동 선택)'
+        description: '생성할 글 유형 (deep-dive only; ai-news retired)'
         required: false
-        default: 'auto'
+        default: 'deep-dive'
         type: choice
         options:
-          - auto
           - deep-dive
-          - ai-news
-      dry_run:
-        description: 'RSS 수집만 확인 (API 호출 없음, ai-news 전용)'
-        required: false
-        default: false
-        type: boolean
       direct_push:
         description: 'true=gh-pages 직푸시 / false=PR만 (품질 우선 기본값)'
         required: false
         default: false
         type: boolean
       text_provider:
-        description: '글 생성 LLM provider (auto=post_type 라우팅)'
+        description: '글 생성 LLM provider (auto=deep-dive 라우팅)'
         required: false
         default: 'auto'
         type: choice
@@ -52,7 +45,7 @@ on:
           - openai
           - xai
       edition_date:
-        description: '백필 날짜 (YYYY-MM-DD). ai-news slug·deep-dive 파일명/date 고정. 비우면 오늘'
+        description: '백필 날짜 (YYYY-MM-DD). deep-dive 파일명/date 고정. 비우면 오늘'
         required: false
         default: ''
         type: string
@@ -116,43 +109,23 @@ jobs:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          POST_TYPE="${{ github.event.inputs.post_type || 'auto' }}"
-          DOW=$(date -u +%u)
+          POST_TYPE="${{ github.event.inputs.post_type || 'deep-dive' }}"
           echo "RUN_GENERATION=true" >> "$GITHUB_ENV"
 
-          # Quality-first: schedule and "auto" always mean deep-dive.
-          # ai-news only when explicitly selected via workflow_dispatch.
-          if [ "$POST_TYPE" = "ai-news" ]; then
-            SCRIPT="scripts/generate_ai_news.py"
-            COMMIT_MSG="Add auto-generated ai-news digest (draft for review)"
-            PR_TITLE="📝 [편집 대기] AI News 초안"
-            echo "POST_TYPE=ai-news" >> "$GITHUB_ENV"
-          elif [ "$POST_TYPE" = "deep-dive" ] || [ "$POST_TYPE" = "auto" ]; then
-            SCRIPT="scripts/generate_post.py"
-            COMMIT_MSG="Add auto-generated deep-dive post (draft for review)"
-            PR_TITLE="📝 [편집 대기] 심층 기술 포스트 초안"
-            echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
-          else
-            echo "Unknown post_type=$POST_TYPE (DOW=$DOW), skipping."
+          # deep-dive only — ai-news pipeline retired for content quality.
+          if [ "$POST_TYPE" != "deep-dive" ] && [ "$POST_TYPE" != "auto" ]; then
+            echo "Unsupported post_type=$POST_TYPE (ai-news retired). Use deep-dive."
             echo "RUN_GENERATION=false" >> "$GITHUB_ENV"
-            exit 0
+            exit 1
           fi
 
+          SCRIPT="scripts/generate_post.py"
+          COMMIT_MSG="Add auto-generated deep-dive post (draft for review)"
+          PR_TITLE="📝 [편집 대기] 심층 기술 포스트 초안"
+          echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
           echo "SCRIPT=$SCRIPT" >> "$GITHUB_ENV"
           echo "COMMIT_MSG=$COMMIT_MSG" >> "$GITHUB_ENV"
           echo "PR_TITLE=$PR_TITLE" >> "$GITHUB_ENV"
-
-          DRY_RUN="${{ github.event.inputs.dry_run }}"
-          if [ "$DRY_RUN" = "true" ]; then
-            if [ "$SCRIPT" = "scripts/generate_ai_news.py" ]; then
-              python "$SCRIPT" --dry-run
-            else
-              echo "dry_run은 ai-news에서만 지원됩니다."
-              exit 1
-            fi
-            echo "RUN_GENERATION=false" >> "$GITHUB_ENV"
-            exit 0
-          fi
 
           TEXT_PROVIDER="${{ github.event.inputs.text_provider || 'auto' }}"
           TRANSLATION_PROVIDER="${{ github.event.inputs.translation_provider || 'auto' }}"
@@ -169,7 +142,6 @@ jobs:
           fi
 
           python "$SCRIPT" "${EXTRA_ARGS[@]}"
-
       # Font/JS once after generation; Deploy re-verifies. No full Jekyll here.
       - name: Refresh derived assets
         if: env.RUN_GENERATION == 'true'

@@ -99,6 +99,12 @@ def audit_internal_links(posts_dir: Path) -> list[str]:
 
 
 def audit_ai_news_series(posts_dir: Path) -> list[str]:
+    """Legacy check for retired ai-news posts (kept unpublished for history).
+
+    ai-news generation was retired for content quality; do not require any
+    live editions. Only flag inconsistency if unpublished drafts still exist
+    without the series tag.
+    """
     warnings: list[str] = []
     ai_news_posts = 0
     tagged_ai_news = 0
@@ -111,15 +117,13 @@ def audit_ai_news_series(posts_dir: Path) -> list[str]:
         if "ai-news" in tags:
             tagged_ai_news += 1
 
-    if ai_news_posts == 0:
-        warnings.append("no ko ai-news posts found")
-    elif tagged_ai_news < ai_news_posts:
+    # Zero ai-news is expected after retirement — not a warning.
+    if ai_news_posts > 0 and tagged_ai_news < ai_news_posts:
         warnings.append(
             f"ai-news tag missing on {ai_news_posts - tagged_ai_news} of {ai_news_posts} ai-news posts"
         )
 
     return warnings
-
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Audit blog discoverability signals")
