@@ -102,6 +102,13 @@ class AuditScriptTests(unittest.TestCase):
             warnings = audit_ai_news_series(posts_dir)
             self.assertTrue(any("ai-news tag missing" in warning for warning in warnings))
 
+    def test_audit_ai_news_series_allows_zero_after_retirement(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            posts_dir = Path(tmp) / "_posts"
+            write_post(posts_dir, "ko/2026/2026-06-01-sample.md", KO_BASE)
+            warnings = audit_ai_news_series(posts_dir)
+            self.assertEqual(warnings, [])
+
     def test_audit_internal_links_reports_orphans(self):
         with tempfile.TemporaryDirectory() as tmp:
             posts_dir = Path(tmp) / "_posts"

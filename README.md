@@ -1,6 +1,6 @@
 # blog.jiwon.io
 
-Jekyll 4 기반 다국어 기술 블로그입니다. 한국어(ko) 원문과 en/ja/zh 번역본을 `translation_key`로 묶어 운영하며, Gemini·Claude·ChatGPT·Grok API로 심층 기술 글과 AI 뉴스 다이제스트를 자동 생성합니다.
+Jekyll 4 기반 다국어 기술 블로그입니다. 한국어(ko) 원문과 en/ja/zh 번역본을 `translation_key`로 묶어 운영하며, Gemini·Claude·ChatGPT·Grok API로 심층 기술 글(deep-dive) 초안을 자동 생성합니다.
 
 - **사이트:** https://blog.jiwon.io
 - **배포 브랜치:** `gh-pages` (GitHub Pages)
@@ -21,7 +21,6 @@ _posts/
 |-----------|------|
 | `_plugins/i18n.rb` | 언어 감지, permalink, 번역 스위처, `site.posts_by_lang` |
 | `scripts/generate_post.py` | 주 1회(수) deep-dive **초안** 생성 → PR (품질 우선) |
-| `scripts/generate_ai_news.py` | ai-news 초안 (스케줄 없음, 수동 `workflow_dispatch`만) |
 | `scripts/backfill_translations.py` | 기존 원문의 누락 번역 백필 |
 | `scripts/validate_posts.py` | 배포 전 front matter·이미지·번역 완전성·내부 링크·언어 품질 검증 |
 | `scripts/models_config.py` | LLM provider·모델·라우팅·비용 추정 설정 |
@@ -39,11 +38,10 @@ _posts/
 
 | `post_type` | 설명 | 자동 번역 대상 |
 |-------------|------|----------------|
-| `deep-dive` | 심층 기술 글 (기본값) | en, ja, zh |
-| `ai-news` | 개발자 관점 AI 뉴스 다이제스트 | en, ja, zh |
+| `deep-dive` | 심층 기술 글 (기본값·유일한 신규 유형) | en, ja, zh |
+| `ai-news` | **폐기** — 기존 다이제스트는 `published: false` (사이트 미노출) | — |
 
-`deep-dive`와 `2026-06-24` 이후 `ai-news`는 en·ja·zh로 자동 번역됩니다.  
-그 이전 ai-news는 en만 유지되며, `backfill_translations`로 ja/zh를 추가할 수 있습니다.  
+신규 글은 `deep-dive`만 생성합니다. ai-news 파이프라인·스케줄·수동 발행은 2026-08-11에 종료했습니다 (콘텐츠 품질·AdSense 대응).  
 `validate_posts.py --audit-translations`로 post_type별 번역 누락을 주간 점검합니다.
 
 ### URL 규칙
@@ -70,7 +68,6 @@ _posts/
 | `llm_usage_daily.yml` | 매일 08:00 | 일일 예산 점검 |
 | `ops_digest_weekly.yml` | 토 08:00 | 주간 Ops 요약 (번역 갭 포함) |
 | `sync_maintenance.yml` | 수 05:00 | 이미지·날짜 동기화 → 직푸시 |
-| `ai_news_health_check.yml` | **매월 1일** 06:00 | RSS `--dry-run --strict` (ai-news는 수동 발행) |
 | `deep_dive_health_check.yml` | 일 06:00 | deep-dive `--dry-run` (수 초안 전) |
 | `schedule_watchdog.yml` | **목 08:00** | 주간 초안 파이프라인 생존 (14일 창, gh-pages 당일 글 불필요) |
 | `thumbnail_check.yml` | **매월 1일** 07:00 | 누락 썸네일 안전망 |
@@ -85,7 +82,6 @@ _posts/
 | 작업 | 기본 provider 순서 |
 |------|-------------------|
 | `deep-dive` 글 생성 | gemini → anthropic → openai → xai |
-| `ai-news` 글 생성 | anthropic → openai → xai → gemini |
 | en/ja/zh 번역 | gemini → anthropic → openai → xai (재시도 시 저가 모델) |
 | 썸네일 이미지 | gemini → xai (실패 시 기본 썸네일) |
 
@@ -98,7 +94,7 @@ _posts/
 
 | 원칙 | 내용 |
 |------|------|
-| 빈도 | 주 1회 deep-dive 초안 (수 00:00 UTC). ai-news는 스케줄 없음 |
+| 빈도 | 주 1회 deep-dive 초안 (수 00:00 UTC). **ai-news 폐기** |
 | 기본 게시 | **PR only** (`direct_push` 기본 `false`). 스케줄 실행은 항상 PR |
 | 직푸시 | 수동 실행에서 `direct_push=true`일 때만 (예외) |
 | 머지 기준 | 실측·실패 사례·경험 보강 후 (PR 본문 체크리스트) |
@@ -125,9 +121,9 @@ _posts/
 | Secret | 용도 |
 |--------|------|
 | `GEMINI_API_KEY` | Gemini API (deep-dive·이미지·번역) |
-| `ANTHROPIC_API_KEY` | Claude API (ai-news·폴백·번역) |
-| `OPENAI_API_KEY` | OpenAI API (ai-news·폴백·번역) |
-| `XAI_API_KEY` | Grok/xAI API (ai-news·폴백·번역·이미지) |
+| `ANTHROPIC_API_KEY` | Claude API (폴백·번역) |
+| `OPENAI_API_KEY` | OpenAI API (폴백·번역) |
+| `XAI_API_KEY` | Grok/xAI API (폴백·번역·이미지) |
 | `GH_APP_ID` | **권장** GitHub App ID (커밋·PR·머지용, 만료 없음) |
 | `GH_APP_PRIVATE_KEY` | **권장** GitHub App private key PEM 전체 |
 | `MY_PAT` | (폴백) PAT — App 미설정 시 사용 |
@@ -184,9 +180,6 @@ python -m unittest discover -s scripts/tests -v
 # deep-dive 사전 점검 (API 키만 확인)
 python scripts/generate_post.py --dry-run
 
-# ai-news RSS만 확인 (API 호출 없음)
-python scripts/generate_ai_news.py --dry-run
-
 # 번역 날짜 동기화 (dry-run)
 python scripts/sync_translation_dates.py --dry-run
 
@@ -216,8 +209,7 @@ Actions 탭 → **Scheduled AI Post Generation** → Run workflow
 
 | 입력 | 권장값 |
 |------|--------|
-| `post_type` | `ai-news` 또는 `deep-dive` |
-| `dry_run` | ai-news RSS 점검 시 `true` |
+| `post_type` | `deep-dive` (유일한 옵션) |
 | `direct_push` | 기본 `false` (PR + 편집 검수; `true`면 직푸시 예외) |
 | `edition_date` | 백필 시 `YYYY-MM-DD` |
 
