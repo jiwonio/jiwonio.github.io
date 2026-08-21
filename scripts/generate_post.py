@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 
 from llm_client import list_available_providers
 from post_common import (
@@ -73,6 +74,20 @@ def validate_deep_dive_content(content: str) -> tuple[dict, str]:
     return metadata, slug
 
 
+def resolve_generation_inputs(
+    topic: str | None = None,
+    angle: str | None = None,
+    notes: str | None = None,
+    environ: dict[str, str] | None = None,
+) -> tuple[str, str, str]:
+    """CLI 값이 비면 POST_TOPIC / POST_ANGLE / POST_NOTES 환경 변수를 씁니다."""
+    env = os.environ if environ is None else environ
+    resolved_topic = (topic or "").strip() or str(env.get("POST_TOPIC", "")).strip()
+    resolved_angle = (angle or "").strip() or str(env.get("POST_ANGLE", "")).strip() or "freeform"
+    resolved_notes = str(env.get("POST_NOTES", "")) if notes is None else notes
+    return resolved_topic, resolved_angle, resolved_notes
+
+
 def has_application_table(content: str) -> bool:
     body = body_after_more(content).split("### 참고문헌", 1)[0]
     if "|" not in body:
@@ -140,6 +155,7 @@ def build_generation_prompt(
 
 [출력 순서]
 1) 아래 형식의 YAML Front Matter를 값만 채워서 그대로 작성합니다.
+   categories는 `AI` 또는 `DevOps` 하나만. 코딩 도구·LLM이면 AI, 인프라면 DevOps. 한글 설명 금지.
 ---
 layout: post
 title: "구체적인 한글 제목"
@@ -148,7 +164,8 @@ lang: ko
 translation_key: "english-slug-for-this-topic"
 post_type: deep-dive
 date: {current_time}
-categories: [AI 또는 DevOps 중 주제에 맞는 하나]
+categories:
+- AI
 tags: [태그1, 태그2, 태그3]
 description: "150자 내외 SEO 요약"
 image: "/uploads/english-slug-for-this-topic/thumbnail.webp"
@@ -273,19 +290,19 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--topic",
-        default="",
-        help="운영자가 정한 주제 (생성 시 필수)",
+        default=None,
+        help="운영자가 정한 주제 (또는 환경 변수 POST_TOPIC)",
     )
     parser.add_argument(
         "--angle",
         choices=sorted(POST_ANGLES),
-        default="freeform",
-        help="글 각도 (기본: freeform = 메모를 따른다)",
+        default=None,
+        help="글 각도 (또는 POST_ANGLE, 기본: freeform)",
     )
     parser.add_argument(
         "--notes",
-        default="",
-        help="실측 수치·실패 사례·경험 메모. 없으면 수치를 창작하지 않음",
+        default=None,
+        help="실측·실패·경험 메모 (또는 POST_NOTES)",
     )
     parser.add_argument(
         "--dry-run",
@@ -308,15 +325,20 @@ if __name__ == "__main__":
         help="파일명/front matter 날짜 고정 (예: 2026-07-06)",
     )
     args = parser.parse_args()
-
-    if args.dry_run:
-        raise SystemExit(dry_run(topic=args.topic, angle=args.angle))
-    if not args.topic.strip():
-        parser.error("주제가 필요합니다. --topic '...' 로 운영자가 정한 주제를 넣으세요.")
-    generate_blog_post(
+    topic, angle, notes = resolve_generation_inputs(
         topic=args.topic,
         angle=args.angle,
         notes=args.notes,
+    )
+
+    if args.dry_run:
+        raise SystemExit(dry_run(topic=topic, angle=angle))
+    if not topic:
+        parser.error("주제가 필요합니다. --topic 또는 POST_TOPIC 으로 운영자가 정한 주제를 넣으세요.")
+    generate_blog_post(
+        topic=topic,
+        angle=angle,
+        notes=notes,
         text_provider=args.text_provider,
         translation_provider=args.translation_provider,
         date_override=args.date,

@@ -6,6 +6,7 @@ from generate_post import (
     build_generation_prompt,
     generate_blog_post,
     has_application_table,
+    resolve_generation_inputs,
 )
 
 
@@ -57,6 +58,42 @@ intro
         with self.assertRaises(ValueError) as ctx:
             generate_blog_post(topic="  ")
         self.assertIn("주제", str(ctx.exception))
+
+    def test_prompt_categories_are_valid_yaml_example(self):
+        prompt = build_generation_prompt(
+            topic="주제",
+            angle="freeform",
+            notes="",
+            recent_titles=[],
+            current_time="2026-08-21 10:00:00 +0900",
+        )
+        self.assertIn("categories:\n- AI", prompt)
+        self.assertNotIn("AI 또는 DevOps 중 주제에 맞는 하나", prompt)
+
+    def test_resolve_generation_inputs_prefers_cli_then_env(self):
+        topic, angle, notes = resolve_generation_inputs(
+            topic=None,
+            angle=None,
+            notes=None,
+            environ={
+                "POST_TOPIC": "  env-topic  ",
+                "POST_ANGLE": "failure",
+                "POST_NOTES": "실측 메모",
+            },
+        )
+        self.assertEqual(topic, "env-topic")
+        self.assertEqual(angle, "failure")
+        self.assertEqual(notes, "실측 메모")
+
+        topic, angle, notes = resolve_generation_inputs(
+            topic="cli-topic",
+            angle="team",
+            notes="",
+            environ={"POST_TOPIC": "env-topic", "POST_ANGLE": "failure", "POST_NOTES": "env"},
+        )
+        self.assertEqual(topic, "cli-topic")
+        self.assertEqual(angle, "team")
+        self.assertEqual(notes, "")
 
 
 if __name__ == "__main__":

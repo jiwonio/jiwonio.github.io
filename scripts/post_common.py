@@ -579,15 +579,10 @@ def generate_with_retry(
                         "\n- After <!--more-->, put [HERO_IMAGE] on its own line, "
                         "then ----- on the next line."
                     )
-                if "내부 링크" in error_msg or "/posts/" in error_msg:
+                if "categories" in error_msg or "DevOps" in error_msg:
                     hints += (
-                        "\n- Include at least 2 markdown links like "
-                        "[title](/posts/slug/) in the body."
-                    )
-                if "한 줄 정리" in error_msg or "bullet" in error_msg:
-                    hints += (
-                        "\n- In '이번 주 한 줄 정리', write 3-4 bullets that start "
-                        "with action verbs (확인, 검토, 점검, 적용, 도입, 업데이트)."
+                        "\n- categories must be a YAML list with exactly one of "
+                        "`AI` or `DevOps`. Do not put a Korean sentence there."
                     )
                 if "~요" in error_msg or "~다" in error_msg or "문체" in error_msg:
                     hints += (

@@ -126,12 +126,11 @@ jobs:
             exit 1
           fi
 
+          # Topic/angle/notes come from env (POST_*) so $ and quotes in the
+          # subject cannot break the shell argument list.
           TEXT_PROVIDER="${{ github.event.inputs.text_provider || 'auto' }}"
           TRANSLATION_PROVIDER="${{ github.event.inputs.translation_provider || 'auto' }}"
-          EXTRA_ARGS=(--topic "$POST_TOPIC" --angle "$POST_ANGLE")
-          if [ -n "$POST_NOTES" ]; then
-            EXTRA_ARGS+=(--notes "$POST_NOTES")
-          fi
+          EXTRA_ARGS=()
           if [ "$TEXT_PROVIDER" != "auto" ]; then
             EXTRA_ARGS+=(--text-provider "$TEXT_PROVIDER")
           fi
@@ -163,43 +162,34 @@ jobs:
       - name: Commit and publish
         env:
           POST_TOPIC: ${{ github.event.inputs.topic }}
+          DIRECT_PUSH: ${{ github.event.inputs.direct_push }}
         run: |
           git config --local user.email "min@jiwon.io"
           git config --local user.name "jwjp"
 
           git add _posts/ uploads/ assets/vendor/ _data/noto_preload.yml assets/js/site.js
 
-          if git diff-index --quiet HEAD; then
+          if git diff --cached --quiet; then
             echo "⚠️ 커밋할 새로운 변경 사항이 없습니다."
             exit 0
           fi
 
-          DIRECT_PUSH="${{ github.event.inputs.direct_push }}"
-          if [ -z "$DIRECT_PUSH" ]; then
-            DIRECT_PUSH="false"
-          fi
+          python - <<'PY'
+          import os
+          from pathlib import Path
 
-          COMMIT_MSG="Add draft post: ${POST_TOPIC}"
-          PR_TITLE="📝 [편집 대기] ${POST_TOPIC}"
-
-          if [ "$DIRECT_PUSH" = "true" ]; then
-            git commit -m "$COMMIT_MSG"
-            git pull --rebase origin gh-pages
-            git push origin HEAD:gh-pages
-            echo "✅ gh-pages 직푸시 완료 (IndexNow·Jekyll 빌드는 Deploy 워크플로에서 처리)"
-            echo "⚠️ direct_push=true was used — prefer PR + editorial review for quality."
-          else
-            BRANCH_NAME="draft-post-$(date +%Y%m%d-%H%M%S)"
-            git checkout -b "$BRANCH_NAME"
-            git commit -m "$COMMIT_MSG"
-            git push origin "$BRANCH_NAME"
-
-            PR_BODY=$(cat <<EOF
-          ## 품질 우선 정책 — 편집 후 머지
+          topic = os.environ.get("POST_TOPIC", "").strip() or "untitled"
+          title = f"📝 [편집 대기] {topic}"
+          if len(title) > 80:
+              title = title[:77] + "..."
+          Path("/tmp/commit-msg.txt").write_text(f"Add draft post: {topic}\n", encoding="utf-8")
+          Path("/tmp/pr-title.txt").write_text(title, encoding="utf-8")
+          Path("/tmp/pr-body.md").write_text(
+              f"""## 품질 우선 정책 — 편집 후 머지
 
           운영자가 정한 주제의 AI 초안입니다. **그대로 머지하지 마세요.**
 
-          **주제:** ${POST_TOPIC}
+          **주제:** {topic}
 
           ### 편집 체크리스트
           - [ ] 실제 경험·실측 수치·실패 사례 중 1개 이상 반영
@@ -209,26 +199,40 @@ jobs:
           - [ ] (선택) 번역본 핵심 문장 스팟 체크
 
           ### 자동 통과 항목 (콘텐츠 게이트)
-          - \`validate_posts.py\` (metadata, links, language, translation structure)
+          - `validate_posts.py` (metadata, links, language, translation structure)
           - Changed-post reference URL HEAD checks
           - Translation completeness audit
           - Sync drift dry-run (images, dates)
           - Font subset verify
 
           Full Jekyll + Pagefind + htmlproofer runs on Deploy after merge.
-          EOF
+          """,
+              encoding="utf-8",
           )
+          PY
+
+          if [ "$DIRECT_PUSH" = "true" ]; then
+            git commit -F /tmp/commit-msg.txt
+            git pull --rebase origin gh-pages
+            git push origin HEAD:gh-pages
+            echo "✅ gh-pages 직푸시 완료 (IndexNow·Jekyll 빌드는 Deploy 워크플로에서 처리)"
+            echo "⚠️ direct_push=true was used — prefer PR + editorial review for quality."
+          else
+            BRANCH_NAME="draft-post-$(date +%Y%m%d-%H%M%S)"
+            git checkout -b "$BRANCH_NAME"
+            git commit -F /tmp/commit-msg.txt
+            git push origin "$BRANCH_NAME"
 
             PR_URL=$(gh pr create \
-              --title "$PR_TITLE" \
-              --body "$PR_BODY" \
+              --title "$(cat /tmp/pr-title.txt)" \
+              --body-file /tmp/pr-body.md \
               --base gh-pages \
               --head "$BRANCH_NAME")
             echo "PR opened for editorial review: $PR_URL"
           fi
 
       - name: LLM usage report
-        if: always()
+        if: always() && steps.generate.outcome != 'skipped'
         run: |
           LOG="${LLM_USAGE_LOG:-llm-usage.jsonl}"
           if [ -f "$LOG" ]; then

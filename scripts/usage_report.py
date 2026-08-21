@@ -20,6 +20,7 @@ DEFAULT_LOG = SITE_ROOT / "llm-usage.jsonl"
 LLM_USAGE_MARKER = "llm_usage="
 ACTION_WORKFLOWS = (
     "draft_post.yml",
+    "scheduled_ai_post.yml",
     "backfill_translations.yml",
 )
 
