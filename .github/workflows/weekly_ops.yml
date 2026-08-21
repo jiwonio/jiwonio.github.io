@@ -1,8 +1,7 @@
 name: Weekly Ops
 
 # Saturday bundle: content quality, translations, live URLs, IndexNow,
-# LLM spend, ops digest, and AI-draft watchdog. Replaces the former
-# one-workflow-per-check Saturday/Sunday/monthly audits.
+# LLM spend, and ops digest.
 on:
   schedule:
     - cron: '0 6 * * 6'
@@ -27,7 +26,6 @@ jobs:
     permissions:
       contents: read
       actions: read
-      pull-requests: read
 
     steps:
       - name: Checkout repository
@@ -107,39 +105,6 @@ jobs:
             reports/ops-digest-weekly.md
             reports/llm-usage-weekly.md
           if-no-files-found: ignore
-
-      - name: AI draft pipeline watchdog
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if ! grep -qE '^\s*-\s*cron:' .github/workflows/scheduled_ai_post.yml; then
-            echo "scheduled_ai_post.yml has no active cron — AI draft schedule is paused."
-            echo "Watchdog soft-pass (schedule disabled)."
-            exit 0
-          fi
-
-          MAX_AGE_DAYS=14
-          LAST_RUN=$(gh api \
-            "/repos/${{ github.repository }}/actions/workflows/scheduled_ai_post.yml/runs?status=success&per_page=1" \
-            --jq '.workflow_runs[0].created_at // empty')
-
-          if [ -z "$LAST_RUN" ]; then
-            echo "::error::No successful scheduled_ai_post run found."
-            exit 1
-          fi
-
-          echo "Last successful run: $LAST_RUN"
-          LAST_EPOCH=$(date -d "$LAST_RUN" +%s)
-          NOW_EPOCH=$(date -u +%s)
-          AGE_DAYS=$(( (NOW_EPOCH - LAST_EPOCH) / 86400 ))
-          echo "Age: ${AGE_DAYS} day(s) (max ${MAX_AGE_DAYS})"
-
-          if [ "$AGE_DAYS" -gt "$MAX_AGE_DAYS" ]; then
-            echo "::error::Last successful scheduled_ai_post run is older than ${MAX_AGE_DAYS} days."
-            exit 1
-          fi
-
-          echo "Weekly AI draft pipeline is within ${MAX_AGE_DAYS}d."
 
   notify-failure:
     runs-on: ubuntu-latest

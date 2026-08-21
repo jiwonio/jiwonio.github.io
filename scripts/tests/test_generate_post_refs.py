@@ -4,28 +4,28 @@ from unittest import mock
 from generate_post import MIN_REFERENCE_URLS, validate_deep_dive_content
 
 
-def _deep_dive_body(*, refs: list[tuple[str, str]]) -> str:
+def _deep_dive_body(*, title: str, slug: str, tags: str, refs: list[tuple[str, str]]) -> str:
     ref_lines = "\n".join(
-        f'- [{title}]({url}){{:target="_blank"}}' for title, url in refs
+        f'- [{name}]({url}){{:target="_blank"}}' for name, url in refs
     )
     return f"""---
 layout: post
-title: "Cursor로 PR 리뷰 밀림 줄이기: 체크리스트 한 장"
-slug: "cursor-pr-review-checklist-workflow"
+title: "{title}"
+slug: "{slug}"
 lang: ko
-translation_key: "cursor-pr-review-checklist-workflow"
+translation_key: "{slug}"
 post_type: deep-dive
 date: 2026-07-10 09:00:00 +0900
-categories: [AI]
-tags: [Cursor, Code Review, Workflow]
-description: "Cursor로 PR 리뷰 병목을 줄이는 실무 체크리스트를 정리합니다."
-image: "/uploads/cursor-pr-review-checklist-workflow/thumbnail.webp"
+categories: [DevOps]
+tags: {tags}
+description: "운영자가 정한 주제로 쓴 초안입니다."
+image: "/uploads/{slug}/thumbnail.webp"
 ---
-PR 리뷰가 밀리는 상황에서 Cursor를 쓰는 방법을 정리합니다.
+도입부 첫 문단입니다. 실무에서 겪은 상황을 적습니다.
 
 두번째 문단입니다. 팀 온보딩 때 바로 쓸 수 있습니다.
 
-세 번째 문단: 이 글을 읽으면 리뷰 체크리스트를 팀에 맞출 수 있습니다.
+세 번째 문단: 이 글을 읽으면 한 가지를 결정할 수 있습니다.
 <!--more-->
 [HERO_IMAGE]
 -----
@@ -45,68 +45,74 @@ PR 리뷰가 밀리는 상황에서 Cursor를 쓰는 방법을 정리합니다.
 
 
 class GeneratePostRefsTests(unittest.TestCase):
+    def setUp(self):
+        patcher = mock.patch("generate_post.validate_tag_consistency")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     @mock.patch("generate_post.get_existing_ko_slugs", return_value=set())
-    @mock.patch("generate_post.get_recent_titles", return_value=[])
-    @mock.patch("generate_post.get_recent_slugs", return_value=[])
     @mock.patch("generate_post.find_broken_reference_urls", return_value=[])
-    def test_validate_deep_dive_accepts_live_refs(
-        self,
-        _broken,
-        _slugs,
-        _titles,
-        _existing,
-    ):
+    def test_validate_deep_dive_accepts_live_refs(self, _broken, _existing):
         content = _deep_dive_body(
+            title="Ubuntu 스왑 설정으로 OOM 줄이기",
+            slug="ubuntu-swap-oom-notes",
+            tags="[Ubuntu, Swap, Memory]",
             refs=[
-                ("Cursor Docs", "https://docs.cursor.com/"),
+                ("Ubuntu Docs", "https://ubuntu.com/"),
                 ("GitHub", "https://github.com/"),
-            ]
+            ],
         )
         metadata, slug = validate_deep_dive_content(content)
-        self.assertEqual(slug, "cursor-pr-review-checklist-workflow")
+        self.assertEqual(slug, "ubuntu-swap-oom-notes")
         self.assertEqual(metadata["post_type"], "deep-dive")
 
     @mock.patch("generate_post.get_existing_ko_slugs", return_value=set())
-    @mock.patch("generate_post.get_recent_titles", return_value=[])
-    @mock.patch("generate_post.get_recent_slugs", return_value=[])
     @mock.patch(
         "generate_post.find_broken_reference_urls",
         return_value=["https://example.invalid/missing"],
     )
-    def test_validate_deep_dive_rejects_broken_refs(
-        self,
-        _broken,
-        _slugs,
-        _titles,
-        _existing,
-    ):
+    def test_validate_deep_dive_rejects_broken_refs(self, _broken, _existing):
         content = _deep_dive_body(
+            title="Ubuntu 스왑 설정으로 OOM 줄이기",
+            slug="ubuntu-swap-oom-notes",
+            tags="[Ubuntu, Swap]",
             refs=[
                 ("Good", "https://example.com/ok"),
                 ("Bad", "https://example.invalid/missing"),
-            ]
+            ],
         )
         with self.assertRaises(ValueError) as ctx:
             validate_deep_dive_content(content)
         self.assertIn("참고문헌 URL이 유효하지 않습니다", str(ctx.exception))
 
     @mock.patch("generate_post.get_existing_ko_slugs", return_value=set())
-    @mock.patch("generate_post.get_recent_titles", return_value=[])
-    @mock.patch("generate_post.get_recent_slugs", return_value=[])
     @mock.patch("generate_post.find_broken_reference_urls", return_value=[])
-    def test_validate_deep_dive_requires_min_refs(
-        self,
-        _broken,
-        _slugs,
-        _titles,
-        _existing,
-    ):
+    def test_validate_deep_dive_requires_min_refs(self, _broken, _existing):
         content = _deep_dive_body(
-            refs=[("Only one", "https://example.com/only")]
+            title="Ubuntu 스왑 설정으로 OOM 줄이기",
+            slug="ubuntu-swap-oom-notes",
+            tags="[Ubuntu, Swap]",
+            refs=[("Only one", "https://example.com/only")],
         )
         with self.assertRaises(ValueError) as ctx:
             validate_deep_dive_content(content)
         self.assertIn(f"{MIN_REFERENCE_URLS}개 이상", str(ctx.exception))
+
+    @mock.patch("generate_post.get_existing_ko_slugs", return_value=set())
+    @mock.patch("generate_post.find_broken_reference_urls", return_value=[])
+    def test_validate_rejects_banned_title(self, _broken, _existing):
+        content = _deep_dive_body(
+            title="Ubuntu 스왑 완벽 가이드",
+            slug="ubuntu-swap-guide",
+            tags="[Ubuntu]",
+            refs=[
+                ("Ubuntu Docs", "https://ubuntu.com/"),
+                ("GitHub", "https://github.com/"),
+            ],
+        )
+        with self.assertRaises(ValueError) as ctx:
+            validate_deep_dive_content(content)
+        self.assertIn("금지된 포괄 표현", str(ctx.exception))
 
 
 if __name__ == "__main__":

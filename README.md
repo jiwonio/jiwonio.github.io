@@ -1,6 +1,6 @@
 # blog.jiwon.io
 
-Jekyll 4 기반 다국어 기술 블로그입니다. 한국어(ko) 원문과 en/ja/zh 번역본을 `translation_key`로 묶어 운영하며, Gemini·Claude·ChatGPT·Grok API로 심층 기술 글(deep-dive) 초안을 자동 생성합니다.
+Jekyll 4 기반 다국어 기술 블로그입니다. 한국어(ko) 원문과 en/ja/zh 번역본을 `translation_key`로 묶어 운영합니다. 주제는 운영자가 정하고, Gemini·Claude·ChatGPT·Grok API로 초안·번역·썸네일만 만듭니다.
 
 - **사이트:** https://blog.jiwon.io
 - **배포 브랜치:** `gh-pages` (GitHub Pages)
@@ -20,7 +20,7 @@ _posts/
 | 구성 요소 | 역할 |
 |-----------|------|
 | `_plugins/i18n.rb` | 언어 감지, permalink, 번역 스위처, `site.posts_by_lang` |
-| `scripts/generate_post.py` | 주 1회(수) deep-dive **초안** 생성 → PR (품질 우선) |
+| `scripts/generate_post.py` | 운영자가 넣은 주제로 deep-dive **초안** 생성 → PR |
 | `scripts/backfill_translations.py` | 기존 원문의 누락 번역 백필 |
 | `scripts/validate_posts.py` | 배포 전 front matter·이미지·번역 완전성·내부 링크·언어 품질 검증 |
 | `scripts/models_config.py` | LLM provider·모델·라우팅·비용 추정 설정 |
@@ -55,10 +55,10 @@ _posts/
 | 워크플로 | 스케줄 (UTC) | 설명 |
 |----------|--------------|------|
 | `jekyll.yml` | push/PR → `gh-pages` | **유일한 full site 게이트** + unittest + IndexNow |
-| `scheduled_ai_post.yml` | **수 00:00** | deep-dive **초안** → 콘텐츠 게이트 → **PR (편집 대기)**; `direct_push` 기본 `false` |
+| `draft_post.yml` | **수동** | 운영자 주제 → 초안 → 콘텐츠 게이트 → **PR (편집 대기)** |
 | `sync_maintenance.yml` | 수 05:00 | 이미지·날짜·폰트·누락 썸네일 동기화 → 직푸시 |
-| `weekly_ops.yml` | 토 06:00 | 번역·URL·품질·IndexNow·LLM 비용·watchdog |
-| `weekly_site_health.yml` | 일 06:00 | 홈 Lighthouse (80% 미만 Slack) + `generate_post.py --dry-run` |
+| `weekly_ops.yml` | 토 06:00 | 번역·URL·품질·IndexNow·LLM 비용 |
+| `weekly_site_health.yml` | 일 06:00 | 홈 Lighthouse (80% 미만 Slack) |
 | `e2e.yml` | 토 08:00 | 프로덕션 Playwright 스모크 (`e2e/**` PR도) |
 | `backfill_translations.yml` | 수동 | 누락 번역 백필 → 직푸시 |
 | `dependabot_automerge.yml` | Dependabot PR | CI green 시 자동 머지 |
@@ -74,23 +74,23 @@ _posts/
 `workflow_dispatch`에서 `text_provider`·`translation_provider`로 override 가능합니다.  
 로컬에서는 `LLM_TEXT_PROVIDER`, `LLM_TRANSLATION_PROVIDER` 환경 변수로도 지정할 수 있습니다.
 
-### 게시 정책 (품질 우선, 2026-08-04)
+### 게시 정책 (품질 우선)
 
-**양보다 질.** AI는 초안·번역·썸네일만 담당하고, **사람이 편집 체크리스트를 채운 뒤 머지**합니다.
+**주제는 사람, 초안은 AI.** 주제를 떠올릴 때마다 Actions로 초안을 만들고, **편집 체크리스트를 채운 뒤 머지**합니다. 스케줄 자동 생성은 없습니다.
 
 | 원칙 | 내용 |
 |------|------|
-| 빈도 | 주 1회 deep-dive 초안 (수 00:00 UTC) |
-| 기본 게시 | **PR only** (`direct_push` 기본 `false`). 스케줄 실행은 항상 PR |
-| 직푸시 | 수동 실행에서 `direct_push=true`일 때만 (예외) |
+| 주제 | 운영자가 `--topic` / Actions `topic`으로 지정 |
+| 메모 | `notes`에 실측·실패 사례를 넣으면 초안에 반영. 없으면 수치 창작 금지 |
+| 기본 게시 | **PR only** (`direct_push` 기본 `false`) |
+| 직푸시 | `direct_push=true`일 때만 (예외) |
 | 머지 기준 | 실측·실패 사례·경험 보강 후 (PR 본문 체크리스트) |
 
 전체 사이트 빌드·htmlproofer·IndexNow는 머지 후 **Deploy**가 담당합니다.
 
 | 워크플로 | 게시 방식 | 콘텐츠 게이트 | full site 게이트 |
 |----------|-----------|---------------|------------------|
-| `scheduled_ai_post` (스케줄) | **PR (편집 대기)** | `pre-merge-validate` | Deploy (머지 후) |
-| `scheduled_ai_post` (수동) | 기본 PR (`direct_push=true`면 직푸시) | 동일 | Deploy |
+| `draft_post` | 기본 PR (`direct_push=true`면 직푸시) | `pre-merge-validate` | Deploy (머지 후) |
 | `backfill_translations` | 직푸시 | 동일 | Deploy |
 | `sync_maintenance` | 직푸시 | 동일 | Deploy |
 
@@ -119,7 +119,7 @@ _posts/
 
 > 상세 체크리스트: [TODO.md](TODO.md)
 
-자동 포스팅·PR·머지는 **GitHub App 설치 토큰**을 우선 사용합니다 (`GH_APP_ID` + `GH_APP_PRIVATE_KEY`).  
+초안 PR·머지는 **GitHub App 설치 토큰**을 우선 사용합니다 (`GH_APP_ID` + `GH_APP_PRIVATE_KEY`).  
 `MY_PAT`는 App이 없거나 실패할 때만 폴백입니다.
 
 **검증:** Actions → **Weekly Sync Maintenance** (또는 `gh workflow run sync_maintenance.yml`)  
@@ -163,8 +163,11 @@ python scripts/usage_report.py llm-usage.jsonl --warn-budget 75
 # 단위 테스트
 python -m unittest discover -s scripts/tests -v
 
-# deep-dive 사전 점검 (API 키만 확인)
+# 초안 생성 사전 점검 (API 키만 확인)
 python scripts/generate_post.py --dry-run
+
+# 주제 넣고 초안 생성 (로컬)
+python scripts/generate_post.py --topic "Cursor로 PR 리뷰 밀림 줄이기" --angle failure --notes "금요일 50파일 PR이 월요일까지 밀렸습니다."
 
 # 번역 날짜 동기화 (dry-run)
 python scripts/sync_translation_dates.py --dry-run
@@ -189,14 +192,17 @@ Actions 탭 → **Backfill Post Translations** → Run workflow
 | `slug` | 특정 포스트만 처리 (비우면 전체) |
 | `prepare_only` | 메타데이터 정규화만 수행 |
 
-### 수동 AI 글 생성 (Actions)
+### 초안 생성 (Actions)
 
-Actions 탭 → **Scheduled AI Post Generation** → Run workflow
+주제를 정한 뒤 Actions 탭 → **Draft Post from Topic** → Run workflow
 
 | 입력 | 권장값 |
 |------|--------|
-| `direct_push` | 기본 `false` (PR + 편집 검수; `true`면 직푸시 예외) |
-| `edition_date` | 백필 시 `YYYY-MM-DD` |
+| `topic` | **필수.** 이번 글의 주제 |
+| `angle` | `freeform` / `before-after` / `failure` / `decision` / `hidden-cost` / `team` |
+| `notes` | 실측 수치·실패 사례. 비우면 모델이 숫자를 만들지 않음 |
+| `direct_push` | 기본 `false` (PR + 편집 검수) |
+| `edition_date` | 날짜 고정이 필요할 때만 `YYYY-MM-DD` |
 
 ## 참고
 

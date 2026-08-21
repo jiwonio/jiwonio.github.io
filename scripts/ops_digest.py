@@ -27,7 +27,7 @@ POSTS_DIR = SITE_ROOT / "_posts"
 
 MONITORED_WORKFLOWS = (
     ("jekyll.yml", "Deploy"),
-    ("scheduled_ai_post.yml", "AI Post"),
+    ("draft_post.yml", "Draft Post"),
     ("sync_maintenance.yml", "Sync"),
     ("weekly_ops.yml", "Weekly Ops"),
     ("weekly_site_health.yml", "Site Health"),
@@ -35,7 +35,7 @@ MONITORED_WORKFLOWS = (
     ("backfill_translations.yml", "Backfill"),
 )
 
-PIPELINE_WORKFLOWS = ("scheduled_ai_post.yml", "backfill_translations.yml")
+PIPELINE_WORKFLOWS = ("draft_post.yml", "backfill_translations.yml")
 
 
 def list_workflow_runs(workflow_file: str, days: int) -> list[dict]:
@@ -143,7 +143,7 @@ def collect_ops_section(days: int, llm_records: list[dict]) -> dict:
 def collect_pipeline_section(days: int, llm_records: list[dict]) -> dict:
     pipeline_runs: dict[str, dict] = {}
     for workflow_file, label in (
-        ("scheduled_ai_post.yml", "AI Post"),
+        ("draft_post.yml", "Draft Post"),
         ("backfill_translations.yml", "Backfill"),
     ):
         runs = list_workflow_runs(workflow_file, days)
@@ -260,12 +260,12 @@ def format_ops_section(data: dict) -> list[str]:
 
 
 def format_pipeline_section(data: dict) -> list[str]:
-    ai = data["pipeline_runs"].get("AI Post", {})
+    ai = data["pipeline_runs"].get("Draft Post", {})
     backfill = data["pipeline_runs"].get("Backfill", {})
     lines = [
         "*2) Content Pipeline*",
         (
-            f"- AI Post runs: {ai.get('runs', 0)} "
+            f"- Draft Post runs: {ai.get('runs', 0)} "
             f"(✅ {ai.get('success', 0)} / ❌ {ai.get('failure', 0)})"
         ),
         (

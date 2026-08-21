@@ -19,10 +19,8 @@ SITE_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_LOG = SITE_ROOT / "llm-usage.jsonl"
 LLM_USAGE_MARKER = "llm_usage="
 ACTION_WORKFLOWS = (
-    "scheduled_ai_post.yml",
+    "draft_post.yml",
     "backfill_translations.yml",
-    "sync_maintenance.yml",
-    "thumbnail_check.yml",
 )
 
 

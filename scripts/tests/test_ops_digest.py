@@ -103,7 +103,7 @@ class OpsDigestTests(unittest.TestCase):
                 "llm": {"total_cost_usd": 0, "total_calls": 0, "monthly_estimate_usd": 0},
             },
             "pipeline": {
-                "pipeline_runs": {"AI Post": {"runs": 0, "success": 0, "failure": 0}},
+                "pipeline_runs": {"Draft Post": {"runs": 0, "success": 0, "failure": 0}},
                 "total_llm_calls": 0,
                 "distinct_slugs": 0,
                 "avg_calls_per_slug": 0,

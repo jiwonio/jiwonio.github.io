@@ -162,8 +162,12 @@ def parse_required_front_matter(content: str) -> dict:
             isinstance(value, str) and value.strip() for value in values
         ):
             raise ValueError(f"{field}는 비어 있지 않은 문자열 목록이어야 합니다.")
-    if "AI" not in metadata["categories"]:
-        raise ValueError("AI 중심 포스트는 categories에 AI를 포함해야 합니다.")
+    allowed_categories = {"AI", "DevOps"}
+    unknown = [category for category in metadata["categories"] if category not in allowed_categories]
+    if unknown:
+        raise ValueError(
+            "categories는 AI 또는 DevOps여야 합니다: " + ", ".join(unknown)
+        )
     return metadata
 
 

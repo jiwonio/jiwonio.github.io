@@ -9,13 +9,13 @@
 
 ### 다음 작업 (2026-08-21 기준)
 
-**완료 (2026-08-21):** ai-news 콘텐츠·스크립트·UI 전부 삭제. 대기 PR #59 및 `ai-post-*` 브랜치 삭제. Actions 17개 → 8개로 축소.
+**완료 (2026-08-21):** ai-news 삭제, Actions 축소. 주제는 운영자가 정하고 초안만 AI가 작성하도록 변경 (`draft_post.yml`, 스케줄 없음).
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **높음** | AI deep-dive 상위 글 추가 수동 검수·실측 수치/경험 보강 | AdSense·신뢰 핵심 |
+| **높음** | 기존 AI deep-dive 글 수동 검수·실측 수치/경험 보강 | AdSense·신뢰 핵심 |
 | **높음** | Search Console 색인 확인 후 AdSense 사이트 검토 요청 | thin content 재발 주의 |
-| **높음** | 매주 수 생성 PR을 편집 체크리스트로 검수 후 머지 | 그대로 머지 금지 |
+| **높음** | 주제가 생각날 때 `Draft Post from Topic`으로 초안 → 편집 후 머지 | 그대로 머지 금지 |
 | **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 후 |
 
 ---
@@ -52,7 +52,8 @@ TODO.md와 README.md를 읽고 전체 상태를 파악해줘.
 
 현재 정책 (품질 우선):
 - GitHub App 설정 완료 (`GH_APP_ID` + `GH_APP_PRIVATE_KEY`), MY_PAT는 폴백
-- AI 글: 주 1회(수) deep-dive 초안 → PR → **사람 편집 후 머지** (직푸시 기본 끔)
+- 주제는 운영자가 정함. AI는 초안·번역·썸네일만. PR → **사람 편집 후 머지**
+- 스케줄 자동 생성 없음 (`draft_post.yml` 수동)
 ```
 
 ### 4. 특정 작업 요청 시
@@ -90,7 +91,7 @@ cd e2e && npm ci && npx playwright test
 | 항목 | 내용 |
 |------|------|
 | 사이트 | Jekyll 4 다국어 기술 블로그 (ko 기본, en/ja/zh) |
-| AI 글 | **주 1회(수) deep-dive 초안** → PR (`scheduled_ai_post.yml`) |
+| AI 글 | 운영자 주제 → 초안 PR (`draft_post.yml`, 스케줄 없음) |
 | 번역 묶음 | front matter `translation_key` |
 | 인증 | GitHub App 우선 (`setup-git-auth`), `MY_PAT` 폴백 |
 | 게시 | 콘텐츠 게이트 → **PR + 편집 검수** → 머지 후 Deploy (직푸시는 예외) |
@@ -105,7 +106,7 @@ cd e2e && npm ci && npx playwright test
 ### 콘텐츠 정책
 
 - 신규 글은 `deep-dive`만 생성합니다.
-- 주 1회 초안 PR → 사람 편집 후 머지. 직푸시는 예외.
+- 주제는 운영자가 정하고, 초안 PR을 편집한 뒤 머지합니다. 직푸시는 예외.
 
 ---
 
@@ -116,14 +117,14 @@ cd e2e && npm ci && npx playwright test
 | 다국어·태그·페이지네이션 | `_plugins/i18n.rb` |
 | 언어 전환 URL | `_includes/i18n-page-url.html`, `_includes/lang-switcher.html` |
 | hreflang | `_includes/hreflang.html` |
-| AI 글 생성 | `scripts/generate_post.py` (deep-dive only) |
+| 초안 생성 | `scripts/generate_post.py` (`--topic` 필수) |
 | 번역·백필 | `scripts/backfill_translations.py`, `scripts/blog_i18n.py` |
 | 검증 | `scripts/validate_posts.py`, `scripts/post_schema.py` |
 | LLM | `scripts/llm_client.py`, `scripts/models_config.py`, `scripts/api_monitor.py` |
 | 콘텐츠 게이트 | `.github/actions/pre-merge-validate/` (full site 빌드 없음) |
 | Git 인증 | `.github/actions/setup-git-auth/`, `verify-git-auth/` |
 | 배포 CI | `.github/workflows/jekyll.yml` |
-| 자동 포스팅 | `.github/workflows/scheduled_ai_post.yml` |
+| 초안 생성 | `.github/workflows/draft_post.yml` (수동) |
 | 주간 Ops | `.github/workflows/weekly_ops.yml` |
 | 주간 사이트 헬스 | `.github/workflows/weekly_site_health.yml` |
 | UI 문구·SEO 메타 | `_data/languages.yml` |
@@ -137,6 +138,7 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
+| (2026-08-21) | 주제는 운영자 지정. 주간 자동 생성 제거 (`draft_post.yml`) |
 | (2026-08-21) | ai-news 삭제, 대기 PR 정리, Actions 17→8 |
 | `e415dae` | fix(refs): zh 참고문헌 파싱(`-*` 불릿) + 2건 정규화 — Deploy #28761998817 green |
 | `39eec16` | ai-news auto-repair (summary bullets, tone, front matter) — zh refs 미정규화로 CI 실패 잔존 |
@@ -168,8 +170,9 @@ cd e2e && npm ci && npx playwright test
 - [x] AI 스케줄 cron 재개 후 **품질 우선으로 재설계** (주 1 deep-dive PR, ai-news 수동, direct_push 기본 false) (2026-08-04)
 - [x] **ai-news 완전 폐기** — 비공개 + 생성/헬스 워크플로 제거 (2026-08-11)
 - [x] **ai-news 파일·스크립트·테스트 삭제** + Actions 축소 (2026-08-21)
+- [x] 주간 자동 주제 선정 제거. 운영자 `--topic` 초안만 생성 (2026-08-21)
 - [x] 2024 핵심 글 확장: swap / Ubuntu 초기설정 / Node.js 설치 오류 (4개 언어)
-- [ ] 매주 PR 편집 검수 습관화 (실측·실패 사례 반영)
+- [ ] 주제가 생길 때 초안 생성 → 실측·실패 사례 반영 후 머지
 - [ ] 배포 후 GSC 색인·1–2주 대기·AdSense 재검토
 - [ ] 통과 전 추가 원문 강화 (AI 글 수동 편집)
 
