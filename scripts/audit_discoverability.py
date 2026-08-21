@@ -1,4 +1,4 @@
-"""Audit search index coverage, internal linking, and ai-news discoverability."""
+"""Audit search index coverage and internal linking."""
 
 from __future__ import annotations
 
@@ -6,33 +6,12 @@ import argparse
 import sys
 from pathlib import Path
 
-import yaml
-
 from post_analysis import build_internal_link_graph, pagefind_language_counts
-from post_schema import FRONT_MATTER_PATTERN
 
 SITE_ROOT = Path(__file__).resolve().parent.parent
 POSTS_DIR = SITE_ROOT / "_posts"
 MIN_PAGEFIND_FRAGMENTS = 3
 MIN_INBOUND_LINKS = 1
-
-
-def load_ko_posts(posts_dir: Path) -> list[tuple[Path, dict]]:
-    posts: list[tuple[Path, dict]] = []
-    for path in sorted(posts_dir.rglob("*.md")):
-        if "/ko/" not in path.as_posix() and not path.as_posix().startswith("_posts/ko/"):
-            continue
-        try:
-            content = path.read_text(encoding="utf-8")
-        except OSError:
-            continue
-        match = FRONT_MATTER_PATTERN.match(content)
-        if not match:
-            continue
-        metadata = yaml.safe_load(match.group(1)) or {}
-        if isinstance(metadata, dict):
-            posts.append((path, metadata))
-    return posts
 
 
 def audit_pagefind(site_dir: Path) -> list[str]:
@@ -98,33 +77,6 @@ def audit_internal_links(posts_dir: Path) -> list[str]:
     return warnings
 
 
-def audit_ai_news_series(posts_dir: Path) -> list[str]:
-    """Legacy check for retired ai-news posts (kept unpublished for history).
-
-    ai-news generation was retired for content quality; do not require any
-    live editions. Only flag inconsistency if unpublished drafts still exist
-    without the series tag.
-    """
-    warnings: list[str] = []
-    ai_news_posts = 0
-    tagged_ai_news = 0
-
-    for path, metadata in load_ko_posts(posts_dir):
-        post_type = str(metadata.get("post_type", "")).strip()
-        tags = {str(tag).casefold() for tag in metadata.get("tags") or []}
-        if post_type == "ai-news":
-            ai_news_posts += 1
-        if "ai-news" in tags:
-            tagged_ai_news += 1
-
-    # Zero ai-news is expected after retirement — not a warning.
-    if ai_news_posts > 0 and tagged_ai_news < ai_news_posts:
-        warnings.append(
-            f"ai-news tag missing on {ai_news_posts - tagged_ai_news} of {ai_news_posts} ai-news posts"
-        )
-
-    return warnings
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Audit blog discoverability signals")
     parser.add_argument("--posts-dir", type=Path, default=POSTS_DIR)
@@ -150,7 +102,6 @@ def main(argv: list[str] | None = None) -> int:
     if not args.skip_pagefind:
         warnings.extend(audit_pagefind(args.site_dir))
     warnings.extend(audit_internal_links(args.posts_dir))
-    warnings.extend(audit_ai_news_series(args.posts_dir))
 
     if warnings:
         for warning in warnings:

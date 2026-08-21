@@ -28,13 +28,11 @@ POSTS_DIR = SITE_ROOT / "_posts"
 MONITORED_WORKFLOWS = (
     ("jekyll.yml", "Deploy"),
     ("scheduled_ai_post.yml", "AI Post"),
-    ("backfill_translations.yml", "Backfill"),
+    ("sync_maintenance.yml", "Sync"),
+    ("weekly_ops.yml", "Weekly Ops"),
+    ("weekly_site_health.yml", "Site Health"),
     ("e2e.yml", "E2E"),
-    ("lighthouse.yml", "Lighthouse"),
-    ("url_check.yml", "URL Check"),
-    ("translation_audit.yml", "Translation Audit"),
-    ("content_quality_audit.yml", "Content Audit"),
-    ("llm_usage_weekly.yml", "LLM Report"),
+    ("backfill_translations.yml", "Backfill"),
 )
 
 PIPELINE_WORKFLOWS = ("scheduled_ai_post.yml", "backfill_translations.yml")
@@ -119,9 +117,6 @@ def list_new_ko_posts(days: int) -> list[str]:
 
 
 def classify_post_file(path: str) -> str:
-    name = Path(path).name.casefold()
-    if "ai-news" in name:
-        return "ai-news"
     return "deep-dive"
 
 
@@ -230,8 +225,8 @@ def collect_url_section(*, check_live_urls: bool) -> dict:
     }
 
 
-def collect_content_section(*, skip_url_check: bool) -> dict:
-    return collect_content_warnings(POSTS_DIR, skip_url_check=skip_url_check)
+def collect_content_section() -> dict:
+    return collect_content_warnings(POSTS_DIR)
 
 
 def format_ops_section(data: dict) -> list[str]:
@@ -245,8 +240,7 @@ def format_ops_section(data: dict) -> list[str]:
         ),
         (
             f"- New ko posts: {len(data['new_posts'])} "
-            f"(deep-dive {data['post_types'].get('deep-dive', 0)}, "
-            f"ai-news {data['post_types'].get('ai-news', 0)})"
+            f"(deep-dive {data['post_types'].get('deep-dive', 0)})"
         ),
         f"- Translation gaps: {data['translation_gaps']}",
         (
@@ -327,13 +321,11 @@ def format_content_section(data: dict) -> list[str]:
         f"- Similar titles: {len(data['similarity'])}",
         f"- Informal style: {len(data['informal_style'])}",
         f"- Overused slug tokens: {len(data['overused_tokens'])}",
-        f"- ai-news URL issues: {len(data['ai_news_urls'])}",
     ]
     for key, label in (
         ("similarity", "Similar"),
         ("informal_style", "Style"),
         ("overused_tokens", "Token"),
-        ("ai_news_urls", "URL"),
     ):
         items = data[key][:2]
         for item in items:
@@ -345,14 +337,13 @@ def build_digest(
     days: int,
     *,
     check_live_urls: bool = True,
-    skip_content_url_check: bool = False,
 ) -> dict:
     llm_records = fetch_from_actions(days)
     return {
         "ops": collect_ops_section(days, llm_records),
         "pipeline": collect_pipeline_section(days, llm_records),
         "url": collect_url_section(check_live_urls=check_live_urls),
-        "content": collect_content_section(skip_url_check=skip_content_url_check),
+        "content": collect_content_section(),
     }
 
 
@@ -384,17 +375,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Skip network reference URL checks in section 3",
     )
-    parser.add_argument(
-        "--skip-content-url-check",
-        action="store_true",
-        help="Skip ai-news live URL checks in section 4",
-    )
     args = parser.parse_args(argv)
 
     digest = build_digest(
         args.days,
         check_live_urls=not args.skip_live_urls,
-        skip_content_url_check=args.skip_content_url_check,
     )
     text = format_digest_markdown(digest) if args.markdown else format_digest(digest)
     print(text)

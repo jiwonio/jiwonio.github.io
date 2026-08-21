@@ -1,4 +1,4 @@
-"""블로그 자동 포스팅 공통 유틸 (generate_post, generate_ai_news에서 공유)."""
+"""블로그 자동 포스팅 공통 유틸 (generate_post에서 공유)."""
 
 from __future__ import annotations
 
@@ -54,13 +54,6 @@ INTERNAL_LINK_PATTERN = re.compile(r"\]\(/posts/[^)]+\)")
 
 REQUIRED_FIELDS = ("layout", "title", "slug", "date", "categories", "tags", "description", "image")
 DEFAULT_THUMBNAIL_SOURCE = Path(__file__).resolve().parent.parent / "assets" / "og-default.webp"
-TOKEN_STOP_WORDS = frozenset({
-    "and", "for", "on", "the", "with", "from", "into", "that", "this", "how",
-    "are", "was", "were", "has", "have", "had", "not", "but", "can", "will",
-    "your", "our", "all", "any", "its", "new", "now", "get", "use", "using",
-    "full", "more", "also", "just", "one", "two", "way", "may", "via", "out",
-    "about", "what", "when", "where", "who", "why", "than", "then", "over",
-})
 
 
 def get_kst_now() -> datetime:
@@ -124,11 +117,6 @@ def get_recent_slugs(limit: int = 50) -> list[str]:
 
 def tokenize(text: str) -> list[str]:
     return [t for t in re.findall(r"[\w가-힣]+", text.casefold()) if len(t) >= 2]
-
-
-def content_tokens(text: str) -> list[str]:
-    """내부 링크 매칭용 토큰 (불용어 제외)."""
-    return [token for token in tokenize(text) if token not in TOKEN_STOP_WORDS]
 
 
 def count_token_frequency(titles: list[str], slugs: list[str]) -> dict[str, int]:
@@ -424,14 +412,6 @@ def repair_internal_links(
     return content.rstrip() + "\n\n" + block
 
 
-def repair_ai_news_structure(content: str, internal_candidates: list[dict]) -> str:
-    """Normalize common LLM formatting mistakes before strict validation."""
-    ko_slugs = get_existing_ko_slugs()
-    content = repair_hero_image_placeholder(content)
-    content = repair_internal_links(content, internal_candidates)
-    return repair_internal_post_slugs(content, ko_slugs)
-
-
 def extract_reference_urls(content: str) -> list[str]:
     from post_analysis import extract_reference_urls as _extract_reference_urls
 
@@ -441,100 +421,6 @@ def extract_reference_urls(content: str) -> list[str]:
 def normalize_url(url: str) -> str:
     parsed = urlparse(url.strip())
     return urlunparse((parsed.scheme, parsed.netloc, parsed.path, "", "", ""))
-
-
-def collect_past_reference_urls(
-    slug_prefix: str = "ai-news-",
-    *,
-    before_date: str | None = None,
-) -> set[str]:
-    """Collect reference URLs from prior ai-news editions.
-
-    before_date: optional YYYY-MM-DD. When set (backfill), only editions whose
-    slug date is strictly earlier than this day are included so a later published
-    digest does not block recovering a missed earlier edition.
-    """
-    urls: set[str] = set()
-    for path in list_post_files():
-        if detect_lang_from_path(path) != DEFAULT_LANG:
-            continue
-        slug = extract_slug_from_path(path)
-        if not slug or not slug.startswith(slug_prefix):
-            continue
-        if before_date:
-            # slug form: ai-news-YYYY-MM-DD
-            suffix = slug[len(slug_prefix) :]
-            if len(suffix) >= 10 and suffix[:10] >= before_date:
-                continue
-        try:
-            content = Path(path).read_text(encoding="utf-8")
-            urls.update(extract_reference_urls(content))
-        except OSError:
-            continue
-    return urls
-
-
-def get_internal_link_candidates(rss_titles: list[str], limit: int = 8) -> list[dict]:
-    """RSS 제목·태그와 매칭되는 기존 심층 글 후보."""
-    rss_tokens: set[str] = set()
-    for title in rss_titles:
-        rss_tokens.update(content_tokens(title))
-
-    candidates: list[tuple[int, dict]] = []
-    for path in list_post_files():
-        if detect_lang_from_path(path) != DEFAULT_LANG:
-            continue
-        slug = extract_slug_from_path(path)
-        if not slug or slug.startswith("ai-news-"):
-            continue
-        try:
-            content = Path(path).read_text(encoding="utf-8")
-            metadata = parse_front_matter(content)
-            title = str(metadata.get("title", ""))
-            tags = metadata.get("tags", [])
-        except (OSError, ValueError):
-            continue
-
-        post_tokens = set(content_tokens(title)) | set(content_tokens(slug.replace("-", " ")))
-        for tag in tags:
-            post_tokens.update(content_tokens(str(tag)))
-
-        overlap = rss_tokens & post_tokens
-        if not overlap:
-            continue
-        candidates.append(
-            (
-                len(overlap),
-                {
-                    "url": f"/posts/{slug}/",
-                    "title": title,
-                    "slug": slug,
-                    "matched": sorted(overlap),
-                },
-            )
-        )
-
-    candidates.sort(key=lambda item: (-item[0], item[1]["slug"]))
-    seen_slugs: set[str] = set()
-    results: list[dict] = []
-    for _, item in candidates:
-        if item["slug"] in seen_slugs:
-            continue
-        seen_slugs.add(item["slug"])
-        results.append(item)
-        if len(results) >= limit:
-            break
-    return results
-
-
-def format_internal_links_for_prompt(candidates: list[dict]) -> str:
-    if not candidates:
-        return "- (매칭되는 내부 글이 없습니다. 관련 주제가 있으면 /posts/ 경로로 직접 연결하세요.)"
-    lines = []
-    for item in candidates:
-        matched = ", ".join(item["matched"][:3])
-        lines.append(f"- {item['url']} — {item['title']} (매칭: {matched})")
-    return "\n".join(lines)
 
 
 def generate_thumbnail(prompt: str) -> tuple[bytes, str, str]:

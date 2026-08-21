@@ -178,7 +178,7 @@ def main() -> int:
     parser.add_argument(
         "--force-langs",
         action="store_true",
-        help="post_type/date 번역 정책 무시하고 --langs 그대로 적용 (레거시 ai-news 백필용)",
+        help="기본 번역 언어 정책을 무시하고 --langs 그대로 적용",
     )
     args = parser.parse_args()
 
@@ -208,7 +208,7 @@ def main() -> int:
 
     force_langs = args.force_langs or bool(args.slug)
     if force_langs:
-        print("force-langs: ignoring post_type/date translation policy for requested langs.")
+        print("force-langs: ignoring default translation language policy for requested langs.")
 
     created, skipped, failures = backfill(
         posts,

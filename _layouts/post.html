@@ -5,14 +5,6 @@ layout: default
 {% assign article_parts = content | split: "<!--more-->" %}
 
 {% assign lang_meta = site.data.languages[current_lang] %}
-{% assign show_ai_news_series = false %}
-{% if page.post_type == 'ai-news' and lang_meta.ai_news_series %}
-    {% for entry in site.tag_archives_by_lang[current_lang] %}
-        {% if entry.slug == 'ai-news' %}
-            {% assign show_ai_news_series = true %}
-        {% endif %}
-    {% endfor %}
-{% endif %}
 
 <article class="post" data-pagefind-body>
     <h1 class="post-title">{{ page.title }}</h1>
@@ -57,12 +49,6 @@ layout: default
     {% else %}
         {% include ad-unit.html unit="in-article" %}
         {{ content }}
-    {% endif %}
-
-    {% if show_ai_news_series %}
-    <p class="post-series post-series--footer">
-        <a href="{{ lang_meta.ai_news_series.path }}">← {{ lang_meta.ai_news_series.label }}</a>
-    </p>
     {% endif %}
 </article>
 

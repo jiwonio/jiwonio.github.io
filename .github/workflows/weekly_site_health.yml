@@ -1,5 +1,7 @@
-name: Weekly Lighthouse Audit
+name: Weekly Site Health
 
+# Sunday production checks: Lighthouse homepage score + deep-dive dry-run
+# (API key / generator pre-flight before Wednesday drafts).
 on:
   schedule:
     - cron: '0 6 * * 0'
@@ -54,9 +56,42 @@ jobs:
           path: lighthouse-report.json
           retention-days: 30
 
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+          pip install -e ./scripts
+
+      - name: Verify LLM secrets
+        run: |
+          if [ -z "${{ secrets.GEMINI_API_KEY }}" ] \
+            && [ -z "${{ secrets.ANTHROPIC_API_KEY }}" ] \
+            && [ -z "${{ secrets.OPENAI_API_KEY }}" ] \
+            && [ -z "${{ secrets.XAI_API_KEY }}" ]; then
+            echo "At least one LLM API key secret is required."
+            exit 1
+          fi
+
+      - name: Deep-dive generator dry-run
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+        run: python scripts/generate_post.py --dry-run
+
   notify-failure:
     runs-on: ubuntu-latest
-    needs: lighthouse
+    needs: [lighthouse, dry-run]
     if: failure()
     steps:
       - name: Notify Slack
@@ -66,5 +101,5 @@ jobs:
           if [ -z "$SLACK_WEBHOOK_URL" ]; then exit 0; fi
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -sS -X POST -H 'Content-type: application/json' \
-            --data "{\"text\":\"❌ Weekly Lighthouse audit failed\n${RUN_URL}\"}" \
+            --data "{\"text\":\"❌ Weekly site health failed\n${RUN_URL}\"}" \
             "$SLACK_WEBHOOK_URL"

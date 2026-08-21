@@ -1,29 +1,22 @@
 # TODO — blog.jiwon.io
 
-> **마지막 갱신:** 2026-08-11
+> **마지막 갱신:** 2026-08-21
 > **브랜치:** `gh-pages` (배포·개발 모두 이 브랜치)  
 > **저장소:** https://github.com/jwjp/jwjp.github.io  
 > **사이트:** https://blog.jiwon.io
 
 나중에 Grok 등으로 이어서 작업할 항목입니다. 완료되면 `- [x]` 체크하고 날짜를 적어 주세요.
 
-### 다음 작업 (2026-08-11 기준)
+### 다음 작업 (2026-08-21 기준)
 
-**완료 (2026-07-13):** AdSense 「가치가 별로 없는 콘텐츠」 1차 조치 — style-guide·중복 LM Studio 비공개, 얇은 목록 페이지 noindex, 사이트맵 축소, 광고 1슬롯, About 페이지, AI 스케줄 일시 중단, 핵심 2024 글 확장.
-
-**완료 (2026-08-04 오전):** AI 자동 포스팅 cron 재개 — 7/13 이후 공백은 AdSense용 cron pause 원인.
-
-**완료 (2026-08-04 품질 우선):** 주 3회 직푸시 → **주 1회 deep-dive 초안 + PR 편집 검수**. ai-news 스케줄 제거. `direct_push` 기본 `false`.
-
-**완료 (2026-08-11):** **ai-news 완전 폐기** — 기존 4회×4언어 `published: false`, 생성·RSS 헬스 워크플로 제거, deep-dive only.
+**완료 (2026-08-21):** ai-news 콘텐츠·스크립트·UI 전부 삭제. 대기 PR #59 및 `ai-post-*` 브랜치 삭제. Actions 17개 → 8개로 축소.
 
 | 우선순위 | 할 일 | 비고 |
 |----------|--------|------|
-| **높음** | 매주 수 생성 PR을 편집 체크리스트로 검수 후 머지 (품질 게이트의 사람 단계) | 그대로 머지 금지 |
 | **높음** | AI deep-dive 상위 글 추가 수동 검수·실측 수치/경험 보강 | AdSense·신뢰 핵심 |
 | **높음** | Search Console 색인 확인 후 AdSense 사이트 검토 요청 | thin content 재발 주의 |
+| **높음** | 매주 수 생성 PR을 편집 체크리스트로 검수 후 머지 | 그대로 머지 금지 |
 | **나중** | (선택) `MY_PAT` Secret 제거 | App 안정화 후 |
-| **나중** | (선택) `generate_ai_news.py` 등 레거시 스크립트·테스트 삭제 | 동작 경로는 이미 차단 |
 
 ---
 
@@ -60,7 +53,6 @@ TODO.md와 README.md를 읽고 전체 상태를 파악해줘.
 현재 정책 (품질 우선):
 - GitHub App 설정 완료 (`GH_APP_ID` + `GH_APP_PRIVATE_KEY`), MY_PAT는 폴백
 - AI 글: 주 1회(수) deep-dive 초안 → PR → **사람 편집 후 머지** (직푸시 기본 끔)
-- ai-news: **폐기** (비공개, 생성 경로 없음)
 ```
 
 ### 4. 특정 작업 요청 시
@@ -98,7 +90,7 @@ cd e2e && npm ci && npx playwright test
 | 항목 | 내용 |
 |------|------|
 | 사이트 | Jekyll 4 다국어 기술 블로그 (ko 기본, en/ja/zh) |
-| AI 글 | **주 1회(수) deep-dive 초안** → PR (`scheduled_ai_post.yml`). **ai-news 폐기** |
+| AI 글 | **주 1회(수) deep-dive 초안** → PR (`scheduled_ai_post.yml`) |
 | 번역 묶음 | front matter `translation_key` |
 | 인증 | GitHub App 우선 (`setup-git-auth`), `MY_PAT` 폴백 |
 | 게시 | 콘텐츠 게이트 → **PR + 편집 검수** → 머지 후 Deploy (직푸시는 예외) |
@@ -110,12 +102,10 @@ cd e2e && npm ci && npx playwright test
 - en/ja/zh: `/{lang}/posts/{slug}/`
 - 태그 아카이브: `/archive/tag/{slug}/` 또는 `/{lang}/archive/tag/{slug}/`
 
-### ai-news (폐기, 2026-08-11)
+### 콘텐츠 정책
 
-- 기존 4개 에디션(×4언어) 전부 `published: false` — 사이트·사이트맵 미노출
-- `scheduled_ai_post`에서 ai-news 옵션·RSS dry-run 제거
-- `ai_news_health_check.yml` 삭제
-- 레거시 스크립트(`generate_ai_news.py` 등)는 저장소에 남을 수 있으나 **CI/스케줄 진입점 없음**
+- 신규 글은 `deep-dive`만 생성합니다.
+- 주 1회 초안 PR → 사람 편집 후 머지. 직푸시는 예외.
 
 ---
 
@@ -134,6 +124,8 @@ cd e2e && npm ci && npx playwright test
 | Git 인증 | `.github/actions/setup-git-auth/`, `verify-git-auth/` |
 | 배포 CI | `.github/workflows/jekyll.yml` |
 | 자동 포스팅 | `.github/workflows/scheduled_ai_post.yml` |
+| 주간 Ops | `.github/workflows/weekly_ops.yml` |
+| 주간 사이트 헬스 | `.github/workflows/weekly_site_health.yml` |
 | UI 문구·SEO 메타 | `_data/languages.yml` |
 | E2E | `e2e/tests/smoke.spec.ts` |
 | 폰트 서브셋 | `scripts/download_noto_font.py`, `scripts/check_font_subset.py` |
@@ -145,6 +137,7 @@ cd e2e && npm ci && npx playwright test
 
 | 커밋 | 요약 |
 |------|------|
+| (2026-08-21) | ai-news 삭제, 대기 PR 정리, Actions 17→8 |
 | `e415dae` | fix(refs): zh 참고문헌 파싱(`-*` 불릿) + 2건 정규화 — Deploy #28761998817 green |
 | `39eec16` | ai-news auto-repair (summary bullets, tone, front matter) — zh refs 미정규화로 CI 실패 잔존 |
 | `c9c7ee4` | ai-news reference sync·tone repair·watchdog 강화 |
@@ -174,6 +167,7 @@ cd e2e && npm ci && npx playwright test
 - [x] `scheduled_ai_post` cron 주석 처리, watchdog 수동·soft-pass (2026-07-13)
 - [x] AI 스케줄 cron 재개 후 **품질 우선으로 재설계** (주 1 deep-dive PR, ai-news 수동, direct_push 기본 false) (2026-08-04)
 - [x] **ai-news 완전 폐기** — 비공개 + 생성/헬스 워크플로 제거 (2026-08-11)
+- [x] **ai-news 파일·스크립트·테스트 삭제** + Actions 축소 (2026-08-21)
 - [x] 2024 핵심 글 확장: swap / Ubuntu 초기설정 / Node.js 설치 오류 (4개 언어)
 - [ ] 매주 PR 편집 검수 습관화 (실측·실패 사례 반영)
 - [ ] 배포 후 GSC 색인·1–2주 대기·AdSense 재검토

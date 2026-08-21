@@ -218,8 +218,8 @@ def load_post(path):
         raise ValueError("layout must be 'post'")
 
     post_type = str(metadata.get("post_type", "")).strip()
-    if post_type not in {"deep-dive", "ai-news"}:
-        raise ValueError("post_type must be 'deep-dive' or 'ai-news'")
+    if post_type != "deep-dive":
+        raise ValueError("post_type must be 'deep-dive'")
 
     tags = metadata["tags"]
     if not isinstance(tags, list) or not all(isinstance(tag, str) and tag.strip() for tag in tags):
@@ -422,7 +422,7 @@ def validate_posts(
 
 
 def audit_translation_completeness(posts_dir) -> list[str]:
-    """Report missing translations per post_type policy (deep-dive, ai-news, etc.)."""
+    """Report missing translations per post_type policy (deep-dive)."""
     errors = []
     translation_groups: dict[str, dict] = defaultdict(dict)
 

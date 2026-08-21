@@ -3,20 +3,12 @@ name: Scheduled AI Post Generation
 # Quality-first policy:
 # - Schedule: Wed 00:00 UTC → deep-dive draft only
 # - Default publish path: open PR for human editorial review (no auto merge)
-# - ai-news retired (2026-08-11): unpublished + no generation path
 # - Set direct_push=true only for intentional hotfixes / trusted catch-up
 on:
   schedule:
     - cron: '0 0 * * 3'
   workflow_dispatch:
     inputs:
-      post_type:
-        description: '생성할 글 유형 (deep-dive only; ai-news retired)'
-        required: false
-        default: 'deep-dive'
-        type: choice
-        options:
-          - deep-dive
       direct_push:
         description: 'true=gh-pages 직푸시 / false=PR만 (품질 우선 기본값)'
         required: false
@@ -109,20 +101,10 @@ jobs:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          POST_TYPE="${{ github.event.inputs.post_type || 'deep-dive' }}"
           echo "RUN_GENERATION=true" >> "$GITHUB_ENV"
-
-          # deep-dive only — ai-news pipeline retired for content quality.
-          if [ "$POST_TYPE" != "deep-dive" ] && [ "$POST_TYPE" != "auto" ]; then
-            echo "Unsupported post_type=$POST_TYPE (ai-news retired). Use deep-dive."
-            echo "RUN_GENERATION=false" >> "$GITHUB_ENV"
-            exit 1
-          fi
-
           SCRIPT="scripts/generate_post.py"
           COMMIT_MSG="Add auto-generated deep-dive post (draft for review)"
           PR_TITLE="📝 [편집 대기] 심층 기술 포스트 초안"
-          echo "POST_TYPE=deep-dive" >> "$GITHUB_ENV"
           echo "SCRIPT=$SCRIPT" >> "$GITHUB_ENV"
           echo "COMMIT_MSG=$COMMIT_MSG" >> "$GITHUB_ENV"
           echo "PR_TITLE=$PR_TITLE" >> "$GITHUB_ENV"

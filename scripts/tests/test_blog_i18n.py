@@ -19,20 +19,9 @@ class BlogI18nTests(unittest.TestCase):
             translation_langs_for_metadata({"post_type": "deep-dive"}),
             ("en", "ja", "zh"),
         )
-        self.assertEqual(
-            translation_langs_for_metadata({"post_type": "ai-news", "date": "2026-06-24"}),
-            ("en", "ja", "zh"),
-        )
-        self.assertEqual(
-            translation_langs_for_metadata({"post_type": "ai-news", "date": "2026-06-23"}),
-            ("en",),
-        )
 
     def test_infer_categories_defaults_to_devops(self):
         self.assertEqual(infer_categories({"tags": ["ubuntu"]}), ["DevOps"])
-
-    def test_infer_categories_detects_ai_news(self):
-        self.assertEqual(infer_categories({"post_type": "ai-news", "tags": []}), ["AI"])
 
     def test_infer_categories_detects_ai_tags(self):
         self.assertEqual(infer_categories({"tags": ["Ollama", "CLI"]}), ["AI"])
@@ -44,10 +33,10 @@ title: "원문"
 slug: sample-post
 lang: ko
 translation_key: sample-post
-post_type: ai-news
+post_type: deep-dive
 date: 2026-07-03 00:00:00 +0900
 categories: [AI]
-tags: [AI-News]
+tags: [Cursor]
 description: 원문
 image: /uploads/sample-post/thumbnail.webp
 ---

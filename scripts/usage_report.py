@@ -78,8 +78,6 @@ def infer_record_category(record: dict) -> str:
         return "image"
     if operation.startswith("translate"):
         return "translation"
-    if "ai-news" in slug or operation in {"generate_ai_news", "repair_ai_news"}:
-        return "ai-news"
     if operation in {"generate_post", "generate_deep_dive"}:
         return "deep-dive"
     return "other"

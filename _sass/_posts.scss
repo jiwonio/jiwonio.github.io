@@ -67,28 +67,6 @@
   line-height: 1.5;
 }
 
-.post-series {
-  margin: 0 0 .75rem;
-  font-size: .9rem;
-
-  &--footer {
-    margin: 2rem 0 0;
-    padding-top: 1rem;
-    border-top: 1px solid var(--color-border, rgba(127, 127, 127, .25));
-  }
-
-  a {
-    color: var(--color-muted);
-    text-decoration: none;
-
-    &:hover,
-    &:focus-visible {
-      color: var(--color-link);
-      text-decoration: underline;
-    }
-  }
-}
-
 .post-share {
   display: flex;
   align-items: center;

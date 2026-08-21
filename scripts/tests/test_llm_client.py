@@ -24,17 +24,6 @@ class LlmClientTests(unittest.TestCase):
         self.assertEqual(providers[0], "gemini")
         self.assertEqual(len(providers), 4)
 
-    def test_resolve_text_providers_ai_news_prefers_anthropic(self):
-        env = {
-            "GEMINI_API_KEY": "g",
-            "ANTHROPIC_API_KEY": "a",
-            "OPENAI_API_KEY": "o",
-            "XAI_API_KEY": "x",
-        }
-        with patch.dict(os.environ, env, clear=True):
-            providers = resolve_text_providers("ai-news")
-        self.assertEqual(providers[0], "anthropic")
-
     def test_resolve_text_providers_honors_override(self):
         env = {
             "GEMINI_API_KEY": "g",
@@ -47,7 +36,7 @@ class LlmClientTests(unittest.TestCase):
 
     def test_resolve_text_providers_skips_missing_keys(self):
         with patch.dict(os.environ, {"GEMINI_API_KEY": "g"}, clear=True):
-            providers = resolve_text_providers("ai-news")
+            providers = resolve_text_providers("deep-dive")
         self.assertEqual(providers, ["gemini"])
 
     def test_pick_provider_for_attempt_rotates(self):

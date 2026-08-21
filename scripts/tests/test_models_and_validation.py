@@ -5,10 +5,6 @@ from blog_i18n import infer_ai_generated
 from validate_posts import validate_language_content, prose_body
 
 class ModelsAndValidationTests(unittest.TestCase):
-    def test_infer_ai_generated_for_ai_news(self):
-        metadata = {"post_type": "ai-news", "categories": ["AI"]}
-        self.assertTrue(infer_ai_generated(metadata, Path("_posts/ko/2026/2026-06-23-ai-news.md")))
-
     def test_infer_ai_generated_for_recent_ai_deep_dive(self):
         metadata = {"post_type": "deep-dive", "categories": ["AI"]}
         path = Path("_posts/ko/2026/2026-06-22-ollama-self-hosted-language-model-runner.md")

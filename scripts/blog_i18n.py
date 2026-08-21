@@ -100,10 +100,7 @@ TRANSLATION_ATTRIBUTION_PATTERN = re.compile(
 )
 TRANSLATION_LANGS_BY_TYPE = {
     "deep-dive": ("en", "ja", "zh"),
-    "ai-news": ("en", "ja", "zh"),
 }
-# 이 날짜 이전 ai-news는 en만 요구 (기존 글 호환). 이후 생성분은 en/ja/zh.
-AI_NEWS_FULL_I18N_START = "2026-06-24"
 LANG_LABELS = {
     "en": "English",
     "ja": "Japanese",
@@ -112,13 +109,7 @@ LANG_LABELS = {
 
 def translation_langs_for_metadata(metadata: dict) -> tuple[str, ...]:
     post_type = str(metadata.get("post_type", "deep-dive")).strip()
-    langs = TRANSLATION_LANGS_BY_TYPE.get(post_type, TRANSLATION_LANGS)
-    if post_type == "ai-news":
-        date_raw = metadata.get("date")
-        date_str = str(date_raw)[:10] if date_raw else ""
-        if date_str and date_str < AI_NEWS_FULL_I18N_START:
-            return ("en",)
-    return langs
+    return TRANSLATION_LANGS_BY_TYPE.get(post_type, TRANSLATION_LANGS)
 
 
 def detect_lang_from_path(path: str | Path) -> str:
@@ -255,10 +246,6 @@ def infer_ai_generated(metadata: dict, path: Path) -> bool:
     if metadata.get("ai_generated") is False:
         return False
 
-    post_type = str(metadata.get("post_type", "deep-dive")).strip()
-    if post_type == "ai-news":
-        return True
-
     try:
         date_prefix = resolve_date_prefix(path)
     except ValueError:
@@ -302,10 +289,6 @@ def infer_categories(metadata: dict) -> list[str]:
     if isinstance(categories, list) and categories:
         return [str(category).strip() for category in categories if str(category).strip()]
 
-    post_type = str(metadata.get("post_type", "deep-dive")).strip()
-    if post_type == "ai-news":
-        return ["AI"]
-
     tags = [str(tag).casefold() for tag in metadata.get("tags", [])]
     ai_markers = (
         "ai", "llm", "copilot", "cursor", "ollama", "gemini", "langchain",
@@ -346,8 +329,6 @@ def prepare_ko_post_content(path: Path) -> str:
 
 def build_translation_prompt(source_content: str, target_lang: str, slug: str) -> str:
     label = LANG_LABELS[target_lang]
-    metadata = parse_front_matter(source_content)
-    post_type = str(metadata.get("post_type", "deep-dive")).strip()
     ref_urls = extract_reference_urls(source_content)
     translation_input = strip_references_section(source_content)
     urls_note = ""
@@ -357,14 +338,6 @@ def build_translation_prompt(source_content: str, target_lang: str, slug: str) -
             "Keep these reference URLs unchanged:\n"
             + "\n".join(f"  - {url}" for url in ref_urls)
         )
-    tone_note = ""
-    if post_type == "ai-news":
-        tone_note = (
-            "- Preserve the polite blog register of the Korean source in {label} "
-            "(natural formal tone: English professional but conversational; "
-            "Japanese です・ます; Chinese 正式而自然的书面语气). "
-            "Do not flatten into headline-style plain narration.\n"
-        ).format(label=label)
     return f"""
 You are a senior technical translator. Translate the Jekyll blog post below into {label}.
 
@@ -376,7 +349,6 @@ Rules:
 - Translate title, description, and all prose. Keep code blocks unchanged.
 - Preserve a natural first-person blog voice. Avoid stiff self-introductions like "I am a senior full-stack developer and tech blogger."
 - Use concise declarative sentences. Avoid overly formal or repetitive phrasing.
-{tone_note}
 - Preserve marker lines exactly as standalone lines: <!--more-->, -----
 - Do not output [HERO_IMAGE]; keep hero images that already exist in the body.
 - Keep markdown internal links like [title](/posts/exact-slug/) unchanged (do not shorten or rewrite slugs).

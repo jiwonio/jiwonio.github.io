@@ -6,14 +6,13 @@ from post_common import (
     count_markdown_internal_links,
     drop_broken_reference_urls,
     has_standalone_line,
-    repair_ai_news_structure,
     repair_hero_image_placeholder,
     repair_internal_links,
     repair_internal_post_slugs,
     resolve_internal_post_slug,
 )
 
-class AiNewsRepairTests(unittest.TestCase):
+class PostRepairTests(unittest.TestCase):
     def test_repair_hero_image_placeholder_inserts_block(self):
         content = """---
 layout: post
@@ -47,22 +46,6 @@ layout: post
         self.assertGreaterEqual(count_markdown_internal_links(repaired), 2)
         self.assertIn("/posts/docker-guide/", repaired)
         self.assertLess(repaired.index("## 관련 블로그 글"), repaired.index("### 참고문헌"))
-
-    def test_repair_ai_news_structure_combines_fixes(self):
-        content = """---
-layout: post
----
-<!--more-->
-## 1. News
-body text
-
-### 참고문헌
-- [a](https://example.com)
-"""
-        candidates = [{"url": "/posts/foo/", "title": "Foo"}]
-        repaired = repair_ai_news_structure(content, candidates)
-        self.assertTrue(has_standalone_line(repaired, "[HERO_IMAGE]"))
-        self.assertGreaterEqual(count_markdown_internal_links(repaired), 1)
 
     def test_resolve_truncated_internal_slug(self):
         ko_slugs = {

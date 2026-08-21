@@ -54,7 +54,6 @@ DEFAULT_COST_PER_1M = {"input": 1.0, "output": 3.0}
 # post_type별 1차 provider + 폴백 순서
 POST_TYPE_TEXT_PROVIDERS = {
     "deep-dive": ("gemini", "anthropic", "openai", "xai"),
-    "ai-news": ("anthropic", "openai", "xai", "gemini"),
 }
 
 TRANSLATION_PROVIDER_CHAIN = ("gemini", "anthropic", "openai", "xai")

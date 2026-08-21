@@ -36,13 +36,8 @@ _posts/
 
 ### 포스트 유형 (`post_type`)
 
-| `post_type` | 설명 | 자동 번역 대상 |
-|-------------|------|----------------|
-| `deep-dive` | 심층 기술 글 (기본값·유일한 신규 유형) | en, ja, zh |
-| `ai-news` | **폐기** — 기존 다이제스트는 `published: false` (사이트 미노출) | — |
-
-신규 글은 `deep-dive`만 생성합니다. ai-news 파이프라인·스케줄·수동 발행은 2026-08-11에 종료했습니다 (콘텐츠 품질·AdSense 대응).  
-`validate_posts.py --audit-translations`로 post_type별 번역 누락을 주간 점검합니다.
+모든 글은 `deep-dive`입니다. 한국어 원문을 en/ja/zh로 번역합니다.  
+`validate_posts.py --audit-translations`로 번역 누락을 점검합니다.
 
 ### URL 규칙
 
@@ -61,20 +56,11 @@ _posts/
 |----------|--------------|------|
 | `jekyll.yml` | push/PR → `gh-pages` | **유일한 full site 게이트** + unittest + IndexNow |
 | `scheduled_ai_post.yml` | **수 00:00** | deep-dive **초안** → 콘텐츠 게이트 → **PR (편집 대기)**; `direct_push` 기본 `false` |
-| `url_check.yml` | 일 04:00 | 참고문헌·본문 외부 URL HEAD 전수 검증 |
-| `lighthouse.yml` | 일 06:00 | 홈 Lighthouse (80% 미만 Slack) |
-| `indexnow_audit.yml` | 토 05:00 | IndexNow 키·최근 URL 재제출 |
-| `llm_usage_weekly.yml` | 토 07:00 | 주간 LLM 비용 Slack |
-| `llm_usage_daily.yml` | 매일 08:00 | 일일 예산 점검 |
-| `ops_digest_weekly.yml` | 토 08:00 | 주간 Ops 요약 (번역 갭 포함) |
-| `sync_maintenance.yml` | 수 05:00 | 이미지·날짜 동기화 → 직푸시 |
-| `deep_dive_health_check.yml` | 일 06:00 | deep-dive `--dry-run` (수 초안 전) |
-| `schedule_watchdog.yml` | **목 08:00** | 주간 초안 파이프라인 생존 (14일 창, gh-pages 당일 글 불필요) |
-| `thumbnail_check.yml` | **매월 1일** 07:00 | 누락 썸네일 안전망 |
-| `translation_audit.yml` | **매월 1일** 05:00 | 번역 완전성 월간 감사 |
-| `content_quality_audit.yml` | 토 06:00 | 콘텐츠 품질·포스트 발견성 (Pagefind full rebuild 없음) |
+| `sync_maintenance.yml` | 수 05:00 | 이미지·날짜·폰트·누락 썸네일 동기화 → 직푸시 |
+| `weekly_ops.yml` | 토 06:00 | 번역·URL·품질·IndexNow·LLM 비용·watchdog |
+| `weekly_site_health.yml` | 일 06:00 | 홈 Lighthouse (80% 미만 Slack) + `generate_post.py --dry-run` |
+| `e2e.yml` | 토 08:00 | 프로덕션 Playwright 스모크 (`e2e/**` PR도) |
 | `backfill_translations.yml` | 수동 | 누락 번역 백필 → 직푸시 |
-| `e2e.yml` | 토 08:00 | 프로덕션 Playwright 스모크 |
 | `dependabot_automerge.yml` | Dependabot PR | CI green 시 자동 머지 |
 
 ### LLM 라우팅
@@ -94,7 +80,7 @@ _posts/
 
 | 원칙 | 내용 |
 |------|------|
-| 빈도 | 주 1회 deep-dive 초안 (수 00:00 UTC). **ai-news 폐기** |
+| 빈도 | 주 1회 deep-dive 초안 (수 00:00 UTC) |
 | 기본 게시 | **PR only** (`direct_push` 기본 `false`). 스케줄 실행은 항상 PR |
 | 직푸시 | 수동 실행에서 `direct_push=true`일 때만 (예외) |
 | 머지 기준 | 실측·실패 사례·경험 보강 후 (PR 본문 체크리스트) |
@@ -168,7 +154,7 @@ python scripts/validate_posts.py
 # post_type별 번역 완전성 점검
 python scripts/validate_posts.py --audit-translations
 
-# 참고문헌 URL HEAD 검증 (네트워크 필요, 주간 url_check.yml과 동일)
+# 참고문헌 URL HEAD 검증 (네트워크 필요, 주간 weekly_ops.yml과 동일)
 python scripts/validate_posts.py --check-ref-urls --check-external-urls
 
 # LLM 사용량 요약
@@ -209,7 +195,6 @@ Actions 탭 → **Scheduled AI Post Generation** → Run workflow
 
 | 입력 | 권장값 |
 |------|--------|
-| `post_type` | `deep-dive` (유일한 옵션) |
 | `direct_push` | 기본 `false` (PR + 편집 검수; `true`면 직푸시 예외) |
 | `edition_date` | 백필 시 `YYYY-MM-DD` |
 

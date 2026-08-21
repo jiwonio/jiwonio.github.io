@@ -39,9 +39,6 @@ ko:
     light: "라이트 모드"
     dark: "다크 모드"
     click_to_change: "클릭하여 변경"
-  ai_news_series:
-    label: "AI News 시리즈"
-    path: "/archive/tag/ai-news/"
   pagination:
     older: "이전 글"
     newer: "최신 글"
@@ -119,9 +116,6 @@ en:
     light: "Light mode"
     dark: "Dark mode"
     click_to_change: "Click to change"
-  ai_news_series:
-    label: "AI News series"
-    path: "/en/archive/tag/ai-news/"
   pagination:
     older: "Older"
     newer: "Newer"
@@ -199,9 +193,6 @@ ja:
     light: "ライトモード"
     dark: "ダークモード"
     click_to_change: "クリックして変更"
-  ai_news_series:
-    label: "AI News シリーズ"
-    path: "/ja/archive/tag/ai-news/"
   pagination:
     older: "古い記事"
     newer: "新しい記事"
@@ -279,9 +270,6 @@ zh:
     light: "浅色模式"
     dark: "深色模式"
     click_to_change: "点击切换"
-  ai_news_series:
-    label: "AI News 系列"
-    path: "/zh/archive/tag/ai-news/"
   pagination:
     older: "较早文章"
     newer: "较新文章"

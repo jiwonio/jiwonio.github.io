@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 from audit_content_quality import audit_informal_style, audit_title_similarity
-from audit_discoverability import audit_ai_news_series, audit_internal_links
+from audit_discoverability import audit_internal_links
 from validate_posts import validate_translation_structure
 
 
@@ -88,26 +88,6 @@ class AuditScriptTests(unittest.TestCase):
         ]
         warnings = audit_informal_style(posts)
         self.assertTrue(any("informal Korean" in warning for warning in warnings))
-
-    def test_audit_ai_news_series_requires_tag(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            posts_dir = Path(tmp) / "_posts"
-            write_post(
-                posts_dir,
-                "ko/2026/2026-06-01-ai-news.md",
-                KO_BASE.replace("post_type: deep-dive", "post_type: ai-news").replace(
-                    "tags:\n- sample", "tags:\n- news"
-                ),
-            )
-            warnings = audit_ai_news_series(posts_dir)
-            self.assertTrue(any("ai-news tag missing" in warning for warning in warnings))
-
-    def test_audit_ai_news_series_allows_zero_after_retirement(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            posts_dir = Path(tmp) / "_posts"
-            write_post(posts_dir, "ko/2026/2026-06-01-sample.md", KO_BASE)
-            warnings = audit_ai_news_series(posts_dir)
-            self.assertEqual(warnings, [])
 
     def test_audit_internal_links_reports_orphans(self):
         with tempfile.TemporaryDirectory() as tmp:

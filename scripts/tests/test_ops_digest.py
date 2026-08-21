@@ -13,10 +13,6 @@ from ops_digest import (
 class OpsDigestTests(unittest.TestCase):
     def test_classify_post_file(self):
         self.assertEqual(
-            classify_post_file("_posts/ko/2026/2026-06-25-ai-news-2026-06-25.md"),
-            "ai-news",
-        )
-        self.assertEqual(
             classify_post_file("_posts/ko/2026/2026-06-17-cursor-ide.md"),
             "deep-dive",
         )
@@ -130,7 +126,6 @@ class OpsDigestTests(unittest.TestCase):
                 "similarity": [],
                 "informal_style": [],
                 "overused_tokens": [],
-                "ai_news_urls": [],
             },
         }
         text = format_digest(digest)

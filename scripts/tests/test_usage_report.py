@@ -105,7 +105,7 @@ class UsageReportTests(unittest.TestCase):
         )
         self.assertTrue(
             is_production_llm_record(
-                {"operation": "translate_en", "slug": "ai-news-2026-06-25", "input_chars": 100}
+                {"operation": "translate_en", "slug": "cursor-pr-review-reduction", "input_chars": 100}
             )
         )
         self.assertTrue(
@@ -130,8 +130,8 @@ class UsageReportTests(unittest.TestCase):
             "translation",
         )
         self.assertEqual(
-            infer_record_category({"operation": "generate_post", "slug": "ai-news-2026-06-25"}),
-            "ai-news",
+            infer_record_category({"operation": "generate_post", "slug": "cursor-pr-review-reduction"}),
+            "deep-dive",
         )
         self.assertEqual(
             infer_record_category({"operation": "generate_thumbnail", "slug": "my-post"}),
