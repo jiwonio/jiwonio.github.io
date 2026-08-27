@@ -1,6 +1,6 @@
 PyYAML>=6.0.3,<7
 fonttools[woff]>=4.63.0,<5
 google-genai>=2.10.0,<3
-anthropic>=0.40,<1
+anthropic>=0.40,<2
 openai>=2.43.0,<4
 Pillow>=12.2.0,<13

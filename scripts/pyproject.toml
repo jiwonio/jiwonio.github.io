@@ -10,7 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
     "PyYAML>=6.0.3,<7",
     "google-genai>=2.10.0,<3",
-    "anthropic>=0.40,<1",
+    "anthropic>=0.40,<2",
     "openai>=2.43.0,<4",
     "Pillow>=12.2.0,<13",
 ]
