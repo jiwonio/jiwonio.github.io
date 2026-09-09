@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jwjp-blog-scripts"
 version = "0.1.0"
-description = "Automation scripts for blog.jiwon.io"
+description = "Automation scripts for the jwjp.github.io blog archive"
 requires-python = ">=3.11"
 dependencies = [
     "PyYAML>=6.0.3,<7",
